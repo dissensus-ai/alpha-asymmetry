@@ -1,5 +1,5 @@
 RECOMPUTATION RESULTS
-Generated: 2026-02-14 05:27:43
+Generated: 2026-06-18 17:28:18
 Total observations: 504
 
 TABLE 7 (Threshold Sensitivity):

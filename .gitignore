@@ -28,3 +28,9 @@ venv/
 # Tarballs and copies
 *.tar.gz
 *\ (Copy).*
+
+# Internal review/panel materials — never publish
+_reviews/
+_panel/
+_triage/
+.pre-voicepass-backup/
