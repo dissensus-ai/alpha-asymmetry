@@ -49,8 +49,11 @@ from scipy import stats
 warnings.filterwarnings("ignore")
 np.random.seed(42)
 
-OUT_TXT = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.txt"
-OUT_JSON = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.json"
+from pathlib import Path
+
+BASE = Path(__file__).resolve().parent
+OUT_TXT = BASE / "full_pipeline_results.txt"
+OUT_JSON = BASE / "full_pipeline_results.json"
 
 RESULTS = {}
 LINES = []
