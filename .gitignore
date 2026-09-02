@@ -24,6 +24,10 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+analysis/cache/
+.matplotlib/
+.tools/
+tmp/
 
 # Tarballs and copies
 *.tar.gz

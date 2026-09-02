@@ -1,83 +1,24 @@
 ================================================================================
-ALPHA-ASYMMETRY FULL PIPELINE
-Generated: 2026-07-07 18:58:01
+ALPHA-ASYMMETRY CORRECTED REPLICATION PIPELINE
+Generated UTC: 2026-09-02T10:15:24.306526+00:00
+Timing: Friday-close signal, one shift, next Friday-close return
 ================================================================================
-
-[1] Downloading data...
-  EURJPY: 2930 daily obs (2014-06-02 .. 2025-08-29)
-  DXY: 2831 daily obs (2014-06-02 .. 2025-08-29)
-  VIX: 2830 daily obs (2014-06-02 .. 2025-08-29)
-  AUDJPY: 2931 daily obs (2014-06-02 .. 2025-08-29)
-  NZDJPY: 2929 daily obs (2014-06-02 .. 2025-08-29)
-
-[2] Weekly analysis sample: n=504 (2016-01-08 .. 2025-08-29)
-
-[3] Table 4 reproduction (threshold=0.75, full sample):
-  Return=3.60%  Sharpe=0.149  MDD=-7.96%  Trades=17  Hit=48.0%
-
-[4] Tables 1-3: moments and tests on true n...
-  tail_alpha      n=504 skew= -1.47 t= -13.5 (SE=0.109) exkurt=  19.00 JB=     7759 K2=  244.4 LB4=   12.6(p=0.013) skewCI(block)=[-3.09,0.54] AI=0.17 PNR=2.8
-  fast_alpha      n=504 skew=  0.01 t=   0.1 (SE=0.109) exkurt=  -0.00 JB=        0 K2=    0.0 LB4=    6.5(p=0.163) skewCI(block)=[-0.21,0.21] AI=0.96 PNR=52.0
-  pricing_alpha   n=504 skew= -0.17 t=  -1.5 (SE=0.109) exkurt=  -0.73 JB=       13 K2=   30.1 LB4=  679.1(p=0.000) skewCI(block)=[-0.44,0.09] AI=0.80 PNR=57.5
-  coverage_alpha  n=504 skew=  1.75 t=  16.0 (SE=0.109) exkurt=   7.57 JB=     1459 K2=  217.6 LB4=   72.6(p=0.000) skewCI(block)=[1.17,2.15] AI=3.45 PNR=53.2
-  hedge_alpha     n=504 skew=  0.15 t=   1.3 (SE=0.109) exkurt=  -0.52 JB=        8 K2=   11.7 LB4= 1716.2(p=0.000) skewCI(block)=[-0.25,0.54] AI=1.40 PNR=53.6
-
-[5] Table 5 REBUILD: walk-forward OOS (expanding train, threshold by train Sharpe)...
-  2018: train->1.00  OOS ret=  0.00%  Sharpe= 0.00  hit=---%  trades=0
-  2019: train->1.00  OOS ret=  0.00%  Sharpe= 0.00  hit=---%  trades=0
-  2020: train->1.00  OOS ret=  0.60%  Sharpe= 0.52  hit=50.0%  trades=1
-  2021: train->1.00  OOS ret=  1.85%  Sharpe= 1.04  hit=66.7%  trades=2
-  2022: train->1.00  OOS ret=  0.00%  Sharpe= 0.00  hit=---%  trades=0
-  2023: train->1.00  OOS ret=  0.00%  Sharpe= 0.00  hit=---%  trades=0
-  2024: train->1.00  OOS ret=  0.00%  Sharpe= 0.00  hit=---%  trades=0
-  2025: train->1.00  OOS ret=  0.00%  Sharpe= 0.00  hit=---%  trades=0
-  POOLED: cum=2.46% (ann=0.32%)  Sharpe=0.42  trades=3  hit=60.0%
-
-[6] Table 8 REBUILD: factor regression (proxy factors, NW-HAC)...
-  [full sample incl. flat weeks] n=491  R2=0.001  F=0.48
-    const   b= 0.00008  t= 0.48  p=0.629
-    carry   b=-0.00070  t=-0.05  p=0.960
-    mom     b=-0.00696  t=-0.37  p=0.710
-    dollar  b=-0.01232  t=-0.83  p=0.407
-  [in-position weeks only] n=25  R2=0.067  F=0.62
-    const   b= 0.00298  t= 0.67  p=0.506
-    carry   b= 0.06712  t= 0.14  p=0.886
-    mom     b=-0.24705  t=-0.51  p=0.609
-    dollar  b=-0.50214  t=-0.84  p=0.402
-  In-position weeks: 25 of 491 (effective N)
-
-[7] Table 10 REBUILD: transaction costs (carry excluded uniformly)...
-  Zero Cost (Baseline)    0.0 pips  net=  3.60%  Sharpe=0.149
-  Prime Brokerage         0.3 pips  net=  3.54%  Sharpe=0.147
-  Institutional           0.7 pips  net=  3.47%  Sharpe=0.144
-  Retail (Tight)          1.3 pips  net=  3.35%  Sharpe=0.140
-  Retail (Wide)           2.0 pips  net=  3.22%  Sharpe=0.135
-  Break-even: 19.2 pips round-trip
-
-[8] Table 11 REBUILD: White RC + Hansen SPA (stationary bootstrap, l=4, B=1000)...
-  Universe: 13 strategies x 504 weeks
-  White RC: stat=0.020  p=0.150
-  Hansen SPA: stat=1.902  p=0.280
-  Best candidate by mean return: random
-
-[9] Table 9: EVT tail fit + extremal index with valid bootstrap CI...
-  Exceedances (|r|>q95=2.44%): 26
-  Ferro-Segers theta=0.830  95% CI=[0.595, 1.000]  (bootstrap on inter-exceedance times, B=2000)
-  Clusters: 20 (run length 5); GPD xi=-0.248 CI=[-1.62, 0.25] sigma=0.0089  KS p=0.971
-
-[10] Sec 3.3: stationary-bootstrap CIs for annualized return + Sharpe (l=4, B=2000)...
-  Annualized return: point=0.37%  95% CI=[-1.14%, 2.12%]
-  Annualized Sharpe: point=0.149  95% CI=[-0.53, 0.66]
-
-[11] Table 3 REBUILD: benchmarks on the same weekly plumbing as Table 11...
-  asymmetry      ret=   3.60%  vol= 2.69%  Sharpe= 0.149  Sortino= 0.062  MDD=  -7.96%  trades=17
-  momentum_20w   ret= -18.92%  vol= 8.40%  Sharpe=-0.215  Sortino=-0.309  MDD= -31.32%  trades=27
-  meanrev_2.0    ret=  10.74%  vol= 3.02%  Sharpe= 0.364  Sortino= 0.198  MDD=  -4.32%  trades=27
-  buy_hold       ret=  33.53%  vol= 8.60%  Sharpe= 0.390  Sortino= 0.584  MDD= -15.78%  trades=1
-  Sanity: EURJPY spot move over sample = 33.53% (128.42 -> 171.47); buy & hold cum = 33.53%
-
-[12] Table 4 REBUILD: cross-market check (identical alpha construction)...
-  EURJPY  n=504  tail= -1.47  fast=  0.01  pricing= -0.17  coverage=  1.75  strat=   3.60% (17 trades)  B&H=  33.53%
-  GBPUSD  n=504  tail=  0.82  fast=  0.01  pricing= -0.14  coverage=  1.57  strat=  17.18% (22 trades)  B&H=  -7.63%
-  SPY     n=504  tail=  0.94  fast= -0.20  pricing= -1.08  coverage=  1.84  strat=  11.66% (5 trades)  B&H= 294.30%
-  GLD     n=504  tail=  0.69  fast= -0.00  pricing= -0.19  coverage=  1.32  strat= -30.26% (18 trades)  B&H= 200.97%
+EURJPY : 2930 rows, 2014-06-02 to 2025-08-29, sha256=c62f3aaf089b...
+DXY    : 2831 rows, 2014-06-02 to 2025-08-29, sha256=af00ef5a347e...
+VIX    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=d96e89db2996...
+AUDJPY : 2931 rows, 2014-06-02 to 2025-08-29, sha256=1bd0b828c5e1...
+NZDJPY : 2929 rows, 2014-06-02 to 2025-08-29, sha256=c10dfbe05151...
+GBPUSD : 2929 rows, 2014-06-02 to 2025-08-29, sha256=af4fa870ae18...
+SPY    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=34e3303f425a...
+GLD    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=109bae50c452...
+LIMITATION: original raw snapshots were not committed; exact numerical reproduction of the archived run cannot be claimed.
+Analysis-ready weekly sample: n=504, 2016-01-08 to 2025-08-29
+tail_alpha      skew= -1.48 CI=[-3.10,0.54] AI=0.03
+fast_alpha      skew=  0.01 CI=[-0.21,0.21] AI=0.98
+pricing_alpha   skew= -0.17 CI=[-0.45,0.09] AI=0.77
+coverage_alpha  skew=  1.75 CI=[1.18,2.16] AI=2.22
+hedge_alpha     skew=  0.15 CI=[-0.25,0.54] AI=1.01
+Baseline: return=-7.57% Sharpe=-0.173 episodes=15 legs=30 reversals=1 turnover=49.15
+Regime rows: low VIX=342, high VIX=162 (classified after one full run)
+White RC p=0.150; SPA p=0.262; best candidate=random_candidate
+Outputs: analysis
