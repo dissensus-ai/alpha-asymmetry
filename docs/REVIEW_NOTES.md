@@ -195,6 +195,87 @@ estimate (t = −3.53) is the one that carries weight.
 
 ---
 
+## Step 1 — Data verification (download and hash comparison)
+
+**Originator:** Tofig (instruction), Claude (execution). **Verification only; no
+analysis result changed.**
+
+### Environment
+
+Reproduced from `requirements.txt` at the exact pins: Python 3.12.14, numpy
+2.5.2, pandas 3.0.5, scipy 1.18.1, statsmodels 0.15.0, yfinance 1.7.0,
+matplotlib 3.11.1. The manifest records Python 3.12.13; the difference is
+patch-level. Baseline `pytest`: **11 passed**.
+
+### Hash comparison against `analysis/data_manifest.json`
+
+Fresh download 2026-09-02 ~15:45 UTC, versus the manifest's recorded run of
+2026-09-02 ~10:05 UTC.
+
+| Series | SHA-256 | Rows | Last date |
+|---|---|---|---|
+| EURJPY | match | 2930 | 2025-08-29 |
+| DXY | match | 2831 | 2025-08-29 |
+| VIX | match | 2830 | 2025-08-29 |
+| AUDJPY | match | 2931 | 2025-08-29 |
+| NZDJPY | match | 2929 | 2025-08-29 |
+| GBPUSD | match | 2929 | 2025-08-29 |
+| **SPY** | **differs** | 2830 | 2025-08-29 |
+| GLD | match | 2830 | 2025-08-29 |
+
+Seven of eight reproduce byte-for-byte. This is a stronger reproducibility
+result than expected and is worth stating in the PR: the FX and index series
+are stable at the byte level across independent fetches.
+
+SPY is the exception, and the cause is structural rather than accidental. SPY
+is downloaded with `auto_adjust=True`, so its entire price history is
+back-adjusted by dividend factors. Any distribution recorded between two
+fetches rescales every historical row. The FX crosses pay no dividends and are
+unaffected; GLD is non-distributing over the window.
+
+### Impact of the SPY difference: none at reporting precision
+
+The complete pipeline was rerun on the fresh data and its output compared
+value-by-value against the committed `analysis/full_pipeline_results.json`.
+Exactly five values differ, all confined to the SPY cross-market row:
+
+| Value | Committed | Rerun | Rounds to |
+|---|---|---|---|
+| SPY strategy return | 13.18273 % | 13.18263 % | 13.18 % |
+| SPY tail skew | 0.9421965 | 0.9421603 | 0.94 |
+| SPY fast skew | −0.2050038 | −0.2050027 | −0.21 |
+| SPY pricing skew | −1.0860243 | −1.0860238 | −1.09 |
+| SPY coverage skew | 1.8501188 | 1.8501217 | 1.85 |
+
+Every other number in the file is identical, including the entire EUR/JPY
+analysis. SPY buy-and-hold is unchanged, as expected: a uniform rescaling
+leaves percentage returns invariant. The residual differences are rounding
+noise in the stored adjusted prices, not a change in the data's economic
+content. **No figure printed in the manuscript changes.**
+
+### Constraint checks on the rerun
+
+- Sample: n = 504, 2016-01-08 to 2025-08-29. ✔
+- Identity 1, factor intercept vs. strategy mean weekly return:
+  −0.00013783 vs. −0.00013928, difference 1.4e−06. **Holds.**
+- Identity 2, low-VIX × high-VIX compounding to full sample:
+  (1 − 0.05778836)(1 − 0.01904606) − 1 = −7.573378 %, against a full-sample
+  −7.573378 %. Difference 4e−14 percentage points. **Holds.**
+
+### EX-3 resolved: the Monday-open claim is false
+
+The downloaded EUR/JPY frame carries the columns
+`['Close', 'High', 'Low', 'Open', 'Volume']`. Monday's opening price is present
+in the dataset. The manuscript's assertion that "Monday opening prices are not
+present in the dataset" is incorrect as written.
+
+Decision (Tofig): correct the claim in this pull request — state that the
+Friday-close proxy is a deliberate choice, not a data limitation — and place
+the implementation of Monday-open execution on the backlog rather than
+expanding this change.
+
+---
+
 ## Backlog — out of scope for this pull request
 
 Recorded so they are not lost. None of these are actioned here.
