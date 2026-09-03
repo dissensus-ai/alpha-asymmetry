@@ -274,6 +274,53 @@ Friday-close proxy is a deliberate choice, not a data limitation — and place
 the implementation of Monday-open execution on the backlog rather than
 expanding this change.
 
+### Step 1 changes made
+
+**Originator:** Tofig (decision), Claude (execution). **No analysis result
+changed — verified by rerunning the pipeline before and after and diffing every
+value: zero differences.** `pytest`: 11 passed.
+
+1. **`analysis/cache/` stays in `.gitignore`; the CSVs are not committed.**
+   Yahoo Finance data may carry redistribution terms, which is why the line was
+   there in the first place (`analysis/data_access.py` says so explicitly). That
+   is the repository owner's call to make knowingly, not an outside
+   contributor's to make silently inside a correctness PR. Raised in the PR text
+   instead.
+
+2. **New `analysis/fetch_data.py`.** Downloads the eight series and checks each
+   file's SHA-256 against the committed manifest, reporting expected and
+   unexpected differences separately and exiting non-zero only on the latter.
+   This is what makes a fresh clone self-service: the inputs are fetchable and
+   checkable without the raw files being republished here.
+
+3. **`HASH_STABILITY` recorded in `analysis/data_access.py` and in the
+   manifest.** Each series is now labelled with whether its bytes can be
+   expected to reproduce. Six are FX spot rates or index levels, which carry no
+   corporate-action adjustment and so cannot drift; GLD made no cash
+   distribution in the window; SPY is a distributing ETF fetched with
+   `auto_adjust=True` and is the only file in the set that can change. The
+   committed `data_manifest.json` was *annotated* with these fields — no
+   recorded hash or timestamp was altered, so it remains the record of the run
+   that produced the committed results.
+
+4. **The pipeline no longer overwrites the reference manifest.**
+   `full_pipeline.py` wrote its observed manifest over
+   `analysis/data_manifest.json`. That destroyed the very file `fetch_data.py`
+   compares against: after one pipeline run a reader would have been checking
+   their data against their own data. The run-time manifest now goes to
+   `data_manifest.observed.json` (gitignored) and the committed manifest stays
+   the reference. Originated by Claude; a defect in the Codex branch, not in
+   Murad's original, which had no manifest at all.
+
+5. **README "Data" section rewritten** to state that the raw CSVs are not
+   committed and why, and to set the correct expectation that seven of eight
+   hashes reproduce and SPY does not.
+
+Note on wording, for accuracy in review: it is six series that structurally
+cannot drift, not six *FX pairs* — four FX crosses (EURJPY, AUDJPY, NZDJPY,
+GBPUSD) plus two index levels (DXY, VIX). GLD is a seventh that is stable in
+this window without being structurally guaranteed.
+
 ---
 
 ## Backlog — out of scope for this pull request

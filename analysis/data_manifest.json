@@ -4,6 +4,11 @@
   "requested_end_exclusive": "2025-09-01",
   "original_snapshot_available": false,
   "original_snapshot_note": "The repository did not contain the raw files used for the committed results; hashes identify this replication run only.",
+  "hash_stability_legend": {
+    "stable": "FX spot rate or index level: no corporate-action adjustment exists, so the file hash is expected to reproduce exactly on any later download.",
+    "stable_in_window": "Adjusted series that made no cash distribution over the requested window, so the hash is expected to reproduce, but not structurally guaranteed to the way an unadjusted series is.",
+    "drifts_with_distributions": "Distributing fund requested with auto_adjust=True: every new distribution rescales the entire stored history, so the hash is expected to change between downloads that straddle one. Percentage returns are invariant to that rescaling; only the stored price level and therefore the file bytes move."
+  },
   "software": {
     "python": "3.12.13",
     "numpy": "2.5.2",
@@ -20,6 +25,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:25.277706+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "c62f3aaf089b3d3ad53800760139b6edbef01c0efc96f56f24721bc47f2c0f2d",
+      "hash_stability": "stable",
       "rows": 2930,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -31,6 +37,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:26.408923+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "af00ef5a347e700aafbe534b47157e1cabedcf8e4c261689a2f9a6c35bc7a3c0",
+      "hash_stability": "stable",
       "rows": 2831,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -42,6 +49,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:27.563975+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "d96e89db299655a5e53a53a671d6923849469ab7d08ef1d0281dda082a68fb6c",
+      "hash_stability": "stable",
       "rows": 2830,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -53,6 +61,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:28.924746+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "1bd0b828c5e1c4885f29d392a66618452f3d27f0e6b84b0675894166b0c93eba",
+      "hash_stability": "stable",
       "rows": 2931,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -64,6 +73,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:30.195338+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "c10dfbe05151f5a811f04772f54f392f9036aef8274442e3741563260f86190c",
+      "hash_stability": "stable",
       "rows": 2929,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -75,6 +85,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:31.561712+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "af4fa870ae1824f28b97499aec04aed86af800f63818ed5244f6fa91aca6366d",
+      "hash_stability": "stable",
       "rows": 2929,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -86,6 +97,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:32.797912+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "34e3303f425a63258fa9b373592aca5afd535f6d71777d1c85edde771846f61b",
+      "hash_stability": "drifts_with_distributions",
       "rows": 2830,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"
@@ -97,6 +109,7 @@
       "retrieved_at_utc": "2026-09-02T10:05:34.046172+00:00",
       "retrieval_time_basis": "recorded_at_download",
       "sha256": "109bae50c4528305ee1e37b438932e676b5f8d781c36b3604fa6ebfc6dc5115d",
+      "hash_stability": "stable_in_window",
       "rows": 2830,
       "first_date": "2014-06-02",
       "last_date": "2025-08-29"

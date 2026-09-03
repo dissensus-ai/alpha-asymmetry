@@ -25,6 +25,7 @@ __pycache__/
 .venv/
 venv/
 analysis/cache/
+analysis/data_manifest.observed.json
 .matplotlib/
 .tools/
 tmp/

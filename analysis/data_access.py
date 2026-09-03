@@ -27,6 +27,45 @@ TICKERS = {
 START_DATE = "2014-06-01"
 END_DATE_EXCLUSIVE = "2025-09-01"
 
+# Whether a series' bytes can be expected to reproduce on a later download.
+#
+# Series are requested with auto_adjust=True.  For an FX spot rate or an index
+# level there is no corporate action and therefore no adjustment factor, so the
+# stored history is fixed and the file hash is reproducible indefinitely.  For a
+# distributing exchange-traded fund the whole history is back-adjusted every
+# time a new distribution is paid, so its hash changes on any download that
+# straddles one -- even though no historical observation has been revised and no
+# percentage return is affected.  Recording the expectation here keeps a routine
+# rescaling from being mistaken for corrupted or revised data.
+HASH_STABILITY = {
+    "EURJPY": "stable",                      # FX spot, no adjustment factor
+    "DXY": "stable",                         # index level, no adjustment factor
+    "VIX": "stable",                         # index level, no adjustment factor
+    "AUDJPY": "stable",                      # FX spot, no adjustment factor
+    "NZDJPY": "stable",                      # FX spot, no adjustment factor
+    "GBPUSD": "stable",                      # FX spot, no adjustment factor
+    "SPY": "drifts_with_distributions",      # distributing ETF, back-adjusted
+    "GLD": "stable_in_window",               # ETF, no cash distributions here
+}
+HASH_STABILITY_NOTES = {
+    "stable": (
+        "FX spot rate or index level: no corporate-action adjustment exists, so "
+        "the file hash is expected to reproduce exactly on any later download."
+    ),
+    "stable_in_window": (
+        "Adjusted series that made no cash distribution over the requested "
+        "window, so the hash is expected to reproduce, but not structurally "
+        "guaranteed to the way an unadjusted series is."
+    ),
+    "drifts_with_distributions": (
+        "Distributing fund requested with auto_adjust=True: every new "
+        "distribution rescales the entire stored history, so the hash is "
+        "expected to change between downloads that straddle one. Percentage "
+        "returns are invariant to that rescaling; only the stored price level "
+        "and therefore the file bytes move."
+    ),
+}
+
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -148,6 +187,7 @@ def load_datasets(
             "retrieved_at_utc": retrieved_at,
             "retrieval_time_basis": retrieval_time_basis,
             "sha256": _sha256(path),
+            "hash_stability": HASH_STABILITY[name],
             "rows": int(len(frame)),
             "first_date": frame.index.min().date().isoformat(),
             "last_date": frame.index.max().date().isoformat(),
@@ -162,6 +202,7 @@ def load_datasets(
             "The repository did not contain the raw files used for the committed results; "
             "hashes identify this replication run only."
         ),
+        "hash_stability_legend": HASH_STABILITY_NOTES,
         "software": {
             "python": platform.python_version(),
             "numpy": version("numpy"),

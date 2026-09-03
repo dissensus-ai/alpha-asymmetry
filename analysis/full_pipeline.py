@@ -244,7 +244,12 @@ def main() -> int:
     log("=" * 80)
 
     datasets, manifest = load_datasets(args.cache_dir, refresh=args.refresh, offline=args.offline)
-    write_manifest(manifest, args.output_dir / "data_manifest.json")
+    # The committed data_manifest.json is the *reference*: it records the inputs
+    # the committed results were produced from, and analysis/fetch_data.py checks
+    # a reader's downloads against it.  Writing this run's *observed* manifest
+    # over it would overwrite the reference with whatever the reader happens to
+    # have, and the comparison would then be against itself.  Keep the two apart.
+    write_manifest(manifest, args.output_dir / "data_manifest.observed.json")
     for name, info in manifest["datasets"].items():
         log(f"{name:7s}: {info['rows']} rows, {info['first_date']} to {info['last_date']}, sha256={info['sha256'][:12]}...")
     log("LIMITATION: original raw snapshots were not committed; exact numerical reproduction of the archived run cannot be claimed.")

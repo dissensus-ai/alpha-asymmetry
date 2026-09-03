@@ -64,6 +64,7 @@ alpha-asymmetry/
 │   ├── full_pipeline_results.txt    # Pipeline outputs (human-readable)
 │   ├── strategy.py                  # Shared strategy, AI, and ledger engine
 │   ├── data_access.py               # Cached-data loader and hash manifest
+│   ├── fetch_data.py                # Fetch raw inputs and verify their hashes
 │   ├── position_ledger.csv          # Dated weekly decision/execution ledger
 │   ├── trade_ledger.csv             # Directional holding episodes
 │   ├── make_asymmetry_figure.py     # Figure 1 script
@@ -86,16 +87,45 @@ Python 3.12 is recommended. From the repository root:
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m pytest -q
-.venv/bin/python analysis/full_pipeline.py --refresh
-```
-
-The first pipeline run caches Yahoo Finance CSVs under `analysis/cache/` and writes `analysis/data_manifest.json` with retrieval dates, row counts, SHA-256 hashes, and actual package versions. Raw snapshots are not committed because redistribution terms may apply. Repeat the exact cached run with:
-
-```bash
+.venv/bin/python analysis/fetch_data.py
 .venv/bin/python analysis/full_pipeline.py --offline
 ```
 
-The repository did not contain the author's original raw snapshots, so the archived July results cannot be claimed as an exact reproduction. Ask the owner for those files and compare their hashes before making that claim.
+`fetch_data.py` downloads the eight raw series, then checks each file's SHA-256
+against the hashes recorded in `analysis/data_manifest.json` and tells you, per
+series, whether you are working from the same bytes these results were produced
+from. `full_pipeline.py --offline` then requires those exact cached files rather
+than silently re-downloading. `--refresh` on the pipeline does the download
+inline instead, if you would rather do it in one step.
+
+### Data
+
+**The raw CSVs are not committed.** Yahoo Finance data may be subject to
+redistribution terms, so this repository records what the inputs were rather
+than republishing them; a fresh clone has no inputs until you run
+`fetch_data.py`. `analysis/data_manifest.json` holds retrieval dates, row
+counts, date bounds, SHA-256 hashes, and the package versions actually used.
+
+**Expect seven of eight hashes to reproduce, and SPY not to.** Six of the eight
+series are FX spot rates or index levels. Nothing adjusts them for corporate
+actions, so their stored history is fixed and their file hashes are reproducible
+indefinitely. GLD made no cash distribution over the requested window. SPY is
+the one file in the set that *can* change: it is a distributing ETF requested
+with `auto_adjust=True`, so its entire price history is rescaled every time a
+new distribution is paid.
+
+That rescaling does not revise any observation and does not touch any percentage
+return — it moves the stored price level, and therefore the bytes. On an
+independent download five hours after the committed run, seven of eight files
+matched byte-for-byte; SPY differed, and the difference moved five values in the
+SPY cross-market row in their fifth or sixth significant figure, every one of
+which rounds to the same printed number. Nothing else in the pipeline output
+changed. `fetch_data.py` reports expected and unexpected differences separately
+and only exits non-zero on the latter.
+
+The repository did not contain the author's original raw snapshots, so the
+archived July results cannot be claimed as an exact reproduction. Ask the owner
+for those files and compare their hashes before making that claim.
 
 ## Versions
 
