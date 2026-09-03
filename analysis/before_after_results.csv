@@ -1,23 +1,23 @@
 metric,before_committed,after_corrected,reason
-Baseline cumulative return (%),3.6016,-7.573378314630464,holding rule + removal of extra lag + corrected AI sizing
-Baseline Sharpe,0.1489,-0.17259600444762924,same corrected return chronology
-Baseline maximum drawdown (%),-7.9572,-14.293721190006714,same corrected return chronology
+Baseline cumulative return (%),3.6016,-6.640684042044798,holding rule + removal of extra lag + corrected AI sizing
+Baseline Sharpe,0.1489,-0.1533055422786252,same corrected return chronology
+Baseline maximum drawdown (%),-7.9572,-12.560470113825662,same corrected return chronology
 Holding episodes,17.0,15.0,episode ledger replaces position-change-events/2
-Execution legs,,30.0,dated turnover accounting
+Execution legs,,61.0,dated turnover accounting
 In-position weeks,25.0,55.0,hold until opposition/expiry instead of exit on signal loss
-Walk-forward cumulative return (%),2.46,2.73780788087159,corrected strategy and sequential OOS state path
+Walk-forward cumulative return (%),2.46,2.739970744653175,corrected strategy and sequential OOS state path
 Walk-forward new episodes,3.0,1.0,episode ledger replaces event-pairs
-Low-VIX strategy return (%),2.38,-5.778836044751101,attribute one full-calendar strategy run by weekly VIX
-High-VIX strategy return (%),2.67,-1.9046063480298914,attribute one full-calendar strategy run by weekly VIX
-Full-sample factor intercept,8e-05,-0.00013782798355740407,corrected dependent return series
+Low-VIX strategy return (%),2.38,-5.077846720018142,attribute one full-calendar strategy run by weekly VIX
+High-VIX strategy return (%),2.67,-1.646441076212135,attribute one full-calendar strategy run by weekly VIX
+Full-sample factor intercept,8e-05,-0.00011964440875480527,corrected dependent return series
 In-position factor sample,25.0,55.0,corrected holding periods
-Retail-wide net return (%),3.22,-7.931414434193462,corrected strategy plus dated turnover costs
+Retail-wide net return (%),3.22,-7.02289079953704,corrected strategy plus dated turnover costs
 White Reality Check p-value,0.15,0.15,corrected full-strategy candidate; common one-lag timing
-Hansen SPA p-value,0.28,0.262,corrected candidate universe; common one-lag timing
-Annualized return (%),0.366,-0.8092606953372883,corrected strategy return series
-GBP/USD strategy return (%),17.18,-14.112682960293743,corrected strategy chronology/holding/AI
-SPY strategy return (%),11.66,13.18273050556764,corrected strategy; adjusted-price download fixed explicitly
-GLD strategy return (%),-30.26,-13.665732647939011,corrected strategy chronology/holding/AI
+Hansen SPA p-value,0.28,0.261,corrected candidate universe; common one-lag timing
+Annualized return (%),0.366,-0.7064521959978087,corrected strategy return series
+GBP/USD strategy return (%),17.18,-13.320890488918003,corrected strategy chronology/holding/AI
+SPY strategy return (%),11.66,14.20063574390138,corrected strategy; adjusted-price download fixed explicitly
+GLD strategy return (%),-30.26,-15.444320008721657,corrected strategy chronology/holding/AI
 tail_alpha AI,0.1716,0.026421591032781532,overall-mean squared deviations replace subgroup sample variances
 fast_alpha AI,0.9577,0.9847240372063952,overall-mean squared deviations replace subgroup sample variances
 pricing_alpha AI,0.805,0.7749560482234366,overall-mean squared deviations replace subgroup sample variances

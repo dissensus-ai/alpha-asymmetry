@@ -350,6 +350,25 @@ def main() -> int:
         }
     sensitivity = {str(t): run_asymmetry_strategy(weekly, t).metrics for t in GRID}
 
+    # Position sizing is a specification choice, not an implementation detail,
+    # so both readings are reported rather than one being adopted silently.
+    # "weekly" is the headline: it is what Equation 10's contemporaneous AI_t
+    # and the manuscript's "Rebalancing: Weekly (end of Friday close)" say.
+    # "entry" freezes the notional at entry and is the reported alternative.
+    entry_sized = run_asymmetry_strategy(weekly, 0.75, sizing="entry")
+    sizing_variants = {
+        "headline": "weekly",
+        "note": (
+            "Neither mode is a pure restoration of the published rule: repairing the "
+            "dead exit branch creates held-but-unsignalled weeks that the published "
+            "specification never had to size. Weekly is the smaller extension because "
+            "it keeps the manuscript's stated rebalancing frequency and Equation 10's "
+            "contemporaneous index."
+        ),
+        "weekly": base.metrics,
+        "entry": entry_sized.metrics,
+    }
+
     factor = pd.DataFrame(index=weekly.index)
     factor["strat"] = base.returns
     factor["dollar"] = datasets["DXY"]["Close"].resample("W-FRI").last().pct_change(fill_method=None).reindex(weekly.index)
@@ -473,7 +492,8 @@ def main() -> int:
 
     results = {
         "specification": {"execution": "Friday-close signal and execution proxy; position earns next Friday-close return (one shift)",
-                          "max_holding_return_periods": 4, "simultaneous_signals": "flat", "weekly_resizing": False,
+                          "execution_proxy_is_a_choice": "Daily bars carry an Open column, so Monday-open execution is implementable; the Friday-close proxy is a deliberate choice, not a data limitation",
+                          "max_holding_return_periods": 4, "simultaneous_signals": "flat", "weekly_resizing": True,
                           "position_size_units": "1.0 to 2.0 gross notional units; values above 1 imply leverage",
                           "hedge_alpha": "100-day rolling correlation multiplied by fixed -0.02 proxy",
                           "evt_input": "absolute Friday-close-to-Friday-close returns, separate from daily tail-alpha flags"},
@@ -482,6 +502,7 @@ def main() -> int:
         "alpha_statistics": table_stats, "baseline": base.metrics, "benchmarks": table3,
         "walk_forward": table5, "regimes": regimes, "sensitivity": sensitivity,
         "factor_attribution": factors, "transaction_costs": costs, "data_snooping": snooping,
+        "sizing_variants": sizing_variants,
         "evt": evt, "return_inference": inference, "cross_market": cross_market,
     }
 

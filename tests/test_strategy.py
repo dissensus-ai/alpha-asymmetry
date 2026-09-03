@@ -93,16 +93,55 @@ def test_simultaneous_signals_are_flat():
     assert close.position_ledger.iloc[1]["event_type"] == "exit"
 
 
-def test_repeated_same_direction_signal_does_not_resize_or_reset_clock():
+def test_weekly_sizing_tracks_contemporaneous_ai_without_resetting_the_clock():
+    # Equation 10 evaluated at each Friday close: AI rises to 2.0 from the
+    # second week, so the notional rises to 1 + |2 - 1| = 2 while the direction
+    # and the four-return holding clock are untouched.
     d = synthetic(
         long=[True, True, True, True, True, False],
         ai=[1.0, 2.0, 2.0, 2.0, 2.0, 1.0],
     )
     result = run_asymmetry_strategy(d)
+    assert result.position.tolist() == [1.0, 2.0, 2.0, 2.0, 0.0, 0.0]
+    assert result.metrics["resizes"] == 1
+    assert result.metrics["holding_episodes"] == 1
+    assert result.position_ledger.iloc[1]["event_type"] == "resize"
+    assert result.position_ledger.iloc[4]["reason"] == "max_holding_period"
+    assert result.trade_ledger.iloc[0]["holding_period"] == 4
+
+
+def test_entry_sizing_variant_freezes_the_notional_for_the_episode():
+    # The reported robustness alternative: same entry, same exit, no resizing.
+    d = synthetic(
+        long=[True, True, True, True, True, False],
+        ai=[1.0, 2.0, 2.0, 2.0, 2.0, 1.0],
+    )
+    result = run_asymmetry_strategy(d, sizing="entry")
     assert result.position.tolist() == [1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
     assert result.metrics["resizes"] == 0
     assert result.metrics["holding_episodes"] == 1
     assert result.trade_ledger.iloc[0]["holding_period"] == 4
+
+
+def test_weekly_resizing_is_charged_as_a_partial_execution_not_a_new_episode():
+    # A resize trades only the change in notional, so it must be costed on
+    # |delta| and must not open or close a holding episode.
+    d = synthetic(long=[True, True, False], ai=[1.0, 1.5, 1.0], returns=[0.0, 0.0, 0.0])
+    result = run_asymmetry_strategy(d, round_trip_cost_pips=2.0)
+    resize = result.position_ledger.iloc[1]
+    assert resize["event_type"] == "resize"
+    assert resize["turnover"] == pytest.approx(0.5)
+    assert resize["opening_cost"] == pytest.approx(
+        0.5 * result.position_ledger.iloc[0]["opening_cost"]
+        / result.position_ledger.iloc[0]["new_position"]
+    )
+    assert resize["closing_cost"] == 0.0
+    assert result.metrics["holding_episodes"] == 1
+
+
+def test_unknown_sizing_mode_is_rejected():
+    with pytest.raises(ValueError, match="sizing must be one of"):
+        run_asymmetry_strategy(synthetic(long=[True]), sizing="monthly")
 
 
 def test_no_signal_without_an_open_position_remains_flat():

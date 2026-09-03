@@ -1,6 +1,6 @@
 ================================================================================
 ALPHA-ASYMMETRY CORRECTED REPLICATION PIPELINE
-Generated UTC: 2026-09-02T10:15:24.306526+00:00
+Generated UTC: 2026-09-03T17:46:37.113492+00:00
 Timing: Friday-close signal, one shift, next Friday-close return
 ================================================================================
 EURJPY : 2930 rows, 2014-06-02 to 2025-08-29, sha256=c62f3aaf089b...
@@ -9,7 +9,7 @@ VIX    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=d96e89db2996...
 AUDJPY : 2931 rows, 2014-06-02 to 2025-08-29, sha256=1bd0b828c5e1...
 NZDJPY : 2929 rows, 2014-06-02 to 2025-08-29, sha256=c10dfbe05151...
 GBPUSD : 2929 rows, 2014-06-02 to 2025-08-29, sha256=af4fa870ae18...
-SPY    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=34e3303f425a...
+SPY    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=973b62d793cc...
 GLD    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=109bae50c452...
 LIMITATION: original raw snapshots were not committed; exact numerical reproduction of the archived run cannot be claimed.
 Analysis-ready weekly sample: n=504, 2016-01-08 to 2025-08-29
@@ -18,7 +18,7 @@ fast_alpha      skew=  0.01 CI=[-0.21,0.21] AI=0.98
 pricing_alpha   skew= -0.17 CI=[-0.45,0.09] AI=0.77
 coverage_alpha  skew=  1.75 CI=[1.18,2.16] AI=2.22
 hedge_alpha     skew=  0.15 CI=[-0.25,0.54] AI=1.01
-Baseline: return=-7.57% Sharpe=-0.173 episodes=15 legs=30 reversals=1 turnover=49.15
+Baseline: return=-6.64% Sharpe=-0.153 episodes=15 legs=61 reversals=1 turnover=52.00
 Regime rows: low VIX=342, high VIX=162 (classified after one full run)
-White RC p=0.150; SPA p=0.262; best candidate=random_candidate
+White RC p=0.150; SPA p=0.261; best candidate=random_candidate
 Outputs: analysis

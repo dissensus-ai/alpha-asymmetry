@@ -323,6 +323,144 @@ this window without being structurally guaranteed.
 
 ---
 
+## Step 2 — Position sizing resolved: weekly resizing
+
+**Originator:** conflict created by Codex (SD-1, SD-2); resolution decided by
+Tofig on Claude's revised recommendation. **This is a specification decision,
+not a bug fix, and must be labelled as one wherever it appears.**
+
+### The conflict
+
+The Codex branch contradicts itself inside a single paragraph. Equation 10 is
+carried over from the published paper and still reads
+`min(2.0, 1 + |AI_t - 1.0|)` "where `AI_t` is the contemporaneous asymmetry
+index", and four sentences later the branch states "Size is fixed at entry and
+is not reset or resized by subsequent same-direction signals." Both cannot hold.
+
+### What the published version actually specified
+
+Verified against `4d21c69`, Murad's July 2026 version:
+
+- **The manuscript said weekly.** `paper/alpha-asymmetry.tex:313` read
+  `Rebalancing: Weekly (end of Friday close)`. Codex rewrote that line to
+  "none within an episode" and disclosed the change nowhere.
+- **Equation 10 said contemporaneous.** `AI_t` carries a time subscript that
+  indexes every week, not the entry week. Had entry-only been meant, the
+  subscript would have named the entry date.
+- **The code also resized weekly, in effect.** In
+  `4d21c69:analysis/full_pipeline.py` the size was recomputed from the current
+  `ai_20w` on every bar where the entry signal fired, and because of the dead
+  exit branch those were the only bars on which any position was held. Every
+  held week therefore received a freshly computed size.
+
+Paper and code agreed. There was no disagreement here for a correction to fix.
+
+### Why this is still not a restoration
+
+**Both options are extensions of the published rule, and the write-up must say
+so.** Repairing the dead exit branch creates weeks in which a direction is held
+while no signal fires. The published specification never had to size that state
+because the original implementation could not reach it: it closed any position
+the moment its entry signal stopped firing. "Rebalancing: Weekly" was written
+about a strategy that was only ever in the market while signalling.
+
+Weekly resizing is chosen as the **smaller** extension — it keeps the
+manuscript's stated rebalancing frequency and Equation 10's contemporaneous
+index, and requires changing no published sentence. Freezing at entry is the
+larger extension, and it additionally requires rewriting two published
+statements to fit. That is the argument. It is not a claim that weekly resizing
+is what the published rule unambiguously said about a state it never described.
+
+### The counter-argument, recorded rather than buried
+
+Weekly resizing lets the asymmetry index change exposure every week on new
+information, which makes AI something closer to a second timing signal rather
+than a sizing multiplier applied to a signal-driven entry. That is a real
+methodological objection and it is the reason this review initially recommended
+freezing. It was overtaken by the evidence above: the objection argues for
+*changing* the published specification, and a correction PR is not the place to
+do that silently. It is reported as the alternative instead.
+
+### Framing constraint
+
+**−7.57 % is not a baseline being departed from.** It is the output of a
+specification Codex invented and then edited the manuscript to justify. It has
+no standing as a prior result, and neither the changelog nor the PR text may
+describe the weekly-resizing figure as a movement away from it. The comparison
+that matters is between the two candidate specifications, both computed here.
+
+### Implementation
+
+`run_asymmetry_strategy` takes `sizing="weekly"` (default, headline) or
+`sizing="entry"` (the reported alternative). Resizing changes only the notional:
+it never opens or closes a holding episode, never flips direction, and never
+resets the four-return holding clock. Both are run in the pipeline and reported
+under `sizing_variants` in `full_pipeline_results.json`.
+
+Also in this step, and consequential:
+
+- `trade_ledger.csv` column `position_size` renamed **`entry_position_size`**.
+  Under weekly sizing the notional varies within an episode, so a bare
+  "position_size" on an episode row would be misleading; the full weekly path
+  is in `position_ledger.csv`.
+- **The dead resize branch in the cost accounting is no longer dead.** It is now
+  the branch that prices every within-episode notional change. Tofig's original
+  item 5 ("remove the dead resize branch") is therefore withdrawn by
+  consequence; the `pip_size` comment it also asked for still stands.
+- The `strategy.py` module docstring claim that "no Monday-open prices are
+  available in the source data" is corrected (EX-3): the daily bars carry an
+  `Open` column, so the Friday-close proxy is recorded as a choice.
+
+### Results under each specification
+
+| | weekly (headline) | entry (alternative) |
+|---|---|---|
+| Cumulative gross return | **−6.64 %** | −7.57 % |
+| Sharpe | **−0.153** | −0.173 |
+| Maximum drawdown | **−12.56 %** | −14.29 % |
+| Hit rate | 47.27 % | 47.27 % |
+| In-position weeks | 55 | 55 |
+| Holding episodes | 15 | 15 |
+| Execution legs | 61 | 30 |
+| Resizes | 31 | 0 |
+| Turnover (units) | 52.00 | 49.15 |
+
+Entries, exits, direction and exposure are identical under both; only the
+notional path differs. The strategy still loses money before costs, still has a
+negative Sharpe, still holds a position in 55 of 504 weeks across 15 episodes,
+and is still nearly inert out of sample. **No conclusion in the paper turns on
+this choice**, which is the most useful thing to be able to say about it.
+
+### Constraint checks
+
+- Sample: n = 504, 2016-01-08 to 2025-08-29. ✔
+- Identity 1: intercept −0.00011964 vs. mean weekly return −0.00012029,
+  difference 6.4e−07. **Holds.**
+- Identity 2: (1 − 0.05077847)(1 − 0.01646441) − 1 = −6.640684 % against a
+  full-sample −6.640684 %, difference 1e−14 pp. **Holds.**
+- `pytest`: **14 passed.** Was 11. One test
+  (`test_repeated_same_direction_signal_does_not_resize_or_reset_clock`) encoded
+  the frozen-size specification and was rewritten to the weekly one; three were
+  added, covering the frozen variant, resize cost accounting, and rejection of
+  an unknown sizing mode. **A test was changed to match changed behaviour, which
+  is disclosed here deliberately** — it is the manoeuvre that hides regressions,
+  and the rewritten assertions should be read as part of the specification
+  decision, not as incidental maintenance.
+
+### Effect on the momentum finding (item 4)
+
+The figures supplied for the write-up were taken from the frozen-size run and
+have moved slightly. Under weekly sizing:
+
+| | frozen (superseded) | weekly (current) |
+|---|---|---|
+| Full sample | b = −0.0470, t = −2.087, p = 0.0369 | b = −0.0462, t = −2.076, **p = 0.0379** |
+| In-position | b = −0.8238, t = −3.532, p = 0.00041 | b = −0.8227, t = −3.725, **p = 0.00019** |
+
+The finding is unchanged in substance and slightly stronger on the in-position
+sample. The full-sample p-value remains marginal. Item 4 must be written from
+the current column.
+
 ## Directives still to apply (Tofig, carried forward)
 
 1. **Sizing write-up must not overclaim.** Both weekly resizing and

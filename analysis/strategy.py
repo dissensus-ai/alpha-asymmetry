@@ -6,8 +6,12 @@ Every row is a Friday close.  Signals on row ``t`` are formed only from data
 available through that close.  ``decision_position[t]`` is the position chosen
 at that close and it earns ``weekly_return[t + 1]``.  Equivalently, realized
 returns are ``decision_position.shift(1) * weekly_return``.  This is one lag,
-not two.  The close is an indicative execution proxy; no Monday-open prices are
-available in the source data.
+not two.
+
+The Friday close is used as the execution proxy.  That is a *choice*, not a
+data limitation: the daily bars carry an ``Open`` column, so Monday's opening
+price -- which the published paper names as the execution point -- is present
+and could be used.  Implementing it is deferred; see docs/REVIEW_NOTES.md.
 """
 
 from __future__ import annotations
@@ -172,7 +176,9 @@ def _build_trade_ledger(position_ledger: pd.DataFrame) -> pd.DataFrame:
                 "entry_signal_date": signal_date,
                 "entry_execution_date": row["execution_date"],
                 "entry_price": float(row["execution_price"]),
-                "position_size": abs(new),
+                # Notional at entry. Under weekly sizing the notional varies
+                # across the episode; position_ledger.csv carries the full path.
+                "entry_position_size": abs(new),
                 "entry_reason": row["reason"],
                 "gross_growth": 1.0,
                 "cost": float(row["opening_cost"]),
@@ -191,11 +197,14 @@ def _build_trade_ledger(position_ledger: pd.DataFrame) -> pd.DataFrame:
 
     columns = [
         "episode_id", "direction", "entry_signal_date", "entry_execution_date",
-        "entry_price", "position_size", "entry_reason", "exit_signal_date",
+        "entry_price", "entry_position_size", "entry_reason", "exit_signal_date",
         "exit_execution_date", "exit_price", "exit_reason", "holding_period",
         "gross_return", "cost", "net_return",
     ]
     return pd.DataFrame(episodes, columns=columns)
+
+
+SIZING_MODES = ("weekly", "entry")
 
 
 def run_asymmetry_strategy(
@@ -205,16 +214,34 @@ def run_asymmetry_strategy(
     max_holding_weeks: int = 4,
     round_trip_cost_pips: float = 0.0,
     pip_size: float = 0.01,
+    sizing: str = "weekly",
 ) -> StrategyResult:
-    """Run the two-sided strategy with one execution lag and fixed entry size.
+    """Run the two-sided strategy with one execution lag.
 
     Rules:
     - enter on exactly one qualifying signal;
-    - hold unchanged until the opposite signal, a simultaneous-signal conflict,
-      or the four-return-period maximum;
+    - hold the direction until the opposite signal, a simultaneous-signal
+      conflict, or the four-return-period maximum;
     - an opposite signal reverses directly and starts a new holding episode;
-    - simultaneous signals flatten an existing position and never open one;
-    - same-direction signals do not resize or reset the holding clock.
+    - simultaneous signals flatten an existing position and never open one.
+
+    ``sizing`` selects how the notional is set while a direction is held, and
+    is a specification choice rather than an implementation detail:
+
+    ``"weekly"`` (default)
+        Re-evaluate Equation 10 at every Friday close from the contemporaneous
+        ``ai_20w``, per the manuscript's "Rebalancing: Weekly (end of Friday
+        close)" and its "contemporaneous asymmetry index".  Resizing never
+        opens or closes a holding episode and never resets the holding clock.
+
+    ``"entry"``
+        Freeze the notional at its entry value for the life of the episode.
+        Retained as the reported robustness alternative.
+
+    Neither mode is a pure restoration of the published rule.  Repairing the
+    dead exit branch creates weeks in which a direction is held while no signal
+    fires, a state the published specification never had to size, because the
+    original implementation could not reach it.  See docs/REVIEW_NOTES.md.
     """
 
     missing = REQUIRED_COLUMNS - set(data.columns)
@@ -222,6 +249,8 @@ def run_asymmetry_strategy(
         raise ValueError(f"missing required strategy columns: {sorted(missing)}")
     if max_holding_weeks < 1:
         raise ValueError("max_holding_weeks must be positive")
+    if sizing not in SIZING_MODES:
+        raise ValueError(f"sizing must be one of {SIZING_MODES}, got {sizing!r}")
 
     d = data.sort_index().copy()
     if not d.index.is_unique:
@@ -269,6 +298,11 @@ def run_asymmetry_strategy(
             new, reason = size, "opposing_long_signal"
         elif weeks_held >= max_holding_weeks:
             new, reason = 0.0, "max_holding_period"
+        elif sizing == "weekly":
+            # Direction is unchanged; the notional tracks the contemporaneous
+            # AI.  np.sign keeps the held direction and discards the stale
+            # magnitude, so a size change here is a resize, never a reversal.
+            new, reason = np.sign(previous) * size, "hold"
         else:
             new, reason = previous, "hold"
 
