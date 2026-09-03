@@ -10,7 +10,7 @@
     "evt_input": "absolute Friday-close-to-Friday-close returns, separate from daily tail-alpha flags"
   },
   "data_manifest": {
-    "manifest_generated_at_utc": "2026-09-03T17:46:37.113512+00:00",
+    "manifest_generated_at_utc": "2026-09-03T19:21:50.213931+00:00",
     "requested_start": "2014-06-01",
     "requested_end_exclusive": "2025-09-01",
     "original_snapshot_available": false,
@@ -307,7 +307,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       },
       {
         "year": 2019,
@@ -315,7 +316,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       },
       {
         "year": 2020,
@@ -323,7 +325,8 @@
         "return": 2.739970744653175,
         "sharpe": 0.8820026879083264,
         "hit": 50.0,
-        "new_episodes": 1
+        "new_episodes": 1,
+        "inference_supported": false
       },
       {
         "year": 2021,
@@ -331,7 +334,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       },
       {
         "year": 2022,
@@ -339,7 +343,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       },
       {
         "year": 2023,
@@ -347,7 +352,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       },
       {
         "year": 2024,
@@ -355,7 +361,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       },
       {
         "year": 2025,
@@ -363,7 +370,8 @@
         "return": 0.0,
         "sharpe": 0.0,
         "hit": null,
-        "new_episodes": 0
+        "new_episodes": 0,
+        "inference_supported": false
       }
     ],
     "pooled": {
@@ -371,8 +379,11 @@
       "annualized_return": 0.35202185257012797,
       "sharpe": 0.31860450383637456,
       "hit": 50.0,
-      "new_episodes": 1
-    }
+      "new_episodes": 1,
+      "inference_supported": false
+    },
+    "min_episodes_for_inference": 2,
+    "reporting_rule": "Where inference_supported is false, the walk-forward Sharpe ratio, hit rate and annualized return must not be presented as out-of-sample performance. Report the selected threshold and the episode count, which describe what the procedure did, and state that the episode count is too small to support inference."
   },
   "regimes": {
     "low_vix": {

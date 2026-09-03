@@ -41,6 +41,12 @@ PAPER_DIR = REPO_ROOT / "paper"
 ALPHA_COLS = ["tail_alpha", "fast_alpha", "pricing_alpha", "coverage_alpha", "hedge_alpha"]
 GRID = [0.50, 0.75, 1.00, 1.25]
 SEED = 42
+# Below this many out-of-sample holding episodes, the walk-forward's Sharpe
+# ratio, hit rate and annualized return are not reported as performance: they
+# would be sample statistics computed from a single realized path.  Two is not
+# a threshold at which inference becomes sound -- it is the point below which
+# the quantities stop being statistics at all.
+MIN_EPISODES_FOR_INFERENCE = 2
 warnings.filterwarnings("default")
 
 
@@ -312,19 +318,40 @@ def main() -> int:
         applied_year = oos.applied_position[oos.applied_position.index.year == year]
         active_rets = rets[applied_year.abs() > 0]
         sd = float(rets.std())
+        year_episodes = int(events["event_type"].isin(["entry", "reversal"]).sum())
         oos_rows.append({"year": year, "threshold": threshold, "return": float((1 + rets).prod() - 1) * 100,
                          "sharpe": float(rets.mean() / sd * np.sqrt(52)) if sd > 0 else 0.0,
                          "hit": float((active_rets > 0).mean() * 100) if len(active_rets) else None,
-                         "new_episodes": int(events["event_type"].isin(["entry", "reversal"]).sum())})
+                         "new_episodes": year_episodes,
+                         "inference_supported": year_episodes >= MIN_EPISODES_FOR_INFERENCE})
     pooled = oos.returns[oos.returns.index.year >= 2018]
     pooled_applied = oos.applied_position[oos.applied_position.index.year >= 2018]
     pooled_active = pooled[pooled_applied.abs() > 0]
+    pooled_episodes = int(oos.position_ledger.loc["2018-01-01":, "event_type"].isin(["entry", "reversal"]).sum())
+    # Every metric below is computed and kept, because this file is the audit
+    # record and silently dropping numbers would make it unauditable. What the
+    # flag governs is whether they may be *reported as performance*. A Sharpe
+    # ratio, a hit rate and an annualized return are sample statistics; over a
+    # single holding episode they have no sampling distribution to speak of and
+    # describe one realized path, not an expected one.
     table5 = {"rows": oos_rows, "pooled": {
         "cum_return": float((1 + pooled).prod() - 1) * 100,
         "annualized_return": float(((1 + pooled).prod() ** (52 / len(pooled)) - 1) * 100),
         "sharpe": float(pooled.mean() / pooled.std() * np.sqrt(52)) if pooled.std() > 0 else 0.0,
         "hit": float((pooled_active > 0).mean() * 100) if len(pooled_active) else None,
-        "new_episodes": int(oos.position_ledger.loc["2018-01-01":, "event_type"].isin(["entry", "reversal"]).sum())}}
+        "new_episodes": pooled_episodes,
+        "inference_supported": pooled_episodes >= MIN_EPISODES_FOR_INFERENCE},
+        "min_episodes_for_inference": MIN_EPISODES_FOR_INFERENCE,
+        "reporting_rule": (
+            "Where inference_supported is false, the walk-forward Sharpe ratio, hit rate and "
+            "annualized return must not be presented as out-of-sample performance. Report the "
+            "selected threshold and the episode count, which describe what the procedure did, "
+            "and state that the episode count is too small to support inference."
+        )}
+    if not table5["pooled"]["inference_supported"]:
+        log(f"WALK-FORWARD: {pooled_episodes} out-of-sample episode(s) in "
+            f"{len(selected)} test years; below the {MIN_EPISODES_FOR_INFERENCE}-episode "
+            f"minimum, so pooled Sharpe/hit/annualized return are not reportable as performance.")
 
     vix_weekly = datasets["VIX"]["Close"].resample("W-FRI").mean().reindex(weekly.index)
     regimes = {}

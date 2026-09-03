@@ -569,7 +569,31 @@ the current column.
    5.05 unsigned-magnitude tail-skew error, the benchmark rows that traced to no
    committed code, the 141 pooled trades, and the spurious 21 bp intercept.
 
-3. **Restructure the changelog and PR text into three sections**, every change
+3. **Manuscript, from Step 3 review — carry into the writing, not the backlog:**
+
+   - **Break-even.** The published paper reports 19.2 pips. Under both
+     corrected specifications break-even is undefined, because the gross return
+     is already negative. Do not print a number, do not print a bare "n/a"
+     cell, and do not drop the row silently. State it in the text: *the
+     strategy does not break even at any cost level because it does not break
+     even at zero cost.* That is a cleaner statement of the null than anything
+     currently in the paper. It belongs in the cost section and in the
+     conclusion.
+   - **Cost limitation.** A sentence in the cost limitations: the model charges
+     spread in proportion to notional traded with no fixed or minimum
+     per-order component; the corrected specification generates 31 resizes
+     averaging 0.19 units of notional; a fixed per-order cost would fall
+     disproportionately on exactly those events. "Costs are immaterial" must
+     not stand unqualified when the model cannot express the cost type most
+     likely to bite.
+   - **Identical test statistics.** A footnote explaining why White's Reality
+     Check and Hansen's SPA barely move between sizing specifications: both
+     take a maximum over the candidate universe, that maximum is attained by
+     the seeded random candidate whose returns are independent of the
+     asymmetry strategy's sizing, so only the bootstrap covariance sees the
+     change. Without it the identical statistics read as a copy-paste error.
+
+4. **Restructure the changelog and PR text into three sections**, every change
    in exactly one, so Murad can approve each category separately:
 
    - **(a) Implementation defects corrected** — the paper said X, the code

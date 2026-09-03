@@ -1,6 +1,6 @@
 ================================================================================
 ALPHA-ASYMMETRY CORRECTED REPLICATION PIPELINE
-Generated UTC: 2026-09-03T17:46:37.113492+00:00
+Generated UTC: 2026-09-03T19:21:50.213912+00:00
 Timing: Friday-close signal, one shift, next Friday-close return
 ================================================================================
 EURJPY : 2930 rows, 2014-06-02 to 2025-08-29, sha256=c62f3aaf089b...
@@ -19,6 +19,7 @@ pricing_alpha   skew= -0.17 CI=[-0.45,0.09] AI=0.77
 coverage_alpha  skew=  1.75 CI=[1.18,2.16] AI=2.22
 hedge_alpha     skew=  0.15 CI=[-0.25,0.54] AI=1.01
 Baseline: return=-6.64% Sharpe=-0.153 episodes=15 legs=61 reversals=1 turnover=52.00
+WALK-FORWARD: 1 out-of-sample episode(s) in 8 test years; below the 2-episode minimum, so pooled Sharpe/hit/annualized return are not reportable as performance.
 Regime rows: low VIX=342, high VIX=162 (classified after one full run)
 White RC p=0.150; SPA p=0.261; best candidate=random_candidate
 Outputs: analysis

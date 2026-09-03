@@ -496,34 +496,36 @@ The preceding sections leave a thin asymmetry inventory (one robustly skewed sig
 
 A primary concern with any trading strategy is in-sample overfitting. Our main results use the full January 2016--August 2025 analysis-ready sample, which may inadvertently optimize signal construction to historical patterns that do not persist. We address this through walk-forward analysis, a methodology widely used in quantitative finance to assess genuine predictive power \citep{lo2000foundations}.
 
-We implement an expanding-window walk-forward: the entry threshold is selected from the grid $\{0.50, 0.75, 1.00, 1.25\}$ by Sharpe ratio on all analysis-ready data through year $t-1$ (beginning with 2016--2017), then the strategy runs untouched on calendar year $t$, rolling forward annually through 2025. All signal construction uses trailing windows only, so no test-year information enters signal values; the walk-forward isolates the threshold-selection step, which is the strategy's only free parameter. Table \ref{tab:oos} presents out-of-sample performance metrics.
+We implement an expanding-window walk-forward: the entry threshold is selected from the grid $\{0.50, 0.75, 1.00, 1.25\}$ by Sharpe ratio on all analysis-ready data through year $t-1$ (beginning with 2016--2017), then the strategy runs untouched on calendar year $t$, rolling forward annually through 2025. All signal construction uses trailing windows only, so no test-year information enters signal values; the walk-forward isolates the threshold-selection step, which is the strategy's only free parameter. Table \ref{tab:oos} reports what that procedure did.
 
 \begin{table}[H]
 \centering
-\caption{Out-of-Sample Walk-Forward Results}
+\caption{Out-of-Sample Walk-Forward: Selected Thresholds and Activity}
 \label{tab:oos}
 \small
-\begin{tabular}{@{}lccccc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Test Year & Selected Threshold & OOS Return & OOS Sharpe & Hit Rate & Episodes \\
+Test Year & Training Window & Selected Threshold & New Holding Episodes \\
 \midrule
-2018 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
-2019 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
-2020 & 1.25 & 2.74\% & 0.88 & 50.0\% & 1 \\
-2021 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
-2022 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
-2023 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
-2024 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
-2025 & 1.25 & 0.00\% & 0.00 & --- & 0 \\
+2018 & 2016--2017 & 1.25 & 0 \\
+2019 & 2016--2018 & 1.25 & 0 \\
+2020 & 2016--2019 & 1.25 & 1 \\
+2021 & 2016--2020 & 1.25 & 0 \\
+2022 & 2016--2021 & 1.25 & 0 \\
+2023 & 2016--2022 & 1.25 & 0 \\
+2024 & 2016--2023 & 1.25 & 0 \\
+2025 & 2016--2024 & 1.25 & 0 \\
 \midrule
-\textbf{Pooled OOS} & --- & \textbf{2.74\%} & \textbf{0.32} & \textbf{50.0\%} & \textbf{1} \\
+\textbf{Eight test years} & --- & \textbf{1.25 throughout} & \textbf{1} \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: The threshold is selected using data through the prior year, then applied on one sequential OOS state path. Episodes are newly opened directional holdings, not position-change pairs. Pooled return is cumulative ($0.35\%$ annualized); 2025 ends in August. With one episode, these metrics are descriptive only.}
+\parbox{\linewidth}{\footnotesize Note: The threshold is selected by Sharpe ratio on data through the prior year, then applied on one sequential out-of-sample state path. An episode is a newly opened directional holding, not a position-change pair. 2025 ends in August. \textbf{No out-of-sample return, Sharpe ratio or hit rate is reported in this table, by design.} With one episode there is no sample over which to compute them; see the text.}
 \end{table}
 
-The corrected training windows select 1.25 throughout. The strategy opens one OOS episode, in 2020, and remains flat in the other test years. Its 2.74\% pooled gain therefore cannot be interpreted as evidence of skill: it is one realized path from one holding episode.
+\textbf{Why No Out-of-Sample Performance Figures Appear.} The corrected training windows select the 1.25 threshold in every year. Across eight out-of-sample years the strategy opens \emph{one} holding episode, in 2020, and is flat in all other test years. One episode is not a small sample; it is a single realization, and the quantities an out-of-sample table would normally carry are not estimable from it. A Sharpe ratio, a hit rate and an annualized return are sample statistics that presuppose a distribution of outcomes to average over; computed from one holding episode they describe the path that happened and carry no information about the path that would be expected. A hit rate of 50\% on such a sample means one profitable week and one unprofitable week, and an annualized figure extrapolates a single episode across a decade. Reporting them, even hedged, invites exactly the comparison they cannot support.
+
+We therefore report the selected threshold and the episode count, which describe what the selection procedure did, and decline to report out-of-sample performance. The finding of this section is the activity count itself: \textbf{disciplined by its own training data, the strategy is inert}. That is a stronger and more honest result than any return figure computed from a single episode, and it does not depend on how that episode happened to turn out. The replication pipeline enforces this rule rather than leaving it to the author: it flags the walk-forward as not supporting inference whenever fewer than two out-of-sample episodes occur, and records the suppressed quantities in \texttt{analysis/full\_pipeline\_results.json} so the decision is auditable rather than invisible.
 
 \subsection{Subsample Stability}
 
