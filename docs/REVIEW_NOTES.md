@@ -438,14 +438,105 @@ this choice**, which is the most useful thing to be able to say about it.
   difference 6.4e−07. **Holds.**
 - Identity 2: (1 − 0.05077847)(1 − 0.01646441) − 1 = −6.640684 % against a
   full-sample −6.640684 %, difference 1e−14 pp. **Holds.**
-- `pytest`: **14 passed.** Was 11. One test
-  (`test_repeated_same_direction_signal_does_not_resize_or_reset_clock`) encoded
-  the frozen-size specification and was rewritten to the weekly one; three were
-  added, covering the frozen variant, resize cost accounting, and rejection of
-  an unknown sizing mode. **A test was changed to match changed behaviour, which
-  is disclosed here deliberately** — it is the manoeuvre that hides regressions,
-  and the rewritten assertions should be read as part of the specification
-  decision, not as incidental maintenance.
+- `pytest`: **14 passed**, from 11. See "Rewritten test assertions" below.
+
+### Cost and data-snooping figures under weekly sizing, on the record
+
+| Cost scenario | pips | weekly net | weekly Sharpe | frozen net | frozen Sharpe |
+|---|---|---|---|---|---|
+| Zero cost | 0.0 | −6.6407 % | −0.1533 | −7.5734 % | −0.1726 |
+| Prime brokerage | 0.3 | −6.6981 % | −0.1549 | −7.6272 % | −0.1741 |
+| Institutional | 0.7 | −6.7746 % | −0.1570 | −7.6988 % | −0.1760 |
+| Retail tight | 1.3 | −6.8893 % | −0.1601 | −7.8063 % | −0.1789 |
+| Retail wide | 2.0 | −7.0229 % | −0.1638 | −7.9314 % | −0.1823 |
+
+Cost drag at 2.0 pips: 0.382 pp weekly, 0.358 pp frozen.
+
+**Break-even round-trip cost: not defined under either specification**, because
+the zero-cost return is already negative — there is no positive cost at which
+the strategy crosses zero, since it starts below it. The July version published
+19.2 pips, which was meaningful then only because its gross return was +3.60 %.
+This is the correct treatment, and it should be stated as "not applicable"
+rather than reported as zero.
+
+| Data-snooping test | statistic | weekly p | frozen p |
+|---|---|---|---|
+| White's Reality Check | 0.0203 | 0.150 | 0.150 |
+| Hansen's SPA | 1.9024 | 0.261 | 0.262 |
+
+Best-performing candidate under both: the seeded random sequence.
+
+The statistics are *identical* across the two sizing modes, which is not a
+coincidence and is worth being able to explain: both tests take a maximum over
+the 13-candidate universe, and the maximum is attained by the random candidate,
+whose returns do not depend on the asymmetry strategy's sizing. Only the
+bootstrap covariance sees the changed asymmetry series, which is why the SPA
+p-value moves by 0.001 and the Reality Check p-value not at all.
+
+### Rewritten test assertions — part of the specification decision, category (b)
+
+**Not maintenance. Review these with the sizing decision, not with the
+housekeeping.** `tests/test_strategy.py` contained
+`test_repeated_same_direction_signal_does_not_resize_or_reset_clock`, whose
+assertions *encoded the frozen-size specification*: it asserted a flat position
+path of `[1, 1, 1, 1, 0, 0]` against a rising AI, and `resizes == 0`. Those
+assertions were not testing an implementation detail, they were pinning a
+specification, and the specification changed.
+
+It is now
+`test_weekly_sizing_tracks_contemporaneous_ai_without_resetting_the_clock`,
+asserting `[1, 2, 2, 2, 0, 0]` and `resizes == 1` with the holding clock and
+episode count unchanged. Editing a failing test until it passes is the standard
+way to conceal a regression, so this is stated in the open: the changed
+assertions are a claim about what the strategy is *supposed* to do, and Murad
+should approve them on that basis.
+
+Three tests were added: the frozen variant's behaviour, resize cost accounting,
+and rejection of an unknown sizing mode. 11 → 14.
+
+### How the cost model scales, and why more legs did not cost more
+
+Execution legs doubled (30 → 61) while turnover rose 5.8 % (49.15 → 52.00), and
+the cost table barely moved. Confirmed from the model rather than inferred:
+
+`analysis/strategy.py:329` is the line that decides it:
+
+```python
+unit_cost = ((round_trip_cost_pips / 2.0) * pip_size / price).fillna(0.0)
+```
+
+`unit_cost` is a cost *per unit of notional*, and every event multiplies it by
+the notional actually traded — `abs(position)` on an entry, `abs(previous)` on
+an exit, both on a reversal, and `abs(position) - abs(previous)` on a resize.
+**There is no fixed per-leg term anywhere in the model.** Verified empirically:
+the total units charged equal total turnover exactly, to floating point, under
+both sizing modes (51.9968 and 49.1467).
+
+So turnover is the only driver, and cost rose 5.6 % against turnover's 5.8 %
+(the small gap is because `unit_cost` divides by that row's price, making cost a
+price-weighted turnover rather than raw turnover).
+
+The reason turnover barely moved despite 31 extra legs is that resizes are
+small by construction — `ai_20w` is a 20-week rolling statistic and moves
+slowly:
+
+| event | n | mean abs. notional change | total |
+|---|---|---|---|
+| entry | 14 | 1.6214 | 22.6989 |
+| exit | 14 | 1.3940 | 19.5167 |
+| reversal | 1 | 3.8744 | 3.8744 |
+| **resize** | **31** | **0.1905** | **5.9068** |
+
+Resizes are 51 % of the legs and 11 % of the turnover.
+
+**Caveat worth carrying, because it cuts against the reassuring reading.** That
+costs stayed immaterial is partly a property of *the cost model*, not only of
+the strategy. The model charges spread in proportion to size, which is right for
+spread, but it carries no per-ticket or minimum-ticket component. A real
+execution schedule with any fixed cost per order would charge the 31 extra
+resize orders something, and 31 orders averaging 0.19 units is exactly the
+pattern a fixed component penalises. The model as written cannot express that.
+Added to the backlog.
 
 ### Effect on the momentum finding (item 4)
 
@@ -511,3 +602,7 @@ Recorded so they are not lost. None of these are actioned here.
    (F-2).
 5. Add financing/carry to the cost model, now that exposure reaches two
    notional units across 55 weeks.
+6. Add a per-ticket or minimum-ticket cost component. The current model charges
+   spread strictly in proportion to notional traded, so it cannot penalise the
+   31 small resize orders that weekly sizing introduces. See "How the cost model
+   scales" above.
