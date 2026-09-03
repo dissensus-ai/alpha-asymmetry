@@ -326,7 +326,23 @@ def run_asymmetry_strategy(
     previous_position = position.shift(1).fillna(0.0)
     turnover = (position - previous_position).abs().rename("turnover")
     price = d["Close"].replace(0, np.nan)
+    # ``pip_size`` is YEN-PAIR SPECIFIC.  A pip is 0.01 only for pairs quoted to
+    # two decimals (EUR/JPY here, and the other JPY crosses).  For a
+    # conventional four-decimal pair such as GBP/USD a pip is 0.0001, and for a
+    # non-FX instrument the notion does not apply at all.  Passing JPY pips to a
+    # non-JPY market overstates cost by a factor of 100 with no error raised.
+    #
+    # The cost table is only ever run on EUR/JPY, and the cross-market section
+    # calls this function at zero cost, so nothing is currently mispriced.  That
+    # is a property of the callers, not of this default -- anyone adding costs to
+    # the cross-market runs must set pip_size per market first.
     unit_cost = ((round_trip_cost_pips / 2.0) * pip_size / price).fillna(0.0)
+    # Cost is charged strictly in proportion to the notional actually traded:
+    # unit_cost is a per-unit rate, and every branch below multiplies it by a
+    # quantity of notional.  There is no fixed per-leg or per-ticket term, so
+    # total charged units equal total turnover exactly.  All four branches are
+    # reachable under weekly sizing; under sizing="entry" the resize branch is
+    # unreachable, which is why the mode is a parameter and not a fork.
     opening_units = pd.Series(0.0, index=d.index)
     closing_units = pd.Series(0.0, index=d.index)
     for date, event in zip(d.index, events):

@@ -38,11 +38,36 @@ This PR audits the current manuscript against the current code and corrects conf
 
 ### Verification
 
-- deterministic unit tests cover AI edge cases, dated timing, entry, hold, expiry, reversal, simultaneous signals, no-signal periods, fixed sizing, and reversal accounting;
+- deterministic unit tests cover AI edge cases, dated timing, entry, hold, expiry, reversal, simultaneous signals, no-signal periods, both sizing modes, resize cost accounting, and reversal accounting (14 tests, all passing);
 - the complete online pipeline was run and inputs were cached with hashes;
 - the complete pipeline was rerun successfully with `--offline`;
+- seven of the eight input files reproduced byte-for-byte on an independent download; the eighth is explained below;
 - all affected figures and manuscript tables were regenerated;
-- LaTeX was compiled and the resulting PDF was rendered and visually inspected.
+- after every rerun: the analysis sample is n = 504 spanning 2016-01-08 to 2025-08-29, the factor intercept matches the strategy's own mean weekly return, and the low- and high-VIX returns compound to the full-sample return.
+
+**The committed PDF is stale and must be rebuilt before submission.**
+`paper/alpha-asymmetry.pdf` is the September build produced by the Codex agent.
+It predates every change in this branch and does not reflect the corrected
+manuscript. No LaTeX toolchain was available in the session that prepared these
+changes, so the PDF could not be recompiled and was not visually inspected.
+
+An earlier draft of this document asserted that "LaTeX was compiled and the
+resulting PDF was rendered and visually inspected." That assertion originated
+with the Codex agent, is not true of this branch, and has been removed. Flagging
+it here rather than deleting it silently, because unverified assertions are the
+subject of this pull request.
+
+What was done instead, on the LaTeX source directly:
+
+- brace balance checked across the whole file (648 open, 648 close);
+- `table`, `tabular` and `equation` environments checked for matched
+  `\begin`/`\end` pairs (11 of each);
+- every edited table's row-by-row column count checked against its column
+  specification, including `\multicolumn` spans.
+
+These confirm the source is structurally well formed. They do not confirm that
+it typesets correctly, that floats place sensibly, or that no text overflows.
+**Please rebuild the PDF and inspect it.**
 
 ### Reproduction
 
