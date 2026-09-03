@@ -10,7 +10,7 @@
     "evt_input": "absolute Friday-close-to-Friday-close returns, separate from daily tail-alpha flags"
   },
   "data_manifest": {
-    "manifest_generated_at_utc": "2026-09-03T19:21:50.213931+00:00",
+    "manifest_generated_at_utc": "2026-09-03T19:39:15.519937+00:00",
     "requested_start": "2014-06-01",
     "requested_end_exclusive": "2025-09-01",
     "original_snapshot_available": false,
@@ -383,7 +383,7 @@
       "inference_supported": false
     },
     "min_episodes_for_inference": 2,
-    "reporting_rule": "Where inference_supported is false, the walk-forward Sharpe ratio, hit rate and annualized return must not be presented as out-of-sample performance. Report the selected threshold and the episode count, which describe what the procedure did, and state that the episode count is too small to support inference."
+    "reporting_rule": "Where inference_supported is false, the Sharpe ratio, hit rate and annualized return must not be presented as performance. Report the episode count and the parameter that produced it, which describe what the procedure did, and state that the episode count is too small to support inference. Withhold such a figure by removing it and saying so, never by printing an unexplained placeholder."
   },
   "regimes": {
     "low_vix": {
@@ -442,7 +442,8 @@
       "reversals": 1,
       "resizes": 52,
       "turnover": 87.31506522471314,
-      "net_return": -9.614013208128059
+      "net_return": -9.614013208128059,
+      "inference_supported": true
     },
     "0.75": {
       "return": -6.640684042044798,
@@ -456,7 +457,8 @@
       "reversals": 1,
       "resizes": 31,
       "turnover": 51.996835180843775,
-      "net_return": -6.640684042044798
+      "net_return": -6.640684042044798,
+      "inference_supported": true
     },
     "1.0": {
       "return": -2.5929275408679175,
@@ -470,7 +472,8 @@
       "reversals": 0,
       "resizes": 9,
       "turnover": 13.558739691147524,
-      "net_return": -2.5929275408679175
+      "net_return": -2.5929275408679175,
+      "inference_supported": true
     },
     "1.25": {
       "return": 2.739970744653175,
@@ -484,7 +487,8 @@
       "reversals": 0,
       "resizes": 3,
       "turnover": 2.438705737507728,
-      "net_return": 2.739970744653175
+      "net_return": 2.739970744653175,
+      "inference_supported": false
     }
   },
   "factor_attribution": {

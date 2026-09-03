@@ -41,12 +41,32 @@ PAPER_DIR = REPO_ROOT / "paper"
 ALPHA_COLS = ["tail_alpha", "fast_alpha", "pricing_alpha", "coverage_alpha", "hedge_alpha"]
 GRID = [0.50, 0.75, 1.00, 1.25]
 SEED = 42
-# Below this many out-of-sample holding episodes, the walk-forward's Sharpe
-# ratio, hit rate and annualized return are not reported as performance: they
-# would be sample statistics computed from a single realized path.  Two is not
-# a threshold at which inference becomes sound -- it is the point below which
-# the quantities stop being statistics at all.
+# Below this many holding episodes, per-episode performance statistics -- the
+# Sharpe ratio, the hit rate, the annualized return -- are not reported as
+# performance: they would be sample statistics computed from a single realized
+# path.  Two is not a threshold at which inference becomes sound; it is the
+# point below which the quantities stop being statistics at all.
+#
+# The rule is applied wherever such statistics are produced, not only in the
+# walk-forward, so that a quantity suppressed in one table cannot reappear in
+# another.  Suppressed values are still computed and still written to
+# full_pipeline_results.json, so the reporting decision stays checkable.
 MIN_EPISODES_FOR_INFERENCE = 2
+INFERENCE_REPORTING_RULE = (
+    "Where inference_supported is false, the Sharpe ratio, hit rate and annualized return "
+    "must not be presented as performance. Report the episode count and the parameter that "
+    "produced it, which describe what the procedure did, and state that the episode count is "
+    "too small to support inference. Withhold such a figure by removing it and saying so, "
+    "never by printing an unexplained placeholder."
+)
+
+
+def supports_inference(episodes: int) -> bool:
+    """Whether a result rests on enough holding episodes to be a statistic."""
+
+    return int(episodes) >= MIN_EPISODES_FOR_INFERENCE
+
+
 warnings.filterwarnings("default")
 
 
@@ -323,7 +343,7 @@ def main() -> int:
                          "sharpe": float(rets.mean() / sd * np.sqrt(52)) if sd > 0 else 0.0,
                          "hit": float((active_rets > 0).mean() * 100) if len(active_rets) else None,
                          "new_episodes": year_episodes,
-                         "inference_supported": year_episodes >= MIN_EPISODES_FOR_INFERENCE})
+                         "inference_supported": supports_inference(year_episodes)})
     pooled = oos.returns[oos.returns.index.year >= 2018]
     pooled_applied = oos.applied_position[oos.applied_position.index.year >= 2018]
     pooled_active = pooled[pooled_applied.abs() > 0]
@@ -340,14 +360,9 @@ def main() -> int:
         "sharpe": float(pooled.mean() / pooled.std() * np.sqrt(52)) if pooled.std() > 0 else 0.0,
         "hit": float((pooled_active > 0).mean() * 100) if len(pooled_active) else None,
         "new_episodes": pooled_episodes,
-        "inference_supported": pooled_episodes >= MIN_EPISODES_FOR_INFERENCE},
+        "inference_supported": supports_inference(pooled_episodes)},
         "min_episodes_for_inference": MIN_EPISODES_FOR_INFERENCE,
-        "reporting_rule": (
-            "Where inference_supported is false, the walk-forward Sharpe ratio, hit rate and "
-            "annualized return must not be presented as out-of-sample performance. Report the "
-            "selected threshold and the episode count, which describe what the procedure did, "
-            "and state that the episode count is too small to support inference."
-        )}
+        "reporting_rule": INFERENCE_REPORTING_RULE}
     if not table5["pooled"]["inference_supported"]:
         log(f"WALK-FORWARD: {pooled_episodes} out-of-sample episode(s) in "
             f"{len(selected)} test years; below the {MIN_EPISODES_FOR_INFERENCE}-episode "
@@ -375,7 +390,21 @@ def main() -> int:
             "pricing_skew": float(stats.skew(weekly.loc[mask, "pricing_alpha"], bias=False)),
             "strategy_return": float((1 + base.returns.loc[mask]).prod() - 1) * 100,
         }
-    sensitivity = {str(t): run_asymmetry_strategy(weekly, t).metrics for t in GRID}
+    # The same rule governs the threshold grid. At a high enough threshold the
+    # strategy opens a single episode, and its Sharpe ratio and hit rate are then
+    # the same unreportable quantities the walk-forward suppresses -- in fact the
+    # same episode. Flagging it here, rather than editing one table by hand,
+    # keeps a statistic from being withheld in one place and printed in another.
+    sensitivity = {}
+    for t in GRID:
+        metrics = run_asymmetry_strategy(weekly, t).metrics
+        metrics["inference_supported"] = supports_inference(metrics["holding_episodes"])
+        sensitivity[str(t)] = metrics
+    for label, metrics in sensitivity.items():
+        if not metrics["inference_supported"]:
+            log(f"SENSITIVITY: threshold {label} opens {metrics['holding_episodes']} episode(s); "
+                f"below the {MIN_EPISODES_FOR_INFERENCE}-episode minimum, so its Sharpe ratio "
+                f"and hit rate are not reportable as performance.")
 
     # Position sizing is a specification choice, not an implementation detail,
     # so both readings are reported rather than one being adopted silently.

@@ -155,7 +155,11 @@ skewness-threshold strategy loses 7.57\% cumulative gross over the decade (15
 directional holding episodes, Sharpe $-0.17$), is nearly inert in walk-forward
 testing (one episode in eight out-of-sample years), and provides no evidence of
 a positive residual alpha against proxy carry, momentum, and dollar factors
-(intercept $t = -0.86$ on in-position weeks). Transaction costs modestly worsen
+(intercept $t = -0.84$ on in-position weeks). It does, however, carry a
+significant \emph{negative} loading on time-series momentum
+($\beta = -0.82$, $t = -3.73$ on in-position weeks), absent before correction,
+indicating that while invested the rule behaves largely as a short momentum
+position rather than as an asymmetry harvester. Transaction costs modestly worsen
 an already negative gross result; a positive-cost break-even level is therefore
 not defined.
 Data-snooping corrections complete the null: White's Reality Check ($p = 0.15$)
@@ -461,13 +465,15 @@ The distributional signature does not travel: EUR/JPY's negative tail-skew point
 
 \subsection{Why Asymmetry Exploitation Fails}
 
-The empirical findings reveal a pattern more thoroughgoing than ``asymmetry exists statistically but fails economically'': under corrected measurement, most of the proposed asymmetry lacks dependence-robust support, and the one robust distributional finding does not establish a tradable edge. We identify four failure modes:
+The empirical findings reveal a pattern more thoroughgoing than ``asymmetry exists statistically but fails economically'': under corrected measurement, most of the proposed asymmetry lacks dependence-robust support, and the one robust distributional finding does not establish a tradable edge. We identify five failure modes:
 
 \textbf{Little Asymmetry to Exploit.} The dependence-robust inventory leaves one robustly skewed signal (coverage) and one fragile negative point estimate (tail). The trading rule instead uses fast and pricing skewness, whose full-sample intervals include zero. Its 15 in-sample episodes do not establish profitable predictability.
 
 \textbf{Tail Evidence Is Inconclusive.} The GPD point estimate is near zero, but its wide confidence interval includes both negative and positive values. The data do not establish Pareto-type heavy tails, nor do they prove exponential decay. With only 20 declustered maxima, tail classification is underpowered.
 
 \textbf{Inactivity Under Honest Selection.} When the threshold is chosen on training data alone, the strategy opens only one OOS holding episode in eight test years. That count is too small for performance inference.
+
+\textbf{It Is Not Trading Asymmetry.} The corrected factor regression carries a statistically significant \emph{negative} loading on time-series momentum ($\beta_2 = -0.82$, $t = -3.73$, $p = 0.00019$ on in-position weeks; $-0.046$, $p = 0.038$ on the full sample), where under the published specification no loading approached significance. While invested, the strategy behaves close to a one-for-one short momentum position on the pair it trades, and momentum alone explains a fifth of the variance of its in-position returns. A rule that sells strength and buys weakness is taking a documented factor exposure, not harvesting distributional asymmetry, and over this sample that exposure lost money. The negative result is therefore not merely that asymmetry failed to pay; it is that the object being tested was substantially something else.
 
 \textbf{Non-Generalizability.} Cross-market transfer yields erratic results: the identical rules lose 14.11\% on GBP/USD, gain 13.18\% on SPY while trailing buy-and-hold by roughly 281 percentage points, and lose 13.67\% on GLD. The tail signal's negative point estimate also reverses sign in every other market tested. Without asset-specific costs or inference, nothing here establishes generalization.
 
@@ -571,19 +577,19 @@ The baseline skewness threshold (0.75) deserves scrutiny: is it arbitrary or rob
 \small
 \begin{tabular}{@{}lccccc@{}}
 \toprule
-Threshold & Return & Sharpe & MDD & Episodes & Hit Rate \\
+Threshold & Episodes & Exposed Weeks & Return & Sharpe & Hit Rate \\
 \midrule
-0.50 & $-$6.83\% & $-$0.12 & $-$22.02\% & 25 & 46.1\% \\
-0.75 & $-$7.57\% & $-$0.17 & $-$14.29\% & 15 & 47.3\% \\
-1.00 & $-$1.68\% & $-$0.08 & $-$5.46\% & 4 & 43.8\% \\
-1.25 & 2.74\% & 0.28 & $-$0.86\% & 1 & 50.0\% \\
+0.50 & 25 & 89 & $-$9.61\% & $-$0.18 & 46.1\% \\
+0.75 & 15 & 55 & $-$6.64\% & $-$0.15 & 47.3\% \\
+1.00 & 4 & 16 & $-$2.59\% & $-$0.13 & 43.8\% \\
+1.25 & 1 & 4 & \multicolumn{3}{c}{\emph{single episode: not reported}} \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Returns use the full asymmetry strategy specification (long and short legs with position sizing as described in Section~2.4). Performance varies non-monotonically with threshold. Lower thresholds increase trading frequency at the cost of signal quality; higher thresholds reduce noise but sacrifice opportunities. Simplified long-only implementations yield different (typically lower) returns due to the absence of the short-side component.}
+\parbox{\linewidth}{\footnotesize Note: Returns use the full asymmetry strategy specification of Section~2.4 with weekly position sizing. Activity is placed first because it is the stable feature of the grid: raising the threshold monotonically reduces the number of episodes and the weeks of exposure, while the return does not vary monotonically. \textbf{The 1.25 row reports no performance figures, for the same reason as Table~\ref{tab:oos} and in fact from the same episode:} one holding episode supplies no sample over which a Sharpe ratio or a hit rate can be computed. The replication pipeline applies this rule wherever such statistics arise rather than table by table, and records the suppressed values in \texttt{analysis/full\_pipeline\_results.json}.}
 \end{table}
 
-\textbf{Threshold Selection.} The full-sample grid is non-monotonic. Three thresholds lose money; 1.25 earns 2.74\% from a single episode. Selecting that isolated outcome after seeing the full sample would be data snooping, not robustness. The prespecified 0.75 baseline remains the confirmatory result, and the walk-forward separately freezes each year's threshold from prior data.
+\textbf{Threshold Selection.} What the grid shows unambiguously is that activity falls as the threshold rises: 25 episodes and 89 exposed weeks at 0.50, down to a single episode and four exposed weeks at 1.25. Return does not behave monotonically, and every threshold with enough episodes to evaluate loses money. The 1.25 threshold is the same lone 2020 episode that the walk-forward selects, and it is reported here as an activity count rather than as a return for the reason given in Section~\ref{sec:robustness}: a single episode cannot distinguish an edge from a coin flip. Selecting it after seeing the full sample would in any case be data snooping rather than robustness. The prespecified 0.75 baseline remains the confirmatory result.
 
 \subsection{Transaction Cost Sensitivity}
 \label{sec:tcosts}
@@ -637,22 +643,28 @@ where the factors are single-market proxies constructible from our data rather t
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 Variable & Coefficient & $t$-stat & Coefficient & $t$-stat \\
 \midrule
-Intercept ($\alpha$) & $-$0.00014 & $-$0.55 & $-$0.00145 & $-$0.86 \\
-Carry ($\beta_1$) & 0.0154 & 0.52 & 0.325 & 1.40 \\
-Momentum ($\beta_2$) & $-$0.0470 & $-$2.09 & $-$0.824 & $-$3.53 \\
-Dollar ($\beta_3$) & 0.0128 & 0.57 & 0.146 & 0.96 \\
+Intercept ($\alpha$) & $-$0.00012 & $-$0.52 & $-$0.00131 & $-$0.84 \\
+Carry ($\beta_1$) & 0.0180 & 0.60 & 0.348 & 1.52 \\
+Momentum ($\beta_2$) & $-$0.0462 & $-$2.08$^{*}$ & $-$0.823 & $-$3.73$^{***}$ \\
+Dollar ($\beta_3$) & 0.0148 & 0.67 & 0.155 & 1.08 \\
 \midrule
-$R^2$ & \multicolumn{2}{c}{0.010} & \multicolumn{2}{c}{0.187} \\
-$F$-statistic & \multicolumn{2}{c}{2.06} & \multicolumn{2}{c}{6.14} \\
+$R^2$ & \multicolumn{2}{c}{0.011} & \multicolumn{2}{c}{0.203} \\
+$F$-statistic & \multicolumn{2}{c}{2.12} & \multicolumn{2}{c}{7.04} \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Newey-West HAC standard errors with 4 lags. The full sample includes flat weeks; the in-position sample is the effective exposure sample. The intercept is not significant in either regression. The negative momentum loading is statistically significant in this specification, but the factors are single-market proxies and the in-position sample remains small.}
+\parbox{\linewidth}{\footnotesize Note: Newey-West HAC standard errors with 4 lags. $^{*}$ $p < 0.05$, $^{***}$ $p < 0.001$ (unadjusted). The full sample includes the flat weeks in which the dependent variable is structurally zero; the in-position sample of 55 weeks is the effective exposure sample and the economically interpretable one. The intercept is not significant in either specification. Momentum is the only factor that loads significantly, and it loads \emph{negatively} in both: $p = 0.038$ on the full sample and $p = 0.00019$ on in-position weeks. Under the earlier specification the same coefficient was $-$0.007 ($t = -0.37$, $p = 0.71$) on the full sample and $-$0.247 ($t = -0.51$, $p = 0.61$) in position; the change is a consequence of correcting the holding rule and the execution lag, not of altering the regression.}
 \end{table}
 
-\textbf{No Evidence of Positive Residual Alpha.} The intercept is negative and statistically indistinguishable from zero in both specifications ($t = -0.55$ full sample; $t = -0.86$ on in-position weeks). This is evidence against a positive residual-alpha claim, not proof that the population intercept is exactly zero.
+\textbf{No Evidence of Positive Residual Alpha.} The intercept is negative and statistically indistinguishable from zero in both specifications ($t = -0.52$ full sample; $t = -0.84$ on in-position weeks). This is evidence against a positive residual-alpha claim, not proof that the population intercept is exactly zero.
 
-\textbf{Factor Loadings and Effective Sample.} The corrected longer holds raise the effective sample to 55 weeks. The negative momentum loading is material in both regressions, while carry and dollar loadings are not significant. Because the factors are proxies and the exposed sample is small, this is a specification check rather than a definitive factor decomposition.
+\textbf{A Significant Negative Momentum Loading.} The correction changes this exercise qualitatively, and not in the strategy's favour. Under the published specification no factor loading approached significance: momentum entered at $\beta_2 = -0.007$ ($t = -0.37$, $p = 0.71$) on the full sample and $-0.247$ ($t = -0.51$, $p = 0.61$) on in-position weeks, and the paper concluded that the regression had no power to say anything. With the holding rule and the execution lag corrected, momentum becomes the one factor that loads significantly, and it loads negatively: $\beta_2 = -0.046$ ($t = -2.08$, $p = 0.038$) on the full sample and $\beta_2 = -0.823$ ($t = -3.73$, $p = 0.00019$) on the 55 in-position weeks, where $R^2$ rises from 0.07 to 0.20. Carry and the dollar factor remain insignificant, and the intercept remains indistinguishable from zero.
+
+The in-position estimate is the economically meaningful one: the full-sample coefficient is mechanically attenuated because the dependent variable is exactly zero in 449 of 504 weeks, which shrinks any loading toward zero without saying anything about the exposure the strategy actually carries when it is in the market. Read on the exposure sample, $\beta_2 = -0.82$ says that while invested the strategy behaves close to a one-for-one \emph{short} position in twelve-week time-series momentum on the pair it trades. That is not an incidental correlation but a plausible mechanical consequence of the rule: the short leg fires when pricing alpha is high, which is to say after the price has run above its sixty-day average, so the strategy systematically sells strength and buys weakness. Momentum alone accounts for a fifth of the variance of its in-position returns.
+
+This matters for the paper's central question. An asymmetry strategy that is a disguised short-momentum bet is not harvesting distributional asymmetry; it is taking a known factor exposure, and one that lost money over this sample (the twenty-week momentum benchmark of Table~\ref{tab:backtest} returned $-18.92\%$). Part of the corrected strategy's loss is therefore attributable to a documented risk premium rather than to any failure specific to asymmetry, which sharpens the null: there is no residual alpha to explain, and what return variation exists is largely explained by an exposure the strategy never intended to take.
+
+\textbf{How Far to Press It.} Three qualifications, none of which overturn the finding but all of which bound it. First, the full-sample $p$-value of 0.038 is marginal and would not survive a multiple-testing correction of the kind this paper applies elsewhere: at family size six (three factors in two specifications) a Bonferroni threshold would be $0.008$. The in-position estimate at $p = 0.00019$ clears that bar comfortably, and the finding should be read as resting on it rather than on the full-sample row. Second, Mom is a twelve-week time-series momentum rule on EUR/JPY itself, not the published cross-sectional currency momentum factor of \citet{menkhoff2012currency}; a strong loading of a single-pair strategy on a single-pair momentum rule is less surprising, and less transferable, than a loading on a genuine cross-sectional factor would be. Third, 55 in-position weeks arising from 15 episodes is a small and serially dependent sample, and HAC standard errors adjust the inference without enlarging the evidence. The loading is a robust description of this sample and a hypothesis about the strategy's character, not a structural estimate.
 
 \subsection{Weekly-Return Tail Distribution Analysis}
 
