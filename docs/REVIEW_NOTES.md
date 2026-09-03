@@ -323,6 +323,43 @@ this window without being structurally guaranteed.
 
 ---
 
+## Directives still to apply (Tofig, carried forward)
+
+1. **Sizing write-up must not overclaim.** Both weekly resizing and
+   freeze-at-entry are *extensions* of the published rule, because fixing the
+   dead-exit defect creates held-but-unsignalled weeks that the original
+   specification never had to address. Weekly resizing is chosen as the smaller
+   extension that keeps the paper's own words — not as a pure restoration, and
+   it must not be described as one.
+
+   Related: **−7.57 % is not a baseline being departed from.** It is the output
+   of a specification Codex invented and then edited the manuscript to justify.
+   The weekly-resizing result must not be framed as a move away from it.
+
+2. **Restore the deleted provenance footnotes** from `4d21c69` (see F-1): the
+   5.05 unsigned-magnitude tail-skew error, the benchmark rows that traced to no
+   committed code, the 141 pooled trades, and the spurious 21 bp intercept.
+
+3. **Restructure the changelog and PR text into three sections**, every change
+   in exactly one, so Murad can approve each category separately:
+
+   - **(a) Implementation defects corrected** — the paper said X, the code
+     accidentally did Y, the code now does X. Only the dead exit branch, the
+     double execution lag, and `compute_ai` vs. Equation 5 qualify. Nothing
+     enters this section unless paper and code genuinely disagreed *before*
+     Codex touched them.
+   - **(b) Methodological changes proposed** — paper and code both said X, we
+     propose Y. The "trades" redefinition (SD-3), the EVT input switch (SD-4),
+     and frozen sizing recorded as the rejected alternative (SD-2).
+   - **(c) Manuscript corrections** — the code is sound, the paper describes it
+     wrongly. The Monday-open availability claim (EX-3), the fast-alpha equation
+     units (EX-1), and the unreachable 0.5 position floor (EX-4).
+
+   When describing the dead-exit fix, state the exposure figure plainly: **the
+   original strategy held a position in only 25 of 504 weeks.** That is why the
+   original null result had no content, and it is the single most important fact
+   in this correction.
+
 ## Backlog — out of scope for this pull request
 
 Recorded so they are not lost. None of these are actioned here.
