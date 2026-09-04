@@ -2,85 +2,373 @@
 
 ## Title
 
-Correct strategy chronology, AI, trade accounting, and reproducibility
+Correct the holding rule, execution lag and asymmetry index; regenerate all downstream results
 
-## Description
+---
 
-### Summary
+## Summary
 
-This PR audits the current manuscript against the current code and corrects confirmed specification errors without optimizing the strategy for a positive result. The corrected baseline is negative: -7.57% cumulative gross, Sharpe -0.173, across 15 directional holding episodes.
+The published code did not implement the strategy the published paper describes.
+Three defects are corrected here. The largest of them meant that
 
-### Confirmed corrections
+> **the published strategy held a position in 25 of 504 weeks.**
 
-- preserve positions until an opposing signal, simultaneous-signal conflict, or four-return-period expiry;
-- use one Friday-close-to-next-Friday-close execution lag for the headline strategy, benchmarks, walk-forward, factor analysis, costs, and candidate universe;
-- calculate AI as mean squared deviations from the overall mean, matching the displayed equation;
-- fix entry size for the duration of an episode and document the actual 1--2 unit leveraged range;
-- replace position-change-events/2 with dated position and episode ledgers;
-- attribute VIX regimes after one complete chronological strategy run;
-- replace machine-specific paths with repository-relative paths and CLI overrides;
-- cache local inputs, record SHA-256 hashes/retrieval dates/software versions, and support `--offline` reproduction;
-- revise the Monday-open, fast-alpha, hedge-proxy, sample-date, hypothesis-test, tail, and random-candidate descriptions.
+It closed any open position the moment its entry signal stopped firing, which is
+not the exit rule §2.4 states. Corrected, it holds a position in 55 weeks.
 
-### Main result changes
+Every headline figure in the paper — the +3.60% return, the 0.149 Sharpe ratio,
+the factor regression with its 25-observation effective sample, the "immaterial"
+transaction costs, the 19.2-pip break-even — described that five percent of the
+sample. That is why the published null result had so little content: a strategy
+that is almost never invested cannot demonstrate much in either direction.
 
-- baseline gross return: +3.60% -> -7.57%;
-- Sharpe: 0.149 -> -0.173;
-- maximum drawdown: -7.96% -> -14.29%;
-- exposed weeks: 25 -> 55;
-- accounting: 15 directional episodes, 30 execution legs, one reversal, no resizing;
-- walk-forward: one OOS episode and +2.74% cumulative, too sparse for inference;
-- low/high-VIX attributed returns: -5.78% / -1.90%;
-- retail-wide net return: -7.93%; positive-cost break-even is not applicable;
-- White RC p=0.15 and SPA p=0.26 against a zero-return benchmark.
+The corrected strategy **loses 6.64% gross** over the decade, Sharpe **−0.153**,
+across 15 holding episodes. The paper's conclusion is unchanged in direction and
+considerably stronger in substance. Two findings are new, and both sharpen the
+null rather than softening it:
 
-`analysis/before_after_results.csv` records additional changes and causes.
+- **There is no break-even transaction cost.** Not a larger one — none. A
+  break-even presumes a gross profit to be consumed, and there is none.
+- **The strategy is substantially a short momentum bet.** It loads negatively and
+  significantly on time-series momentum (β = −0.82, t = −3.73, p = 0.00019 on
+  in-position weeks), a loading that was insignificant before correction. Part of
+  its loss is a known factor exposure rather than a failure specific to
+  asymmetry.
 
-### Verification
+The sample is unchanged: n = 504, 8 January 2016 to 29 August 2025.
 
-- deterministic unit tests cover AI edge cases, dated timing, entry, hold, expiry, reversal, simultaneous signals, no-signal periods, both sizing modes, resize cost accounting, and reversal accounting (14 tests, all passing);
-- the complete online pipeline was run and inputs were cached with hashes;
-- the complete pipeline was rerun successfully with `--offline`;
-- seven of the eight input files reproduced byte-for-byte on an independent download; the eighth is explained below;
-- all affected figures and manuscript tables were regenerated;
-- after every rerun: the analysis sample is n = 504 spanning 2016-01-08 to 2025-08-29, the factor intercept matches the strategy's own mean weekly return, and the low- and high-VIX returns compound to the full-sample return.
+---
 
-**The committed PDF is stale and must be rebuilt before submission.**
-`paper/alpha-asymmetry.pdf` is the September build produced by the Codex agent.
-It predates every change in this branch and does not reflect the corrected
-manuscript. No LaTeX toolchain was available in the session that prepared these
-changes, so the PDF could not be recompiled and was not visually inspected.
+## How to read this PR
 
-An earlier draft of this document asserted that "LaTeX was compiled and the
-resulting PDF was rendered and visually inspected." That assertion originated
-with the Codex agent, is not true of this branch, and has been removed. Flagging
-it here rather than deleting it silently, because unverified assertions are the
-subject of this pull request.
+Changes are grouped so that each group can be accepted or rejected on its own:
 
-What was done instead, on the LaTeX source directly:
+- **(a) Implementation defects** — the paper said X, the code did Y, the code now
+  does X. Three items. Nothing is in this group unless the published paper and
+  the published code genuinely disagreed.
+- **(b) Methodological changes proposed** — the paper and the code agreed, and
+  this PR proposes something different. Three items, each reversible without
+  disturbing (a).
+- **(c) Manuscript corrections** — the code is defensible and the paper describes
+  it wrongly.
+- **(d) Prose corrected without a wrong figure.**
+- **(e) Provenance footnotes restored.**
 
-- brace balance checked across the whole file (648 open, 648 close);
-- `table`, `tabular` and `equation` environments checked for matched
-  `\begin`/`\end` pairs (11 of each);
-- every edited table's row-by-row column count checked against its column
-  specification, including `\multicolumn` spans.
+`docs/CORRECTION_CHANGELOG.md` has the full detail.
+`analysis/before_after_results.csv` gives every changed figure with its published
+value, its corrected value, and which category produced the change.
 
-These confirm the source is structurally well formed. They do not confirm that
-it typesets correctly, that floats place sensibly, or that no text overflows.
-**Please rebuild the PDF and inspect it.**
+---
 
-### Reproduction
+## (a) Implementation defects corrected
+
+| | Paper (`4d21c69`) | Published code | Now |
+|---|---|---|---|
+| **a1** | "Exit: signal reversal OR 4-week maximum" | The hold branch was unreachable — its guard was always true — so positions closed as soon as the entry signal stopped firing | Holds through quiet weeks; reverses on the opposing signal; expires after four returns |
+| **a2** | Entry one period after the Friday signal | Signals lagged inside the loop, then the position shifted again: two lags, while benchmarks used one | One lag everywhere — headline, benchmarks, walk-forward, factors, costs, snooping |
+| **a3** | Equation 5: mean squared deviations about the overall mean | `pos.var()/neg.var()` — re-centres each subgroup, uses n−1, and returns a neutral-looking `1.0` where the statistic is undefined | Equation 5 as printed; undefined cases return missing |
+
+a1 is the one that matters: 25 → 55 exposed weeks, and the dominant driver of
+nearly every changed figure.
+
+---
+
+## (b) Methodological changes proposed
+
+These are judgement calls. The published paper and the published code agreed in
+each case; this PR proposes departing from them.
+
+### b1. How to size a week in which a direction is held but no signal fires
+
+Fixing a1 creates a state the published specification never had to describe,
+because the published implementation could never reach it. The published rule was
+"Rebalancing: Weekly (end of Friday close)" with Equation 10 evaluated at the
+contemporaneous `AI_t`, and the published code did resize on every bar it held a
+position — so paper and code agreed. Neither ever faced a *held but unsignalled*
+week.
+
+**Proposed:** evaluate the sizing equation weekly while a direction is held, as
+the smaller of the two available extensions — it keeps the published rebalancing
+frequency and the contemporaneous subscript, and changes no published sentence.
+Freezing the notional at entry is the alternative; it is computed in the same run
+and reported.
+
+| | weekly (proposed) | frozen (alternative) |
+|---|---|---|
+| Gross return | −6.64% | −7.57% |
+| Sharpe | −0.153 | −0.173 |
+| Max drawdown | −12.56% | −14.29% |
+| In-position weeks | 55 | 55 |
+| Holding episodes | 15 | 15 |
+| Turnover | 52.00 | 49.15 |
+
+Entries, exits, direction and exposure are identical. **No conclusion depends on
+the choice.** The argument against the proposal is in the changelog rather than
+omitted.
+
+### b2. "Trades" reported as holding episodes and execution legs
+
+The published paper defined trades as "position-change events divided by two" and
+the code implemented exactly that — but the label said "completed round trips",
+which that formula does not compute. For the momentum benchmark it reported 27
+round trips for 54 directional holdings and 107 executions.
+
+**Proposed:** report holding episodes and execution legs separately, with
+resizing and turnover, from dated ledgers. Headline: 17 published "trades" → 15
+episodes and 61 legs. The underlying returns are untouched by this item.
+
+### b3. Statistics from a single episode are not reported as performance
+
+The corrected walk-forward opens **one** out-of-sample episode in eight test
+years. A Sharpe ratio, a hit rate and an annualized return computed from one
+episode are not estimates of anything — the published 60% hit rate meant three
+weeks, and one episode would mean one up week and one down week.
+
+**Proposed:** decline to print them. The rule is enforced in code, applied
+wherever such statistics arise rather than table by table, and logged when it
+fires. Suppressed values stay in `full_pipeline_results.json` so the decision is
+checkable. Withheld figures are removed with the reason given, never replaced by
+an unexplained placeholder.
+
+The walk-forward table now reports what the procedure did — training window,
+selected threshold, episodes opened. **The activity count is the finding**, and
+it is a stronger one than any return from a single episode because it does not
+depend on how that episode happened to turn out.
+
+---
+
+## (c) Manuscript corrections
+
+The paper mis-stated its own code in four places: the fast-alpha equation showed
+a price difference where the code uses a percentage return (the printed version
+divides yen by a percentage volatility and is dimensionally incoherent); the
+position-size formula carried an unreachable 0.5 floor and a "no leverage" claim
+when the real range is [1, 2] gross-notional units; hedge alpha was printed with
+a time-varying rate differential that exists nowhere in the repository, the code
+using a fixed −2% constant; and the tail-alpha window was described in weeks
+where the code uses trading days.
+
+Two disagreements were resolved **in favour of the code**, against the working
+rule that the code gets fixed to match the paper. Both are flagged so they can be
+overruled:
+
+- **Monday-open execution.** The paper specifies it; the code uses the Friday
+  close. The Friday close is kept — but a false justification is removed. An
+  earlier draft of this correction claimed Monday opening prices are absent from
+  the dataset. **They are present**; the daily bars carry an `Open` column. The
+  Friday-close proxy is a choice, and the paper now says so. Implementing
+  Monday-open execution is on the backlog.
+- **The EVT section** is presented in the paper as characterising tail-alpha
+  exceedances; the code fits absolute weekly returns. The section is relabelled
+  as a weekly-return diagnostic. The rule says the code should have been changed
+  instead; refitting is on the backlog, and the relabelling should not be
+  mistaken for the fix.
+
+---
+
+## (d) Prose corrected without a wrong figure
+
+The manuscript sweep changed **38 figures across 21 locations**. But a
+figure-by-figure sweep does not catch a sentence whose *argument* depends on a
+result that no longer holds, and those matter more.
+
+The published paper argued that a modest gross edge survived measurement and was
+not eliminated by costs. Every sentence resting on that architecture is wrong
+under the corrected numbers regardless of its digits. Examples, none containing
+an incorrect figure: the robustness section described a backtest "statistically
+indistinguishable from zero" (defensible on the interval, but it presents a
+losing strategy as a null one) and asked whether costs "erode strategy returns"
+(presupposing returns to erode); the drawdown paragraph called the figure "only
+modestly smaller" than buy-and-hold's, presenting as mitigating what is damning —
+four-fifths of a permanently invested position's drawdown, incurred while exposed
+in 55 of 504 weeks.
+
+**The break-even statement is the clearest case.** The published paper reported a
+break-even round-trip cost of 19.2 pips and read it as reassurance. That figure
+was meaningful only while the gross return was positive. It is not that the
+corrected break-even is larger, or harder to estimate: **it does not exist**, and
+the paper now says so in the cost section, the abstract and the conclusion. It is
+a cleaner statement of the null than the cost table it replaces.
+
+One qualification is added rather than removed: costs remain small in magnitude
+(0.38pp at two pips), but the model charges spread strictly in proportion to
+notional with **no per-order component**, while the corrected specification
+generates 31 resizings averaging 0.19 units — exactly the population a per-ticket
+charge would fall hardest on. The reported drag is a lower bound.
+
+---
+
+## (e) Provenance footnotes restored
+
+`4d21c69` carried nine table notes recording the paper's own earlier corrections.
+Seven had been deleted during the drafting of this branch; all seven are
+restored. Two survived — and keeping two of nine is not an editorial decision,
+it is what happens when notes get dropped while the prose around them is
+rewritten.
+
+**One deserves singling out.** The data-snooping note recorded that the published
+`RC = 2.14 (p = 0.042)` was not reproducible from any specification of the stated
+candidate universe. That is the paper's most quotable statistic — the one number
+in it that reported a significant result. Deleting the note deleted the record
+that it was already known to be unreliable.
+
+Each note is restored **verbatim**, with current values appended as a following
+sentence rather than woven into the original. These notes are a dated record of
+what was wrong and when; editing them to match today's numbers would destroy what
+makes them worth keeping.
+
+That preservation was enforced mechanically, not by eye: every one of the nine
+original sentences is checked to appear in the current source as an exact
+substring. The check earned its place — a first attempt inserted the words "then
+reported" *inside* the factor-attribution sentence, a two-word rewrite of the
+historical record that reading would not have caught. The claim of verbatim
+restoration is worth something only because a machine enforced it.
+
+---
+
+## Result changes
+
+Full table with per-item attribution in `analysis/before_after_results.csv`.
+
+| Metric | Published (`4d21c69`) | Corrected |
+|---|---|---|
+| **In-position weeks** | **25 of 504** | **55 of 504** |
+| Cumulative gross return | +3.60% | −6.64% |
+| Sharpe | 0.149 | −0.153 |
+| Maximum drawdown | −7.96% | −12.56% |
+| Holding episodes / execution legs | 17 "trades" | 15 / 61 |
+| Break-even round-trip cost | 19.2 pips | does not exist |
+| Retail-wide net return | +3.22% | −7.02% |
+| Momentum loading (in-position) | −0.247, t = −0.51 | **−0.823, t = −3.73** |
+| Factor intercept (full sample) | +0.00008 | −0.00012 |
+| In-position factor sample | 25 weeks | 55 weeks |
+| Walk-forward pooled return / episodes | +2.46%, 3 trades | +2.74%, 1 episode |
+| Walk-forward Sharpe / hit rate | 0.419 / 60.0% | withheld — one episode |
+| Low-VIX / high-VIX return | +2.38% / +2.67% | −5.08% / −1.65% |
+| GBP/USD cross-market | **+17.18%** | **−13.32%** |
+| SPY cross-market | +11.66% | +14.20% |
+| GLD cross-market | −30.26% | −15.44% |
+| Tail-alpha AI | 0.17 | 0.03 |
+| Coverage-alpha AI | 3.45 | 2.22 |
+
+**The GBP/USD sign flip is a finding, not a rounding.** The published paper reads
++17.18% on GBP/USD as evidence that FX offers more favourable conditions for the
+strategy than equities or gold. Corrected, it is −13.32%, and **the flip is
+attributable to the implementation fixes, not to the sizing proposal**: with the
+implementation fixes and the frozen-notional alternative the figure is −14.11%.
+Rejecting (b1) does not restore the published reading. The cross-market section's
+claim about FX conditions no longer has a basis.
+
+For the same reason, the widened cross-market spread is traceable: the
+`cross_market` code block is byte-identical to the version this branch started
+from, and rerunning it under the frozen alternative reproduces the intermediate
+figures exactly. The movement is the sizing default alone; the input skewness
+statistics are unchanged in all four markets.
+
+---
+
+## Verification
+
+- 14 deterministic unit tests, all passing, covering the AI edge cases, the dated
+  timing convention, entry, hold, expiry, reversal, simultaneous signals,
+  no-signal periods, both sizing modes, resize cost accounting and reversal
+  accounting.
+- The complete pipeline runs online and reruns identically with `--offline`.
+- Seven of the eight input files reproduce byte-for-byte on an independent
+  download (see **Data** below).
+- Every figure in the manuscript was machine-checked against
+  `analysis/full_pipeline_results.json`.
+- The nine original provenance sentences are machine-checked for verbatim
+  presence.
+- After every rerun: n = 504 spanning 2016-01-08 to 2025-08-29; the factor
+  intercept matches the strategy's own mean weekly return
+  (−0.00011964 against −0.00012029); the low- and high-VIX returns compound to
+  the full-sample return (−6.640684% against −6.640684%).
+
+### The committed PDF is stale and must be rebuilt
+
+`paper/alpha-asymmetry.pdf` predates every change here. **No LaTeX toolchain was
+available**, so it could not be recompiled and was not visually inspected. An
+earlier draft of this document claimed that it had been; that claim was untrue
+and has been removed, and it is flagged here rather than deleted quietly because
+unverified assertions are the subject of this pull request.
+
+What was checked on the source instead: brace balance (664/664); matched
+`table`, `tabular` and `equation` environments (11 of each); and row-by-row
+column counts against the column specification for every edited table, including
+`\multicolumn` spans. These establish that the source is structurally well
+formed. They do not establish that it typesets, that floats place sensibly, or
+that no text overflows. **Please rebuild and inspect.**
+
+---
+
+## Data, and a decision for you
+
+The raw CSVs are **not committed**, and `analysis/cache/` remains gitignored.
+`analysis/data_access.py` gives the reason: Yahoo Finance data may be subject to
+redistribution terms. Publishing eight files of vendor data in a public
+repository is a licensing decision for the repository owner, not one an outside
+contributor should make inside a correctness PR — **so it is raised here for you
+to decide rather than taken.**
+
+What is provided instead: `analysis/fetch_data.py` downloads the inputs and
+verifies each file's SHA-256 against the committed manifest, so a fresh clone can
+obtain the data and confirm it is the same data.
+
+Seven of eight hashes reproduce byte-for-byte. Six of the eight series are FX
+spot rates or index levels, which carry no corporate-action adjustment and
+structurally cannot drift; GLD paid no distribution over the window. SPY, a
+distributing ETF fetched with `auto_adjust=True`, has its entire history rescaled
+by every new distribution — the only file in the set that *could* differ, and it
+did. That is the expected outcome rather than a near miss. The difference moves
+five values in the SPY cross-market row in their fifth or sixth significant
+figure, each rounding to the same printed number, and nothing else in the
+pipeline.
+
+---
+
+## Reproduction
 
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m pytest -q
-.venv/bin/python analysis/full_pipeline.py --refresh
+.venv/bin/python analysis/fetch_data.py
 .venv/bin/python analysis/full_pipeline.py --offline
 ```
 
-### Limitations and owner decisions
+---
 
-The original raw snapshots are absent, so exact historical reproduction is not claimed. Yahoo closes are indicative, Monday-open execution is not implemented, and financing is omitted. Please confirm the simultaneous-signal/expiry precedence, leveraged sizing intent, preferred executable-price convention, whether original raw files can be supplied, and whether an approved EUR--JPY rate or forward series should be added in a separate change.
+## Questions for you
 
-No branch was pushed, no pull request was opened, and nothing was merged.
+1. **The data licensing question above** — commit the raw CSVs, or keep the
+   fetch-and-verify approach?
+2. **(b1), the sizing proposal.** Weekly evaluation or frozen at entry? Both are
+   computed; no conclusion depends on it.
+3. **(b2) and (b3)** — the trade-accounting redefinition and the refusal to
+   report single-episode statistics. Both are reversible.
+4. **(c2), the two exceptions** — keeping the Friday close despite the paper
+   specifying Monday open, and relabelling the EVT section rather than refitting
+   it. Either could be done properly instead.
+5. **The stale PDF.** You have the toolchain.
+6. Whether an approved EUR–JPY rate or forward series can be supplied, which
+   would let hedge alpha stop being a constant multiplied by a correlation.
+
+---
+
+## Provenance
+
+This branch began from an unreviewed draft produced by an AI agent, committed
+unmodified as `5135bac` and labelled as such. That commit was **audited rather
+than adopted**: its claims were checked against `4d21c69`, its manuscript edits
+were reviewed line by line, several were reversed, and every change that survives
+is justified in this PR and in the changelog against the published paper. It
+carries no authority and is kept in the history only so that the work done after
+it is separately reviewable.
+
+`docs/REVIEW_NOTES.md` is the working audit record from that process. It is not
+part of the argument here.
+
+No branch has been pushed, no pull request opened, and nothing merged.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)

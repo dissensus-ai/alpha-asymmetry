@@ -1,5 +1,19 @@
 # Review notes
 
+> **Status: working audit record. Not part of the pull request's argument.**
+>
+> This file documents the audit process — who originated each change, what was
+> checked, and what was found — so that the work is traceable. It is written
+> against `5135bac`, the unreviewed AI-generated draft this branch started from,
+> because that is what was being audited.
+>
+> **The pull request itself is framed against the published paper (`4d21c69`),
+> not against that draft.** Murad never adopted `5135bac`; its numbers have no
+> standing, and nothing in it is his to answer for. Where a change needs
+> justifying to the repository owner, it is justified in
+> `docs/CORRECTION_CHANGELOG.md` and `docs/PROPOSED_PR.md` against the published
+> paper. Read those two for the argument; read this one for the trail.
+
 Running record of every change on branch `fix/strategy-specification`, who
 originated it, and whether it is a **bug fix** (code did not do what the
 published paper said) or a **specification decision** (a choice that changes

@@ -569,38 +569,108 @@ def main() -> int:
     log(f"Outputs: {portable_path(args.output_dir)}")
     (args.output_dir / "full_pipeline_results.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    # Values published in commit 4d21c69. The original raw files were absent,
-    # so these are a reported-results reference, not an independently rerun control.
-    old_base = {"return": 3.6016, "sharpe": 0.1489, "mdd": -7.9572,
-                "trades": 17, "in_position_weeks": 25}
-    old_ai = {"tail_alpha": 0.1716, "fast_alpha": 0.9577,
-              "pricing_alpha": 0.8050, "coverage_alpha": 3.4533,
-              "hedge_alpha": 1.4018}
+    # ------------------------------------------------------------------
+    # Published-versus-corrected comparison.
+    #
+    # The "before" column is the PUBLISHED paper, commit 4d21c69 (July 2026):
+    # every value is transcribed from 4d21c69:analysis/full_pipeline_results
+    # .{json,txt} or from the tables of 4d21c69:paper/alpha-asymmetry.tex.
+    # The original raw inputs were not committed, so these are the reported
+    # results of that run, not an independent rerun of it.
+    #
+    # "stage" attributes each change to the correction that produced it:
+    #   implementation  the three defects where the published code did not do
+    #                   what the published paper said (dead exit branch,
+    #                   double execution lag, AI formula)
+    #   accounting      a reported quantity redefined, the underlying returns
+    #                   unchanged
+    #   sizing          the weekly-versus-frozen notional specification choice
+    #   reporting       a figure withheld or restated, nothing recomputed
+    # Where a change spans stages, the dominant one is named and the
+    # attribution is quantified in docs/CORRECTION_CHANGELOG.md.
+    # ------------------------------------------------------------------
+    published = {
+        "return": 3.6016, "sharpe": 0.1489, "mdd": -7.9572, "trades": 17,
+        "in_position_weeks": 25, "vol": 2.69, "sortino": 0.062,
+        "wf_cum": 2.46, "wf_trades": 3, "wf_sharpe": 0.419, "wf_hit": 60.0,
+        "low_vix": 2.38, "high_vix": 2.67, "pre_covid": 1.06,
+        "covid_2020": -0.19, "post_covid": 2.71, "rate_hike": 2.86,
+        "intercept": 0.00008, "n_in_position": 25,
+        "mom_b_full": -0.00696, "mom_t_full": -0.37, "mom_p_full": 0.710,
+        "mom_b_inpos": -0.24705, "mom_t_inpos": -0.51, "mom_p_inpos": 0.609,
+        "retail_wide": 3.22, "breakeven": 19.21, "rc_p": 0.15, "spa_p": 0.28,
+        "annualized": 0.366, "gbpusd": 17.18, "spy": 11.66, "gld": -30.26,
+    }
+    published_ai = {"tail_alpha": 0.1716, "fast_alpha": 0.9577,
+                    "pricing_alpha": 0.8050, "coverage_alpha": 3.4533,
+                    "hedge_alpha": 1.4018}
+    f_full, f_pos = factors["full"]["coef"], factors["in_position"]["coef"]
     comparisons = [
-        ("Baseline cumulative return (%)", old_base.get("return"), base.metrics["return"], "holding rule + removal of extra lag + corrected AI sizing"),
-        ("Baseline Sharpe", old_base.get("sharpe"), base.metrics["sharpe"], "same corrected return chronology"),
-        ("Baseline maximum drawdown (%)", old_base.get("mdd"), base.metrics["mdd"], "same corrected return chronology"),
-        ("Holding episodes", old_base.get("trades"), base.metrics["holding_episodes"], "episode ledger replaces position-change-events/2"),
-        ("Execution legs", None, base.metrics["execution_legs"], "dated turnover accounting"),
-        ("In-position weeks", old_base.get("in_position_weeks"), base.metrics["in_position_weeks"], "hold until opposition/expiry instead of exit on signal loss"),
-        ("Walk-forward cumulative return (%)", 2.46, table5["pooled"]["cum_return"], "corrected strategy and sequential OOS state path"),
-        ("Walk-forward new episodes", 3, table5["pooled"]["new_episodes"], "episode ledger replaces event-pairs"),
-        ("Low-VIX strategy return (%)", 2.38, regimes["low_vix"]["strategy_return"], "attribute one full-calendar strategy run by weekly VIX"),
-        ("High-VIX strategy return (%)", 2.67, regimes["high_vix"]["strategy_return"], "attribute one full-calendar strategy run by weekly VIX"),
-        ("Full-sample factor intercept", 0.00008, factors["full"]["coef"]["const"]["b"], "corrected dependent return series"),
-        ("In-position factor sample", 25, factors["n_in_position"], "corrected holding periods"),
-        ("Retail-wide net return (%)", 3.22, costs["rows"][-1]["net_return"], "corrected strategy plus dated turnover costs"),
-        ("White Reality Check p-value", 0.15, snooping["white_rc_p"], "corrected full-strategy candidate; common one-lag timing"),
-        ("Hansen SPA p-value", 0.28, snooping["spa_p"], "corrected candidate universe; common one-lag timing"),
-        ("Annualized return (%)", 0.366, inference["annualized_return"], "corrected strategy return series"),
-        ("GBP/USD strategy return (%)", 17.18, cross_market["GBPUSD"]["strategy_return"], "corrected strategy chronology/holding/AI"),
-        ("SPY strategy return (%)", 11.66, cross_market["SPY"]["strategy_return"], "corrected strategy; adjusted-price download fixed explicitly"),
-        ("GLD strategy return (%)", -30.26, cross_market["GLD"]["strategy_return"], "corrected strategy chronology/holding/AI"),
+        ("Baseline cumulative return (%)", published["return"], base.metrics["return"], "implementation",
+         "Sign flips. Holding through unsignalled weeks and removing the second execution lag; weekly sizing accounts for +0.93pp of the move."),
+        ("Baseline Sharpe", published["sharpe"], base.metrics["sharpe"], "implementation",
+         "Follows the corrected return series."),
+        ("Baseline maximum drawdown (%)", published["mdd"], base.metrics["mdd"], "implementation",
+         "Deeper because the strategy is now exposed for 55 weeks rather than 25."),
+        ("Baseline annualized volatility (%)", published["vol"], performance(base.returns, base.position)["vol"], "implementation",
+         "Higher for the same reason: more weeks with a position."),
+        ("Baseline Sortino", published["sortino"], performance(base.returns, base.position)["sortino"], "implementation",
+         "Follows the corrected return series."),
+        ("In-position weeks", published["in_position_weeks"], base.metrics["in_position_weeks"], "implementation",
+         "THE HEADLINE DEFECT: 25 of 504 weeks published, 55 corrected. The published strategy closed every position the moment its entry signal stopped firing, so it was in the market 5% of the time."),
+        ("Holding episodes", published["trades"], base.metrics["holding_episodes"], "accounting",
+         "Published 'trades' were position-change events divided by two, as the published note stated. Now one row per continuous directional holding."),
+        ("Execution legs", None, base.metrics["execution_legs"], "accounting",
+         "Not reported in the published paper. Entries and exits counted separately; a reversal is two legs."),
+        ("Absolute turnover (units)", None, base.metrics["turnover"], "accounting",
+         "Not reported in the published paper."),
+        ("Walk-forward cumulative return (%)", published["wf_cum"], table5["pooled"]["cum_return"], "implementation",
+         "Corrected strategy on one sequential out-of-sample state path."),
+        ("Walk-forward new episodes", published["wf_trades"], table5["pooled"]["new_episodes"], "accounting",
+         "Newly opened directional holdings, not event pairs."),
+        ("Walk-forward pooled Sharpe", published["wf_sharpe"], None, "reporting",
+         "WITHHELD. One out-of-sample episode supplies no sample over which a Sharpe ratio can be computed. Value retained in walk_forward.pooled.sharpe."),
+        ("Walk-forward pooled hit rate (%)", published["wf_hit"], None, "reporting",
+         "WITHHELD, same reason. 50% would mean one profitable and one unprofitable week."),
+        ("Low-VIX strategy return (%)", published["low_vix"], regimes["low_vix"]["strategy_return"], "implementation",
+         "Sign flips. Also fixes regime attribution: the published routine reran a stateful strategy on filtered, nonconsecutive dates."),
+        ("High-VIX strategy return (%)", published["high_vix"], regimes["high_vix"]["strategy_return"], "implementation",
+         "Sign flips, same causes."),
+        ("Pre-COVID strategy return (%)", published["pre_covid"], regimes["pre_covid"]["strategy_return"], "implementation", "Sign flips."),
+        ("COVID-2020 strategy return (%)", published["covid_2020"], regimes["covid_2020"]["strategy_return"], "implementation",
+         "Sign flips. Identical under both sizing specifications: 2020 holds one episode whose notional was never revised."),
+        ("Post-COVID strategy return (%)", published["post_covid"], regimes["post_covid"]["strategy_return"], "implementation", "Sign flips."),
+        ("Rate-hike strategy return (%)", published["rate_hike"], regimes["rate_hike_2022_2025"]["strategy_return"], "implementation",
+         "Remains positive; the only subsample that does."),
+        ("Full-sample factor intercept", published["intercept"], f_full["const"]["b"], "implementation",
+         "Sign flips. Matches the corrected strategy's own mean weekly return, as it must."),
+        ("In-position factor sample", published["n_in_position"], factors["n_in_position"], "implementation",
+         "25 to 55 weeks, the same exposure defect."),
+        ("Momentum loading, full sample", published["mom_b_full"], f_full["mom"]["b"], "implementation",
+         "Was insignificant, now significant and negative."),
+        ("Momentum t-stat, full sample", published["mom_t_full"], f_full["mom"]["t"], "implementation", "p = 0.710 published, p = 0.038 corrected."),
+        ("Momentum loading, in-position", published["mom_b_inpos"], f_pos["mom"]["b"], "implementation",
+         "NEW FINDING: while invested the strategy is close to a one-for-one short momentum position."),
+        ("Momentum t-stat, in-position", published["mom_t_inpos"], f_pos["mom"]["t"], "implementation", "p = 0.609 published, p = 0.00019 corrected."),
+        ("Retail-wide net return (%)", published["retail_wide"], costs["rows"][-1]["net_return"], "implementation",
+         "Sign flips. Cost drag is 0.38pp; the gross return was already negative."),
+        ("Break-even round-trip cost (pips)", published["breakeven"], None, "implementation",
+         "NO LONGER EXISTS. A break-even cost presumes a positive gross return to consume, and there is none."),
+        ("White Reality Check p-value", published["rc_p"], snooping["white_rc_p"], "implementation",
+         "Unchanged. The maximum is attained by the seeded random candidate, which no change to the asymmetry rule affects."),
+        ("Hansen SPA p-value", published["spa_p"], snooping["spa_p"], "implementation", "Essentially unchanged, same reason."),
+        ("Annualized return (%)", published["annualized"], inference["annualized_return"], "implementation", "Sign flips."),
+        ("GBP/USD strategy return (%)", published["gbpusd"], cross_market["GBPUSD"]["strategy_return"], "implementation",
+         "SIGN FLIPS, +17.18% to -13.32%. Attributable to the implementation fixes, not to sizing: with the fixes and frozen sizing the figure is -14.11%. The published claim that FX offers more favourable conditions rested on this number."),
+        ("SPY strategy return (%)", published["spy"], cross_market["SPY"]["strategy_return"], "implementation",
+         "Stays positive and still trails buy-and-hold by roughly 280 percentage points."),
+        ("GLD strategy return (%)", published["gld"], cross_market["GLD"]["strategy_return"], "implementation",
+         "Stays negative; magnitude roughly halves."),
     ]
     for col in ALPHA_COLS:
-        comparisons.append((f"{col} AI", old_ai[col], table_stats[col]["ai"],
-                            "overall-mean squared deviations replace subgroup sample variances"))
-    pd.DataFrame(comparisons, columns=["metric", "before_committed", "after_corrected", "reason"]).to_csv(
+        comparisons.append((f"{col} AI", published_ai[col], table_stats[col]["ai"], "implementation",
+                            "Mean squared deviations about the overall mean, per Equation 5, replacing subgroup sample variances."))
+    pd.DataFrame(comparisons, columns=["metric", "published_4d21c69", "corrected", "stage", "note"]).to_csv(
         args.output_dir / "before_after_results.csv", index=False
     )
     return 0

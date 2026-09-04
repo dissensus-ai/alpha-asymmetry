@@ -10,7 +10,7 @@
     "evt_input": "absolute Friday-close-to-Friday-close returns, separate from daily tail-alpha flags"
   },
   "data_manifest": {
-    "manifest_generated_at_utc": "2026-09-03T19:39:15.519937+00:00",
+    "manifest_generated_at_utc": "2026-09-04T09:29:17.311363+00:00",
     "requested_start": "2014-06-01",
     "requested_end_exclusive": "2025-09-01",
     "original_snapshot_available": false,
