@@ -7,17 +7,30 @@ authors:
     orcid: "https://orcid.org/0009-0002-7164-8704"
     email: "murad@dissensus.ai"
     affiliation: "Dissensus"
+  - family-names: "Israfilov"
+    given-names: "Tofik"
+    email: "tofiq@dissensus.ai"
+    affiliation: "Dissensus"
 title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
-# v2.1.0-dev = the corrected analysis (signed tail series, block-bootstrap
-# inference, honest-null framing), completed 2026-07-07, not yet deposited.
-# Latest published Zenodo version remains v2.0.1 (10.5281/zenodo.20635291);
-# the v2.1.0 Zenodo/SSRN deposit is a manual step for the author.
-version: "2.1.0-dev"
-date-released: "2026-07-07"
+# VERSION IDENTIFIERS DISAGREE ACROSS FILES -- for the author to reconcile.
+#   paper/alpha-asymmetry.tex  carried \paperver 3.0.0 for the July 2026
+#                              manuscript (set in f04ae08, 21 Jul 2026)
+#   this file                  called the same work v2.1.0-dev
+#   last DEPOSITED version     is v2.0.1 (10.5281/zenodo.20635291)
+# Neither 3.0.0 nor 2.1.0-dev was ever deposited to Zenodo or SSRN.
+#
+# v3.1.0-dev = the present correction pass: holding rule, execution lag and
+# asymmetry index corrected against the published specification; all downstream
+# results regenerated. Follows the .tex numbering because that is the
+# identifier printed on the paper itself. Not yet deposited. Depositing mints a
+# new Zenodo version DOI, which should be recorded here and in CLAUDE.md
+# afterwards; the SSRN record requires a separate revision.
+version: "3.1.0-dev"
+date-released: "2026-09-04"
 license: "CC-BY-4.0"
 doi: "10.2139/ssrn.6147567"
 url: "https://dissensus.ai"
-repository-code: "https://github.com/studiofarzulla/alpha-asymmetry"
+repository-code: "https://github.com/dissensus-ai/alpha-asymmetry"
 identifiers:
   - type: doi
     value: "10.2139/ssrn.6147567"
@@ -41,6 +54,8 @@ preferred-citation:
     - family-names: "Farzulla"
       given-names: "Murad"
       orcid: "https://orcid.org/0009-0002-7164-8704"
+    - family-names: "Israfilov"
+      given-names: "Tofik"
   title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
   year: 2026
   doi: "10.2139/ssrn.6147567"

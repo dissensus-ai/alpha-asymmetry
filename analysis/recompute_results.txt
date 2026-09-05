@@ -1,17 +1,4 @@
-RECOMPUTATION RESULTS
-Generated: 2026-06-18 17:28:18
-Total observations: 504
+Superseded on 2026-09-02 by the unified corrected pipeline.
 
-TABLE 7 (Threshold Sensitivity):
-  0.50: Return=-6.91%, Sharpe=-0.154, MDD=-13.90%, Trades=37, HitRate=40.8%
-  0.75: Return=3.60%, Sharpe=0.149, MDD=-7.96%, Trades=17, HitRate=48.0%
-  1.00: Return=2.96%, Sharpe=0.436, MDD=-0.96%, Trades=4, HitRate=66.7%
-  1.25: Return=0.00%, Sharpe=0.000, MDD=0.00%, Trades=0, HitRate=0.0%
-
-TABLE 6 (Subsample Stability):
-  Pre-COVID (2015-2019): N=208, TailSkew=-3.37, FastSkew=-0.05, PriceSkew=0.12, StratRet=1.06%
-  COVID Shock (2020): N=52, TailSkew=4.87, FastSkew=0.09, PriceSkew=-0.07, StratRet=-0.19%
-  Post-COVID (2021-2025): N=244, TailSkew=-0.73, FastSkew=0.05, PriceSkew=-0.38, StratRet=2.71%
-  Low VIX (VIX < 20): N=342, TailSkew=-3.24, FastSkew=0.04, PriceSkew=-0.20, StratRet=2.38%
-  High VIX (VIX >= 20): N=162, TailSkew=0.62, FastSkew=-0.06, PriceSkew=-0.10, StratRet=2.67%
-  Rate Hike (2022-2025): N=191, TailSkew=-0.70, FastSkew=-0.13, PriceSkew=-0.52, StratRet=2.86%
+Run: .venv/bin/python analysis/full_pipeline.py --offline
+See: analysis/full_pipeline_results.json and analysis/before_after_results.csv
