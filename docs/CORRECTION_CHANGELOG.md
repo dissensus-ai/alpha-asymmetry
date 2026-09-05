@@ -386,13 +386,21 @@ Unchanged by this work, and in several cases sharpened by it.
 - Failure to reject a null is not proof of the null.
 - Cross-market checks omit pair-specific costs, financing and dependence-aware
   inference.
-- **`paper/alpha-asymmetry.pdf` is stale.** No LaTeX toolchain was available; the
-  source was checked structurally instead. It must be rebuilt and inspected.
+- The PDF is rebuilt from the corrected source and compiles clean (27 pages, no
+  overfull or underfull boxes, no undefined references, bibliography resolved).
+  An earlier statement in this document that no LaTeX toolchain was available and
+  the PDF could not be rebuilt was true when written and is no longer true; it is
+  corrected here rather than removed silently.
 
 ---
 
 ## Backlog — deliberately out of scope
 
+0. **Reconcile the version identifiers.** `paper/alpha-asymmetry.tex` carried
+   `3.0.0` for the July manuscript, `CITATION.cff` called it `2.1.0-dev`, and the
+   last deposited version is `v2.0.1`. This branch sets both to 3.1.0 to follow
+   the number printed on the paper, but which of the three is authoritative is
+   the author's to settle.
 1. Refit the EVT section to tail alpha, as the published paper describes (c2).
 2. Decide Monday-open versus Friday-close execution on the merits, now that the
    Open column is known to be available (c2).

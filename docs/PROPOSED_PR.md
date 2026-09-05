@@ -29,11 +29,15 @@ null rather than softening it:
 
 - **There is no break-even transaction cost.** Not a larger one — none. A
   break-even presumes a gross profit to be consumed, and there is none.
-- **The strategy is substantially a short momentum bet.** It loads negatively and
-  significantly on time-series momentum (β = −0.82, t = −3.73, p = 0.00019 on
-  in-position weeks), a loading that was insignificant before correction. Part of
-  its loss is a known factor exposure rather than a failure specific to
-  asymmetry.
+- **The strategy carries a substantial short-momentum exposure.** It loads
+  negatively and significantly on time-series momentum (β = −0.82, 95% CI
+  [−1.26, −0.39], p = 0.00019 on in-position weeks), a loading that was
+  insignificant before correction. Momentum rose over the exposed weeks and the
+  strategy was short it, which accounts for roughly a quarter of the realized
+  loss — so part of that loss reflects a known factor exposure rather than a
+  failure specific to asymmetry. Momentum alone explains 12% of the variation in
+  in-position returns, so this is a material exposure rather than the whole
+  story.
 
 The sample is unchanged: n = 504, 8 January 2016 to 29 August 2025.
 
@@ -285,20 +289,59 @@ statistics are unchanged in all four markets.
   (−0.00011964 against −0.00012029); the low- and high-VIX returns compound to
   the full-sample return (−6.640684% against −6.640684%).
 
-### The committed PDF is stale and must be rebuilt
+### The PDF was rebuilt and inspected
 
-`paper/alpha-asymmetry.pdf` predates every change here. **No LaTeX toolchain was
-available**, so it could not be recompiled and was not visually inspected. An
-earlier draft of this document claimed that it had been; that claim was untrue
-and has been removed, and it is flagged here rather than deleted quietly because
-unverified assertions are the subject of this pull request.
+`paper/alpha-asymmetry.pdf` is rebuilt from the corrected source. It compiles
+clean: 27 pages, **zero** overfull boxes, **zero** underfull boxes, no undefined
+references or citations, bibliography resolved against `references.bib`.
 
-What was checked on the source instead: brace balance (664/664); matched
-`table`, `tabular` and `equation` environments (11 of each); and row-by-row
-column counts against the column specification for every edited table, including
-`\multicolumn` spans. These establish that the source is structurally well
-formed. They do not establish that it typesets, that floats place sensibly, or
-that no text overflows. **Please rebuild and inspect.**
+Both figures were regenerated from the current pipeline and compared
+byte-for-byte against the committed versions. `backtest_results.png` is drawn
+from the corrected return series. `alpha_asymmetry_analysis.png` is unchanged
+since before the sizing change, which is correct: it shows the alpha
+distributions, which do not depend on the strategy.
+
+The PDF's own text was extracted and checked. The corrected figures are present;
+none of the superseded ones appear anywhere.
+
+**A note on this section, because it is the third time this document has made a
+claim about its own provenance.** The draft this branch started from asserted
+that the PDF had been compiled and visually inspected when it had not. That was
+removed and replaced with a statement that no LaTeX toolchain was available and
+the PDF was stale. **That statement was true when written and later stopped being
+true**, when a self-contained engine was installed and the paper compiled. A
+document asserting something about itself that has since become false is the
+failure this pull request exists to correct, so the sequence is recorded rather
+than tidied away, and the build was deliberately left until last so that the
+claim and the artefact became true at the same moment.
+
+### Version, DOI and supersession — decisions for you
+
+The manuscript now carries `\paperver 3.1.0`, incremented from the 3.0.0 you set
+in `f04ae08` for the July manuscript. Three things need your decision:
+
+**The version identifiers in this repository disagree with each other, and did
+before this branch.** `paper/alpha-asymmetry.tex` carried `3.0.0` for the July
+manuscript; `CITATION.cff` called the same work `2.1.0-dev`; the last *deposited*
+version is `v2.0.1` (`10.5281/zenodo.20635291`). Neither `3.0.0` nor `2.1.0-dev`
+was ever deposited. `CITATION.cff` is set to `3.1.0-dev` to follow the number
+printed on the paper, with the disagreement documented in the file. Reconciling
+them properly is yours.
+
+**Depositing mints a new Zenodo version DOI**, which cannot be known in advance.
+`\paperdoi` is therefore left as the concept DOI `10.5281/zenodo.18638784`, which
+resolves to the newest version. After deposit, record the new version DOI in
+`CITATION.cff` and `CLAUDE.md`. The SSRN record (`SSRN:6147567`) is separate and
+needs its own revision; Zenodo does not propagate to it.
+
+**We recommend posting a correction notice against the superseded record**, not
+merely depositing a new version. The headline result changes sign: +3.60% to
+−6.64%. A reader who lands on v2.0.1 through a citation or a search result has no
+way to know it has been superseded, and the specific claim they would take away —
+that the strategy earns a small positive gross return — is wrong rather than
+imprecise. Depositing a new version alone leaves that reader uninformed. This is
+your call as author and it carries reputational weight either way, but asked
+directly: we would post the notice.
 
 ---
 
