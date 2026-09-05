@@ -471,7 +471,7 @@ else:
     print("     Paper claims high-VIX shows stronger skewness -- needs check")
 
 # Save results
-output_file = '/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/recompute_results.txt'
+output_file = '/home/purrpower/work/projects/papers/papers-official/alpha-asymmetry/analysis/recompute_results.txt'
 with open(output_file, 'w') as f:
     f.write(f"RECOMPUTATION RESULTS\n")
     f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")

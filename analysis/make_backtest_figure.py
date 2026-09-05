@@ -147,7 +147,7 @@ axes[1].tick_params(labelsize=9)
 fig.suptitle("Strategy equity curves and drawdowns, EUR/JPY weekly 2015–2025 (n = 504)",
              fontsize=12)
 fig.tight_layout(rect=(0, 0, 1, 0.96))
-out = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/paper/backtest_results.png"
+out = "/home/purrpower/work/projects/papers/papers-official/alpha-asymmetry/paper/backtest_results.png"
 fig.savefig(out, dpi=200)
 print("saved", out)
 for label, rets, _, _ in SERIES:

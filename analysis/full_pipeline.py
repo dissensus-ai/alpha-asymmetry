@@ -49,8 +49,8 @@ from scipy import stats
 warnings.filterwarnings("ignore")
 np.random.seed(42)
 
-OUT_TXT = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.txt"
-OUT_JSON = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.json"
+OUT_TXT = "/home/purrpower/work/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.txt"
+OUT_JSON = "/home/purrpower/work/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.json"
 
 RESULTS = {}
 LINES = []

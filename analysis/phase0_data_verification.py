@@ -339,7 +339,7 @@ CRITICAL FINDINGS:
 """)
 
 # Save results to file for reference
-output_file = '/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/phase0_results.txt'
+output_file = '/home/purrpower/work/projects/papers/papers-official/alpha-asymmetry/analysis/phase0_results.txt'
 with open(output_file, 'w') as f:
     f.write("PHASE 0 RESULTS FOR ALPHA ASYMMETRY REVISION\n")
     f.write("=" * 60 + "\n\n")
