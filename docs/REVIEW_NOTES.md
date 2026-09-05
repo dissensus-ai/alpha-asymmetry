@@ -566,6 +566,35 @@ The finding is unchanged in substance and slightly stronger on the in-position
 sample. The full-sample p-value remains marginal. Item 4 must be written from
 the current column.
 
+---
+
+## Open: the byline name does not match the contributor's other records
+
+**Raised by Tofig. Unresolved by design — to be settled before deposit, not
+before the pull request.**
+
+The paper's title page reads **"Tofik Israfilov"**. The GitHub account, the git
+commit authorship on this branch, and the personal email all read
+**"tofigisrafilov"** — Tofig Israfilov. The forms differ in the given name (k/g)
+and in the transliteration of the surname.
+
+**Why it matters and why it is hard to fix later.** The byline is what gets
+indexed. Once a version is deposited to Zenodo and SSRN the author string is
+attached to a DOI and propagates into Google Scholar, ORCID and Crossref, and
+into every citation made from it. Author-disambiguation services key on exact
+strings, so "Tofik Israfilov" and "Tofig Israfilov" will be treated as two
+people. Merging them afterwards ranges from tedious to impossible depending on
+the service. The correction is free now and expensive after the first citation.
+
+**State:** left as "Tofik Israfilov" on instruction. To be confirmed before
+anything is deposited.
+
+**Worth deciding at the same time:** whether to register an ORCID. None was
+supplied, so none is printed. An ORCID is what makes the name-form question
+survivable — it identifies the person independently of how the name is spelled
+on any given paper. If both forms are going to exist across records, an ORCID
+stops being optional.
+
 ## Directives still to apply (Tofig, carried forward)
 
 1. **Sizing write-up must not overclaim.** Both weekly resizing and
