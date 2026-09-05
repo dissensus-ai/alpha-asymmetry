@@ -18,6 +18,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from datetime import datetime
+from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -339,7 +340,7 @@ CRITICAL FINDINGS:
 """)
 
 # Save results to file for reference
-output_file = '/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/phase0_results.txt'
+output_file = Path(__file__).resolve().parent / 'phase0_results.txt'
 with open(output_file, 'w') as f:
     f.write("PHASE 0 RESULTS FOR ALPHA ASYMMETRY REVISION\n")
     f.write("=" * 60 + "\n\n")

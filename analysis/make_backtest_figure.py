@@ -8,6 +8,7 @@ momentum, 2.0-sigma mean reversion, buy & hold -- on the same weekly plumbing
 as analysis/full_pipeline.py (definitions identical to its Table 11 universe).
 """
 import warnings
+from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -147,7 +148,7 @@ axes[1].tick_params(labelsize=9)
 fig.suptitle("Strategy equity curves and drawdowns, EUR/JPY weekly 2015–2025 (n = 504)",
              fontsize=12)
 fig.tight_layout(rect=(0, 0, 1, 0.96))
-out = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/paper/backtest_results.png"
+out = Path(__file__).resolve().parent.parent / "paper" / "backtest_results.png"
 fig.savefig(out, dpi=200)
 print("saved", out)
 for label, rets, _, _ in SERIES:

@@ -40,6 +40,7 @@ SPY, GLD). Seeds fixed; results written to full_pipeline_results.txt + .json.
 import json
 import warnings
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -49,8 +50,9 @@ from scipy import stats
 warnings.filterwarnings("ignore")
 np.random.seed(42)
 
-OUT_TXT = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.txt"
-OUT_JSON = "/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/full_pipeline_results.json"
+_ANALYSIS_DIR = Path(__file__).resolve().parent
+OUT_TXT = _ANALYSIS_DIR / "full_pipeline_results.txt"
+OUT_JSON = _ANALYSIS_DIR / "full_pipeline_results.json"
 
 RESULTS = {}
 LINES = []

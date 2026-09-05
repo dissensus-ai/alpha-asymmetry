@@ -18,6 +18,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from datetime import datetime
+from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -471,7 +472,7 @@ else:
     print("     Paper claims high-VIX shows stronger skewness -- needs check")
 
 # Save results
-output_file = '/home/purrpower/Resurrexi/projects/papers/papers-official/alpha-asymmetry/analysis/recompute_results.txt'
+output_file = Path(__file__).resolve().parent / 'recompute_results.txt'
 with open(output_file, 'w') as f:
     f.write(f"RECOMPUTATION RESULTS\n")
     f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
