@@ -121,7 +121,7 @@
 {\LARGE\bfseries Alpha Asymmetry in Foreign Exchange Markets}\\[0.5em]
 {\large\itshape An Investigation of Exploitability}\\[1.5em]
 
-{\large Murad Farzulla}\textsuperscript{1,2,*}\\[0.8em]
+{\large Murad Farzulla}\textsuperscript{1,2,*} \quad {\large Tofik Israfilov}\textsuperscript{1}\\[0.8em]
 
 {\small
   \textsuperscript{1}\href{https://dissensus.ai}{Dissensus}, London, UK \quad
@@ -131,7 +131,8 @@
 {\footnotesize
   \textsuperscript{*}Correspondence: \href{mailto:murad@dissensus.ai}{murad@dissensus.ai}
   \quad
-  ORCID: \href{https://orcid.org/0009-0002-7164-8704}{0009-0002-7164-8704}%
+  ORCID: \href{https://orcid.org/0009-0002-7164-8704}{0009-0002-7164-8704}\\
+  T.\ Israfilov: \href{mailto:tofiq@dissensus.ai}{tofiq@dissensus.ai}%
 }\\[0.3em]
 {\footnotesize \paperdate}
 \end{center}
@@ -157,9 +158,9 @@ testing (one episode in eight out-of-sample years), and provides no evidence of
 a positive residual alpha against proxy carry, momentum, and dollar factors
 (intercept $t = -0.84$ on in-position weeks). It does, however, carry a
 significant \emph{negative} loading on time-series momentum
-($\beta = -0.82$, $t = -3.73$ on in-position weeks), absent before correction,
-indicating that while invested the rule behaves largely as a short momentum
-position rather than as an asymmetry harvester. Transaction costs make an already negative gross
+($\beta = -0.82$, 95\% CI $[-1.26, -0.39]$ on in-position weeks), absent before
+correction, indicating a substantial short-momentum exposure alongside whatever
+asymmetry signal the rule captures. Transaction costs make an already negative gross
 result monotonically worse; no break-even cost exists, since the strategy does
 not break even at zero cost.
 Data-snooping corrections complete the null: White's Reality Check ($p = 0.15$)
@@ -476,7 +477,7 @@ The empirical findings reveal a pattern more thoroughgoing than ``asymmetry exis
 
 \textbf{Inactivity Under Honest Selection.} When the threshold is chosen on training data alone, the strategy opens only one OOS holding episode in eight test years. That count is too small for performance inference.
 
-\textbf{It Is Not Trading Asymmetry.} The corrected factor regression carries a statistically significant \emph{negative} loading on time-series momentum ($\beta_2 = -0.82$, $t = -3.73$, $p = 0.00019$ on in-position weeks; $-0.046$, $p = 0.038$ on the full sample), where under the published specification no loading approached significance. While invested, the strategy behaves close to a one-for-one short momentum position on the pair it trades, and momentum alone explains a fifth of the variance of its in-position returns. A rule that sells strength and buys weakness is taking a documented factor exposure, not harvesting distributional asymmetry, and over this sample that exposure lost money. The negative result is therefore not merely that asymmetry failed to pay; it is that the object being tested was substantially something else.
+\textbf{It Is Partly Trading Momentum.} The corrected factor regression carries a statistically significant \emph{negative} loading on time-series momentum ($\beta_2 = -0.82$, 95\% CI $[-1.26, -0.39]$, $p = 0.00019$ on in-position weeks; $-0.046$, $p = 0.038$ on the full sample), where under the published specification no loading approached significance. A rule that sells strength and buys weakness is taking a documented factor exposure alongside whatever asymmetry signal it captures. Momentum rose over the exposed weeks and the strategy was short it, which accounts for roughly a quarter of the realized loss; it explains 12\% of the variation in in-position returns, leaving most of it unexplained. The negative result is therefore not only that asymmetry failed to pay, but that part of what was being tested was a momentum exposure rather than asymmetry.
 
 \textbf{Non-Generalizability.} Cross-market transfer yields erratic results: the identical rules lose 13.32\% on GBP/USD, gain 14.20\% on SPY while trailing buy-and-hold by roughly 280 percentage points, and lose 15.44\% on GLD. The tail signal's negative point estimate also reverses sign in every other market tested. Without asset-specific costs or inference, nothing here establishes generalization.
 
@@ -667,13 +668,13 @@ $F$-statistic & \multicolumn{2}{c}{2.12} & \multicolumn{2}{c}{7.04} \\
 
 \textbf{No Evidence of Positive Residual Alpha.} The intercept is negative and statistically indistinguishable from zero in both specifications ($t = -0.52$ full sample; $t = -0.84$ on in-position weeks). This is evidence against a positive residual-alpha claim, not proof that the population intercept is exactly zero.
 
-\textbf{A Significant Negative Momentum Loading.} The correction changes this exercise qualitatively, and not in the strategy's favour. Under the published specification no factor loading approached significance: momentum entered at $\beta_2 = -0.007$ ($t = -0.37$, $p = 0.71$) on the full sample and $-0.247$ ($t = -0.51$, $p = 0.61$) on in-position weeks, and the paper concluded that the regression had no power to say anything. With the holding rule and the execution lag corrected, momentum becomes the one factor that loads significantly, and it loads negatively: $\beta_2 = -0.046$ ($t = -2.08$, $p = 0.038$) on the full sample and $\beta_2 = -0.823$ ($t = -3.73$, $p = 0.00019$) on the 55 in-position weeks, where $R^2$ rises from 0.07 to 0.20. Carry and the dollar factor remain insignificant, and the intercept remains indistinguishable from zero.
+\textbf{A Significant Negative Momentum Loading.} The correction changes this exercise qualitatively, and not in the strategy's favour. Under the published specification no factor loading approached significance: momentum entered at $\beta_2 = -0.007$ ($t = -0.37$, $p = 0.71$) on the full sample and $-0.247$ ($t = -0.51$, $p = 0.61$) on in-position weeks, and the paper concluded that the regression had no power to say anything. With the holding rule and the execution lag corrected, momentum becomes the one factor that loads significantly, and it loads negatively: $\beta_2 = -0.046$ ($t = -2.08$, $p = 0.038$) on the full sample and $\beta_2 = -0.823$ ($t = -3.73$, $p = 0.00019$) on the 55 in-position weeks, where $R^2$ is 0.20 against 0.07 on the published 25-week sample. Carry and the dollar factor remain insignificant, and the intercept remains indistinguishable from zero.
 
-The in-position estimate is the economically meaningful one: the full-sample coefficient is mechanically attenuated because the dependent variable is exactly zero in 449 of 504 weeks, which shrinks any loading toward zero without saying anything about the exposure the strategy actually carries when it is in the market. Read on the exposure sample, $\beta_2 = -0.82$ says that while invested the strategy behaves close to a one-for-one \emph{short} position in twelve-week time-series momentum on the pair it trades. That is not an incidental correlation but a plausible mechanical consequence of the rule: the short leg fires when pricing alpha is high, which is to say after the price has run above its sixty-day average, so the strategy systematically sells strength and buys weakness. Momentum alone accounts for a fifth of the variance of its in-position returns.
+The in-position estimate is the economically meaningful one: the full-sample coefficient is mechanically attenuated because the dependent variable is exactly zero in 449 of 504 weeks, which shrinks any loading toward zero without saying anything about the exposure the strategy actually carries when it is in the market. Read on the exposure sample, $\beta_2 = -0.82$ (95\% CI $[-1.26, -0.39]$) says that while invested the strategy carries a large negative exposure to twelve-week time-series momentum on the pair it trades. The point estimate is close to one-for-one, but the interval spans roughly half to full unit exposure, and the magnitude should not be pressed further than that. This is consistent with a mechanical consequence of the rule, though we do not test the mechanism directly: the short leg fires when pricing alpha is high, which is to say after the price has run above its sixty-day average, so the strategy systematically sells strength and buys weakness. Momentum alone accounts for 12\% of the variance of in-position returns; the three factors together account for 20\%.
 
-This matters for the paper's central question. An asymmetry strategy that is a disguised short-momentum bet is not harvesting distributional asymmetry; it is taking a known factor exposure, and one that lost money over this sample (the twenty-week momentum benchmark of Table~\ref{tab:backtest} returned $-18.92\%$). Part of the corrected strategy's loss is therefore attributable to a documented risk premium rather than to any failure specific to asymmetry, which sharpens the null: there is no residual alpha to explain, and what return variation exists is largely explained by an exposure the strategy never intended to take.
+This matters for the paper's central question. A strategy carrying a large short-momentum exposure is, to that extent, not harvesting distributional asymmetry but taking a documented factor exposure. Over the 55 exposed weeks the twelve-week momentum factor \emph{gained} 1.93\%, and the strategy was short it: at $\beta_2 = -0.82$ that exposure accounts for roughly $-1.6$ percentage points of the $-6.64\%$ loss, about a quarter of it. (The twenty-week momentum benchmark of Table~\ref{tab:backtest} lost 18.92\% over the full sample, but that is a different series from the twelve-week regressor and is not the relevant comparison here.) This sharpens the null rather than softening it: there is no residual alpha to explain, and a measurable part of the return variation that does exist is explained by an exposure the strategy never set out to take.
 
-\textbf{How Far to Press It.} Three qualifications, none of which overturn the finding but all of which bound it. First, the full-sample $p$-value of 0.038 is marginal and would not survive a multiple-testing correction of the kind this paper applies elsewhere: at family size six (three factors in two specifications) a Bonferroni threshold would be $0.008$. The in-position estimate at $p = 0.00019$ clears that bar comfortably, and the finding should be read as resting on it rather than on the full-sample row. Second, Mom is a twelve-week time-series momentum rule on EUR/JPY itself, not the published cross-sectional currency momentum factor of \citet{menkhoff2012currency}; a strong loading of a single-pair strategy on a single-pair momentum rule is less surprising, and less transferable, than a loading on a genuine cross-sectional factor would be. Third, 55 in-position weeks arising from 15 episodes is a small and serially dependent sample, and HAC standard errors adjust the inference without enlarging the evidence. The loading is a robust description of this sample and a hypothesis about the strategy's character, not a structural estimate.
+\textbf{How Far to Press It.} Three qualifications, none of which overturn the finding but all of which bound it. First, the full-sample $p$-value of 0.038 is marginal and would not survive a multiple-testing correction of the kind this paper applies elsewhere: at family size six (three factors in two specifications) a Bonferroni threshold would be $0.008$. The in-position estimate at $p = 0.00019$ clears that bar comfortably, and the finding should be read as resting on it rather than on the full-sample row. Second, Mom is a twelve-week time-series momentum rule on EUR/JPY itself, not the published cross-sectional currency momentum factor of \citet{menkhoff2012currency}; a strong loading of a single-pair strategy on a single-pair momentum rule is less surprising, and less transferable, than a loading on a genuine cross-sectional factor would be. Third, 55 in-position weeks arising from 15 episodes is a small and serially dependent sample, and HAC standard errors adjust the inference without enlarging the evidence. The loading is a robust description of this sample and a hypothesis about the strategy's character, not a structural estimate. Note also that momentum leaves roughly seven-eighths of the variation in in-position returns unexplained; the exposure is economically material without being the whole story.
 
 \subsection{Weekly-Return Tail Distribution Analysis}
 
@@ -755,7 +756,7 @@ This paper investigated whether distributional asymmetries in FX alpha signals r
     \item EVT tail-shape inference is too imprecise to establish Pareto-type heavy tails or exponential decay; clustering appears weak but is also estimated from few exceedances
     \item The corrected asymmetry strategy loses 6.64\% gross (15 holding episodes, Sharpe $-0.15$), with bootstrap intervals that include zero; walk-forward selection opens one episode in eight test years
     \item Execution costs monotonically worsen the already negative gross result, and no break-even cost exists: the published 19.2-pip figure presumed a positive gross return, and there is none to consume. Omitted financing, the absence of any per-order cost component, and end-of-bar execution remain limitations
-    \item While invested, the corrected strategy loads significantly and negatively on time-series momentum ($\beta_2 = -0.82$, $t = -3.73$), a loading absent before correction; it behaves substantially as a short momentum position rather than as an asymmetry harvester, so part of its loss is a known factor exposure rather than a failure specific to asymmetry
+    \item While invested, the corrected strategy loads significantly and negatively on time-series momentum ($\beta_2 = -0.82$, 95\% CI $[-1.26, -0.39]$), a loading absent before correction. Momentum rose over the exposed weeks and the strategy was short it, accounting for roughly a quarter of the realized loss, so part of that loss reflects a known factor exposure rather than a failure specific to asymmetry
     \item Data-snooping tests find no statistically superior candidate against zero return, and exploratory cross-market outcomes are unstable
 \end{enumerate}
 
@@ -789,7 +790,7 @@ Portions of this manuscript were drafted and revised with assistance from Claude
 
 \paragraph{AI Assistance.} Claude (Anthropic) assisted with manuscript drafting, code review, and statistical exposition. All research design, data analysis, and interpretation are solely the author's.
 
-\paragraph{Author Contributions.} Sole author.
+\paragraph{Author Contributions.} \textbf{M.\ Farzulla:} original research question and design; alpha signal construction; strategy specification; statistical methodology; original analysis code; manuscript. \textbf{T.\ Israfilov:} audit of the published version against its replication code; identification of the specification mismatches between the two; decisions on how each mismatch was resolved, including which were implementation defects and which required a specification choice; the correction record and its verification. T.\ Israfilov did not author the original analysis code. Both authors reviewed and approved the corrected manuscript; M.\ Farzulla retains responsibility for the original research design and its interpretation.
 
 % ============================================================================
 % REFERENCES
