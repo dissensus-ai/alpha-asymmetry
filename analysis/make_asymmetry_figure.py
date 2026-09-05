@@ -6,6 +6,7 @@ tail magnitudes etc.). This one shows the signed weekly series (n=504) with
 skewness point estimates and 95% circular-block-bootstrap CIs.
 """
 import warnings
+from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -104,6 +105,6 @@ ax.tick_params(labelsize=8)
 fig.suptitle("Distributional properties of the five signed weekly alpha signals, EUR/JPY 2015–2025 (n = 504)",
              fontsize=12)
 fig.tight_layout(rect=(0, 0, 1, 0.96))
-out = "/home/purrpower/work/projects/papers/papers-official/alpha-asymmetry/paper/alpha_asymmetry_analysis.png"
+out = Path(__file__).resolve().parent.parent / "paper" / "alpha_asymmetry_analysis.png"
 fig.savefig(out, dpi=200)
 print("saved", out)

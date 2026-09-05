@@ -24,7 +24,7 @@ date-released: "2026-07-07"
 license: "CC-BY-4.0"
 doi: "10.2139/ssrn.6147567"
 url: "https://dissensus.ai"
-repository-code: "https://github.com/studiofarzulla/alpha-asymmetry"
+repository-code: "https://github.com/dissensus-ai/alpha-asymmetry"
 identifiers:
   - type: doi
     value: "10.2139/ssrn.6147567"

@@ -98,7 +98,7 @@ Data are retrieved programmatically from public sources (Yahoo Finance) by `anal
 
 - **Paper (Zenodo):** [10.5281/zenodo.18638784](https://doi.org/10.5281/zenodo.18638784)
 - **Paper (SSRN):** [SSRN:6147567](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6147567)
-- **Code (GitHub):** [github.com/studiofarzulla/alpha-asymmetry](https://github.com/studiofarzulla/alpha-asymmetry)
+- **Code (GitHub):** [github.com/dissensus-ai/alpha-asymmetry](https://github.com/dissensus-ai/alpha-asymmetry)
 - **ASCRI Programme:** [systems.ac/2/DAI-2605](https://systems.ac/2/DAI-2605)
 - **Dissensus AI:** [dissensus.ai](https://dissensus.ai)
 
