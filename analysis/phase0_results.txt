@@ -1,25 +1,5 @@
-PHASE 0 RESULTS FOR ALPHA ASYMMETRY REVISION
-============================================================
+Superseded on 2026-09-02 by the unified corrected pipeline.
 
-Generated: 2026-01-29 05:47:32
-
-SAMPLE VERIFICATION:
-  Claimed range: Nov 2015 - Aug 2025
-  Claimed count: 646
-  Actual count in range: 513
-
-THRESHOLD SENSITIVITY:
-  0.5: Return=-3.71%, Sharpe=-0.144, MDD=-6.75%
-  0.75: Return=-1.64%, Sharpe=-0.088, MDD=-4.18%
-  1.0: Return=-1.82%, Sharpe=-0.442, MDD=-1.87%
-  1.25: Return=0.00%, Sharpe=0.000, MDD=0.00%
-
-EVT DECLUSTERING:
-  Raw exceedances: 24
-  Cluster maxima: 18
-  Extremal index: 0.750 (95% CI: [0.417, 0.625])
-
-GPD PARAMETERS:
-  Shape (xi): -0.229
-  Scale (sigma): 0.007
-  KS p-value: 0.924
+The repository did not contain the original raw data snapshots. Exact historical
+reproduction is therefore not claimed. Input hashes and software versions for
+the current run are recorded in analysis/data_manifest.json.
