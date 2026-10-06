@@ -1,6 +1,6 @@
 # Proposed pull request
 
-<!-- reviewed-at: fdaa652 -->
+<!-- reviewed-at: 5fa7654 -->
 
 > **Status, 6 Oct 2026.** This pull request (PR #2) was merged into
 > `dissensus-ai/alpha-asymmetry` master on 29 Sep 2026 as `ab08f6a` (v3.1.0).
@@ -493,7 +493,9 @@ statistics are unchanged in all four markets.
   provenance, and a guard resolving every commit hash cited in the audit record.
   (6 Oct: 89 on 14 Sep; the additions cover the non-executable week, the
   execution contrasts and weekend-gap test, and the two arithmetic identities.)
-  A further check, marked `network` and deselected by default, verifies that this
+  Six of them read Git history (the commit-hash guard and the two reviewed-at
+  checks) and skip, with a stated reason, in a source snapshot without `.git`,
+  such as the Zenodo code zip. A further check, marked `network` and deselected by default, verifies that this
   document and the published pull-request description have not diverged; run it
   with `pytest -m network`.
 - The complete pipeline runs online and reruns identically with `--offline`.
