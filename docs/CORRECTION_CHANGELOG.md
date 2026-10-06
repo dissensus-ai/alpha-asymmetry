@@ -511,7 +511,43 @@ changes.
   left unpublished. Publishing mints a DOI that cannot be withdrawn, and both
   authors review first.
 
+## Pre-release corrections to v3.1.1 (6 Oct 2026, third set)
 
+Branch `polish-oct2026`, after two independent verification passes on
+`096e069` found no P0 or P1 defect in the paper and listed small P2 items. No
+figure in the paper changes. The version stays 3.1.1, because v3.1.1 had not
+been published or sent.
+
+- **Sizing sentence** (`233330b`). The body's "Sizing." paragraph attached one
+  "because" to two clauses. The always-long argmax explains why the two
+  statistics are identical; the 0.003 and 0.001 shifts in the p-values come
+  from the bootstrap distribution, which includes the one candidate whose
+  returns change. The body now says this, as Appendix F already did.
+- **Appendix B anchors** (`8e5ab10`). `\theHequation` now follows the
+  appendix numbering, which removes 20 pdfTeX "same identifier" warnings. No
+  link was broken; cosmetic.
+- **Tests in a source snapshot** (`cf03ef6`). The four commit-hash guard cases
+  and the two reviewed-at checks skip, with a reason, when there is no `.git`.
+  From a `git archive` extract: 100 passed, 6 skipped (6 failed before).
+- **`docs/PROPOSED_PR.md`** (`b25a00e`, `de3bfec`). "The nine original
+  provenance sentences are machine-checked" corrected to the past tense: the
+  substring check ran once, at restoration, and no test repeats it. The test
+  skips are noted, and the file is re-stamped.
+- **Version record** (`7dc5d56`). `README.md` and `CITATION.cff` now list
+  Zenodo v1.0.0 (record 17918374, 13 Dec 2025, its own concept DOI
+  10.5281/zenodo.17918373), which they had left out. The README's SSRN link
+  is marked as registered for v2.0.0 and superseded.
+- **Decisions** (`cfb3710`). `docs/MURAD_DECISIONS.md` and
+  `docs/MESSAGE_TO_MURAD.md` record that MF ratified the five working
+  decisions on 6 Oct 2026.
+- **PDF** (`5fa7654`). Rebuilt: 40 pages, 0 overfull, 0 underfull, 0 LaTeX
+  warnings, 0 same-identifier warnings, 0 undefined references or citations.
+  sha256 `88c0b01774a5c3c6d381fbf975ecc09e0bc80396b14d2bb7ae0a6d1a576bb6dc`.
+  The text differs from the `fdaa652` PDF in the Sizing paragraph only.
+- **Restored heading.** The release entry above had absorbed the "Standing
+  limitations" heading (lost in `096e069`); it is back.
+
+## Standing limitations
 
 Unchanged by this work, and in several cases sharpened by it.
 
