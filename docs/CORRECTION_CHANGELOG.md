@@ -484,7 +484,34 @@ and F; summaries, limitations and correction notices stay in the body.
 
 ---
 
-## Standing limitations
+## Release v3.1.1 (6 Oct 2026)
+
+Branch `polish-oct2026`. Release preparation only; no figure in the paper
+changes.
+
+- **Version.** v3.1.1 = v3.1.0 (PR #2, `ab08f6a`) plus the two sets of 6 Oct
+  corrections above. `paper/alpha-asymmetry.tex`, `CITATION.cff` and
+  `README.md` carry 3.1.1, and the title page prints it (`a9e4dc2`). The
+  corrected text is not labelled 3.1.0 because the merged 3.1.0 text prints
+  the defective Sharpe interval.
+- **Typography.** The claims-summary table now sets its cells ragged-right,
+  which removes five underfull boxes (`1d11643`).
+- **PDF.** `paper/alpha-asymmetry.pdf` rebuilt from source and
+  `paper/build_stats.json` regenerated (`fdaa652`): 40 pages, 0 overfull,
+  0 underfull, 0 LaTeX warnings, 0 undefined references or citations. sha256
+  `5256ad416294e9950705a4643d4ad82a0a2c595d34ac2cbe1cedf382fca31cd0`.
+- **`docs/PROPOSED_PR.md`** brought up to date and re-stamped. Status lines:
+  106 tests, 40 pages, 15 of 23 tables. Five figures in its result table and
+  the GBP/USD paragraph still carried Friday-close-run values (VIX split,
+  walk-forward, cross-market); they now match the pipeline output, with the
+  14 Sep values kept beside them. The RC/SPA p-values and the momentum
+  5%-level sentence were also corrected there.
+- **Zenodo.** A new-version draft under concept `10.5281/zenodo.18638784`,
+  with Tofik Israfilov as creator and a supersession note, is prepared and
+  left unpublished. Publishing mints a DOI that cannot be withdrawn, and both
+  authors review first.
+
+
 
 Unchanged by this work, and in several cases sharpened by it.
 
@@ -506,8 +533,9 @@ Unchanged by this work, and in several cases sharpened by it.
 - Failure to reject a null is not proof of the null.
 - Cross-market checks omit pair-specific costs, financing and dependence-aware
   inference.
-- The PDF is rebuilt from the corrected source and compiles clean (27 pages, no
-  overfull or underfull boxes, no undefined references, bibliography resolved).
+- The PDF is rebuilt from the corrected source and compiles clean (6 Oct,
+  v3.1.1: 40 pages, no overfull or underfull boxes, no undefined references,
+  bibliography resolved; this line said 27 pages until 6 Oct).
   An earlier statement in this document that no LaTeX toolchain was available and
   the PDF could not be rebuilt was true when written and is no longer true; it is
   corrected here rather than removed silently.
@@ -516,11 +544,9 @@ Unchanged by this work, and in several cases sharpened by it.
 
 ## Backlog — deliberately out of scope
 
-0. **Reconcile the version identifiers.** `paper/alpha-asymmetry.tex` carried
-   `3.0.0` for the July manuscript, `CITATION.cff` called it `2.1.0-dev`, and the
-   last deposited version is `v2.0.1`. This branch sets both to 3.1.0 to follow
-   the number printed on the paper, but which of the three is authoritative is
-   the author's to settle.
+0. ~~**Reconcile the version identifiers.**~~ Resolved 6 Oct 2026: the tex,
+   `CITATION.cff` and `README.md` all carry 3.1.1. The last deposited version is
+   v3.0.0 (Zenodo record 21315494, 11 Jul 2026), not v2.0.1 as this item said.
 1. Refit the EVT section to tail alpha, as the published paper describes (c2).
 2. Decide Monday-open versus Friday-close execution on the merits, now that the
    Open column is known to be available (c2).

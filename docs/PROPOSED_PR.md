@@ -1,6 +1,16 @@
 # Proposed pull request
 
-<!-- reviewed-at: 72a9fe571bc3 -->
+<!-- reviewed-at: fdaa652 -->
+
+> **Status, 6 Oct 2026.** This pull request (PR #2) was merged into
+> `dissensus-ai/alpha-asymmetry` master on 29 Sep 2026 as `ab08f6a` (v3.1.0).
+> This file is kept as its record and was brought up to date for release
+> v3.1.1 on branch `polish-oct2026`: figures now match the current
+> `analysis/full_pipeline_results.json`, and the status lines (tests, pages,
+> provenance coverage, versions) describe the current branch. Each updated
+> figure is marked "(6 Oct)" with its 14 Sep value. The body published on
+> PR #2 is the 14 Sep text, so `pytest -m network` reports a divergence until
+> a pull request for `polish-oct2026` takes over this document.
 
 
 ## Title
@@ -59,9 +69,11 @@ indistinguishable from zero, the result is not a demonstration that the rule los
 money; it is a failure to demonstrate that it makes any. There is still no
 break-even cost, because the gross return remains negative.
 
-Data-snooping corrections agree: neither White's Reality Check (0.30) nor
-Hansen's SPA (0.58) rejects the null of no superior performance against a
-zero-return benchmark across the twelve-strategy formal universe.
+Data-snooping corrections agree: neither White's Reality Check (0.29) nor
+Hansen's SPA (0.55) rejects the null of no superior performance against a
+zero-return benchmark across the twelve-strategy formal universe. (6 Oct: the
+14 Sep text gave 0.30 and 0.58, computed with the non-executable final week
+entered as a zero return in every candidate; see the changelog.)
 
 **Specification sensitivity is the strongest finding, and it strengthened.** Four
 pre-specified readings of the entry rule — which differs between its long and short
@@ -85,7 +97,10 @@ p = 0.0506). Reviewer 3 identified that the in-position sample is selected by th
 strategy's own entry rules, which are functions of the same prices the momentum
 factor is built from. It is reported as a mechanical property of the entry rules,
 is not offered as an explanation of the strategy's returns, and is excluded from
-the contribution. It does not clear the 5% level in any case.
+the contribution. The 5% level falls between the two methods: CR2 gives
+p = 0.042 and the wild cluster bootstrap p = 0.0506. (6 Oct: the 14 Sep text
+said "It does not clear the 5% level in any case", which the CR2 result
+contradicts.)
 
 **Tail distribution.** The EVT analysis characterises the market return series —
 absolute Friday-close-to-Friday-close EUR/JPY returns — and is deliberately
@@ -436,20 +451,28 @@ Full table with per-item attribution in `analysis/before_after_results.csv`.
 | Momentum loading (in-position) | −0.247, t = −0.51 | -0.652, t = -2.33 (p = 0.0506) |
 | Factor intercept (full sample) | +0.00008 | +0.00000 |
 | In-position factor sample | 25 weeks | 55 weeks |
-| Walk-forward pooled return / episodes | +2.46%, 3 trades | +2.74%, 1 episode |
+| Walk-forward pooled return / episodes | +2.46%, 3 trades | +2.77%, 1 episode (6 Oct; 14 Sep: +2.74%) |
 | Walk-forward Sharpe / hit rate | 0.419 / 60.0% | withheld — one episode |
-| Low-VIX / high-VIX return | +2.38% / +2.67% | −5.08% / −1.65% |
-| GBP/USD cross-market | **+17.18%** | **−13.32%** |
-| SPY cross-market | +11.66% | +14.20% |
-| GLD cross-market | −30.26% | −15.44% |
+| Low-VIX / high-VIX return | +2.38% / +2.67% | −1.69% / +0.98% (6 Oct; 14 Sep: −5.08% / −1.65%) |
+| GBP/USD cross-market | **+17.18%** | **−14.45%** (6 Oct; 14 Sep: −13.32%) |
+| SPY cross-market | +11.66% | +14.71% (6 Oct; 14 Sep: +14.20%) |
+| GLD cross-market | −30.26% | −13.03% (6 Oct; 14 Sep: −15.44%) |
 | Tail-alpha AI | 0.17 | 0.03 |
 | Coverage-alpha AI | 3.45 | 2.22 |
 
+(6 Oct) The five rows marked above carried figures from the Friday-close run in
+the 14 Sep text, although the committed output of that same branch already held
+the Monday-open values shown here. The current values are `walk_forward.pooled.cum_return`,
+`regimes.low_vix/high_vix.strategy_return` (which compound to the full-sample
+−0.73%) and `cross_market.*.strategy_return`.
+
 **The GBP/USD sign flip is a finding, not a rounding.** The published paper reads
 +17.18% on GBP/USD as evidence that FX offers more favourable conditions for the
-strategy than equities or gold. Corrected, it is −13.32%, and **the flip is
+strategy than equities or gold. Corrected, it is −14.45%, and **the flip is
 attributable to the implementation fixes, not to the sizing proposal**: with the
-implementation fixes and the frozen-notional alternative the figure is −14.11%.
+implementation fixes and the frozen-notional alternative the figure is −15.66%
+(6 Oct; the 14 Sep text gave −13.32% and −14.11%; the current pair is in
+`analysis/before_after_results.csv`).
 Rejecting (b1) does not restore the published reading. The cross-market section's
 claim about FX conditions no longer has a basis.
 
@@ -463,11 +486,13 @@ statistics are unchanged in all four markets.
 
 ## Verification
 
-- 89 deterministic tests, all passing, run offline without credentials: the AI edge cases, the dated timing
+- 106 deterministic tests, all passing, run offline without credentials: the AI edge cases, the dated timing
   convention, entry, hold, expiry, reversal, simultaneous signals, no-signal
   periods, both sizing modes, resize and reversal cost accounting, a no-look-ahead
   causality suite run against all four entry rules, table- and prose-level
   provenance, and a guard resolving every commit hash cited in the audit record.
+  (6 Oct: 89 on 14 Sep; the additions cover the non-executable week, the
+  execution contrasts and weekend-gap test, and the two arithmetic identities.)
   A further check, marked `network` and deselected by default, verifies that this
   document and the published pull-request description have not diverged; run it
   with `pytest -m network`.
@@ -477,21 +502,26 @@ statistics are unchanged in all four markets.
 - **Table provenance, with its coverage stated honestly.** Each covered table
   cell names the canonical output field it comes from, so a cell with no declared
   source fails rather than being matched against any equal-looking number.
-  Coverage is **12 of the 19 manuscript tables**: six semantically mapped
-  (`tab:backtest`, `tab:factors`, `tab:sevariants`, `tab:snooping`,
-  `tab:exectiming`, `tab:entrysymmetry`) plus `tab:spec`, which is generated from
-  the specification module and asserted against it. Among prose figures the
-  mechanism currently reaches the regression statistics only. The remaining 12
-  tables are checked less formally and we do not claim otherwise.
+  Coverage is **15 of the 23 manuscript tables**: fourteen declared in
+  `analysis/table_provenance.py` (`tab:backtest`, `tab:bootcompare`,
+  `tab:contrasts`, `tab:entrysymmetry`, `tab:exectiming`, `tab:factors`,
+  `tab:normality`, `tab:oos`, `tab:sevariants`, `tab:sizing`, `tab:snooping`,
+  `tab:tailagg`, `tab:tcosts`, `tab:tests`) plus `tab:spec`, which is generated
+  from the specification module and asserted against it. Among prose figures the
+  mechanism currently reaches the regression statistics only. The remaining 8
+  tables (`tab:asymmetry`, `tab:blocklen`, `tab:claims`, `tab:crossmarket`,
+  `tab:decluster`, `tab:gpd`, `tab:sensitivity`, `tab:subsample`) are checked
+  less formally and we do not claim otherwise. (6 Oct: 12 of 19 on 14 Sep.)
 - The nine original provenance sentences are machine-checked for verbatim
   presence.
-- After every rerun: n = 504 spanning 2016-01-08 to 2025-08-29; the factor
+- After every rerun (checked by `tests/test_identities.py` since 6 Oct): n = 504 spanning 2016-01-08 to 2025-08-29; the factor
   intercept reconciles to the strategy's own mean weekly return through the factor decomposition (intercept +0.00000351, mean +0.00000409, the gap being the sum of beta times factor mean); the low- and high-VIX returns compound to the full-sample return (-0.730055% against -0.730055%).
 
 ### The PDF was rebuilt and inspected
 
-`paper/alpha-asymmetry.pdf` is rebuilt from the corrected source. It compiles
-clean: 37 pages, **zero** overfull boxes, **zero** underfull boxes, no undefined
+`paper/alpha-asymmetry.pdf` is rebuilt from the corrected source (6 Oct, v3.1.1,
+pdfTeX via latexmk; 14 Sep: 37 pages, tectonic). It compiles
+clean: 40 pages, **zero** overfull boxes, **zero** underfull boxes, no undefined
 references or citations, bibliography resolved against `references.bib`.
 
 Both figures were regenerated from the current pipeline and compared
@@ -514,34 +544,28 @@ failure this pull request exists to correct, so the sequence is recorded rather
 than tidied away, and the build was deliberately left until last so that the
 claim and the artefact became true at the same moment.
 
-### Version, DOI and supersession — decisions for you
+### Version, DOI and supersession
 
-The manuscript now carries `\paperver 3.1.0`, incremented from the 3.0.0 you set
-in `f04ae08` for the July manuscript. Three things need your decision:
+(6 Oct, replacing the 14 Sep text, whose premise that the last deposited
+version was v2.0.1 was wrong: v3.0.0 was deposited on 11 Jul 2026.)
 
-**The version identifiers in this repository disagree with each other, and did
-before this branch.** `paper/alpha-asymmetry.tex` carried `3.0.0` for the July
-manuscript; `CITATION.cff` called the same work `2.1.0-dev`; the last *deposited*
-version is `v2.0.1` (`10.5281/zenodo.20635291`). Neither `3.0.0` nor `2.1.0-dev`
-was ever deposited. `CITATION.cff` is set to `3.1.0-dev` to follow the number
-printed on the paper, with the disagreement documented in the file. Reconciling
-them properly is yours.
-
-**Depositing mints a new Zenodo version DOI**, which cannot be known in advance.
-`\paperdoi` is therefore left as the concept DOI `10.5281/zenodo.18638784`, which
-resolves to the newest version. After deposit, record the new version DOI in
-`CITATION.cff` and `CLAUDE.md`. The SSRN record (`SSRN:6147567`) is separate and
-needs its own revision; Zenodo does not propagate to it.
-
-**We recommend posting a correction notice against the superseded record**, not
-merely depositing a new version. The headline result changes sign: +3.60% to -0.73%. A reader who lands on v2.0.1 through a citation or a search result has no
-way to know it has been superseded, and the specific claim they would take away —
-that the strategy earns a small positive gross return — is wrong rather than
-imprecise. Depositing a new version alone leaves that reader uninformed. This is
-your call as author and it carries reputational weight either way, but asked
-directly: we would post the notice.
-
----
+- **Versions.** v3.0.0 is the last deposited version (Zenodo record 21315494,
+  sole author). v3.1.0 is this pull request as merged (`ab08f6a`), never
+  deposited. **v3.1.1** is v3.1.0 plus the 6 Oct corrections on
+  `polish-oct2026`; `paper/alpha-asymmetry.tex`, `CITATION.cff` and `README.md`
+  all carry 3.1.1, and the title page prints it. The corrected text gets a new
+  number because the merged 3.1.0 text prints the defective Sharpe interval.
+- **Deposit.** Murad ratified option (a) on 6 Oct 2026: a new version under the
+  concept DOI `10.5281/zenodo.18638784`, with Tofik Israfilov as creator and a
+  supersession note. The new-version draft is prepared on Zenodo and left
+  **unpublished**, because publishing mints a DOI that cannot be withdrawn.
+  After publication, record the version DOI in `CITATION.cff`.
+- **SSRN.** `SSRN:6147567` is separate. Its Crossref record (created 4 Feb 2026)
+  carries the v2.0.0 abstract, and Zenodo does not propagate to it, so it needs
+  its own revision.
+- **Correction notice.** The 14 Sep recommendation stands: a reader who lands on
+  a superseded version should be able to see that it is superseded, so the
+  v3.1.1 record states which earlier figures it replaces and why.
 
 ## Data, and a decision for you
 
@@ -591,7 +615,8 @@ python3.12 -m venv .venv
 4. **(c2), the two exceptions** — keeping the Friday close despite the paper
    specifying Monday open, and relabelling the EVT section rather than refitting
    it. Either could be done properly instead.
-5. **The stale PDF.** You have the toolchain.
+5. **The stale PDF.** You have the toolchain. (6 Oct: resolved; the PDF is
+   rebuilt for v3.1.1.)
 6. Whether an approved EUR–JPY rate or forward series can be supplied, which
    would let hedge alpha stop being a constant multiplied by a correlation.
 
@@ -611,6 +636,7 @@ it is separately reviewable.
 part of the argument here.
 
 This branch is pushed to `plut777/alpha-asymmetry` and opened as a pull request
-against `dissensus-ai/alpha-asymmetry`. Nothing has been merged.
+against `dissensus-ai/alpha-asymmetry`. (6 Oct: merged on 29 Sep 2026 as
+`ab08f6a`.)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
