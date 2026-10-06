@@ -29,11 +29,11 @@ from scipy import stats
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 try:
-    from analysis.inference import cr2_inference, wild_cluster_bootstrap
+    from analysis.inference import cr2_inference, wild_cluster_bootstrap, wild_cluster_bootstrap_vectorized
     from analysis.data_access import load_datasets, write_manifest
     from analysis.strategy import compute_ai, run_asymmetry_strategy, simple_strategy, summarize_position_changes
 except ModuleNotFoundError:  # direct execution from analysis/
-    from inference import cr2_inference, wild_cluster_bootstrap
+    from inference import cr2_inference, wild_cluster_bootstrap, wild_cluster_bootstrap_vectorized
     from data_access import load_datasets, write_manifest
     from strategy import compute_ai, run_asymmetry_strategy, simple_strategy, summarize_position_changes
 
@@ -207,11 +207,13 @@ def execution_timing_grid(daily_px: pd.DataFrame, weekly: pd.DataFrame) -> dict:
     dropped = [str(d.date()) for d in weekly.index[~common]]
 
     rows = {}
+    series = {}
     for key, label in EXECUTION_TIMINGS.items():
         frame = weekly.copy()
         frame["weekly_return"] = returns[key]
         frame = frame.loc[common]
         result = run_asymmetry_strategy(frame, 0.75)
+        series[key] = result.returns
         n_weeks = len(result.returns)
         cumulative = result.metrics["return"] / 100.0
         row = {
@@ -244,6 +246,250 @@ def execution_timing_grid(daily_px: pd.DataFrame, weekly: pd.DataFrame) -> dict:
         ),
         "cost_tiers_pips": list(EXECUTION_COST_TIERS),
         "timings": rows,
+        "paired_contrasts": paired_execution_contrasts(pd.DataFrame(series)),
+    }
+
+
+# Pre-specified in docs/REVIEW_NOTES.md ("PRE-REGISTRATION -- execution-timing
+# robustness grid", commit c7af2f3, recorded before the Monday-close and
+# Tuesday-open results existed): three primary contrasts, the rest secondary.
+PRIMARY_EXECUTION_CONTRASTS = (
+    ("friday_close", "monday_open"),
+    ("monday_open", "monday_close"),
+    ("monday_close", "tuesday_open"),
+)
+SECONDARY_EXECUTION_CONTRASTS = (
+    ("friday_close", "monday_close"),
+    ("friday_close", "tuesday_open"),
+    ("monday_open", "tuesday_open"),
+)
+CONTRAST_REPS = 2000
+CONTRAST_SCHEMES = {
+    # name: (kind, block length in weeks). The 4-week moving block is primary;
+    # 8 and 13 weeks are the pre-specified block-length sensitivity, and the
+    # stationary bootstrap at an expected 4-week block is the retained comparison.
+    "moving_block_4": ("moving_block", 4),
+    "moving_block_8": ("moving_block", 8),
+    "moving_block_13": ("moving_block", 13),
+    "stationary_4": ("stationary", 4),
+}
+
+
+def moving_block_indices(n: int, block: int, rng) -> np.ndarray:
+    """Overlapping blocks of ``block`` consecutive weeks, drawn with replacement.
+
+    Start points are uniform on 0 .. n - block (no wrap-around), and the blocks
+    are concatenated and cut to the sample length.
+    """
+
+    starts = rng.integers(0, n - block + 1, int(np.ceil(n / block)))
+    return (starts[:, None] + np.arange(block)[None, :]).ravel()[:n]
+
+
+def annualized_return_pct(returns) -> np.ndarray:
+    """Geometric annualized return in percent, column by column (52 weeks a year)."""
+
+    returns = np.asarray(returns, dtype=float)
+    return ((1.0 + returns).prod(axis=0) ** (52.0 / returns.shape[0]) - 1.0) * 100.0
+
+
+def paired_execution_contrasts(series: pd.DataFrame, reps: int = CONTRAST_REPS, seed: int = SEED) -> dict:
+    """Paired bootstrap contrasts between the four execution timings.
+
+    The contrast is the difference in geometric annualized return, later timing
+    minus earlier, in percentage points; on the common sample it equals the
+    difference between the timings' ``annualized_return`` fields.  Each bootstrap
+    replicate draws ONE set of week indices and applies it to all four return
+    series, so every comparison is paired.  The position path is held fixed: the
+    strategy is not re-run inside the bootstrap, because the timings share their
+    signals and differ only in the return each position earns.
+
+    Primary contrasts get 95% percentile intervals.  Secondary contrasts are also
+    given simultaneous 95% intervals by the max-statistic method: the critical
+    value is the 95th percentile, across replicates, of the largest standardized
+    deviation among the three secondary contrasts, and each interval is the
+    estimate plus or minus that critical value times the bootstrap standard error.
+
+    Before this function existed the three primary intervals in the manuscript
+    came from an uncommitted script.  Under the primary scheme this function
+    reproduces those three intervals to the printed precision; two of the point
+    estimates printed beside them (0.64 and -0.76) do not reproduce, and the
+    values recorded here replace them.
+    """
+
+    if series.isna().any().any():
+        raise AssertionError("paired contrasts require complete return series on the common sample")
+    cols = list(series.columns)
+    pairs = list(PRIMARY_EXECUTION_CONTRASTS) + list(SECONDARY_EXECUTION_CONTRASTS)
+    values = series.to_numpy()
+    n = len(values)
+
+    def statistic(sample):
+        ann = annualized_return_pct(sample)
+        return np.array([ann[cols.index(b)] - ann[cols.index(a)] for a, b in pairs])
+
+    estimate = statistic(values)
+    names = [f"{b}_minus_{a}" for a, b in pairs]
+    primary = len(PRIMARY_EXECUTION_CONTRASTS)
+    out = {
+        "statistic": "difference in geometric annualized return, later timing minus earlier, percentage points",
+        "common_sample_n": int(n),
+        "reps": int(reps),
+        "seed": int(seed),
+        "interval": "95% percentile interval; secondary contrasts also get max-statistic simultaneous intervals",
+        "primary": names[:primary],
+        "secondary": names[primary:],
+        "estimate": {name: float(v) for name, v in zip(names, estimate)},
+        "schemes": {},
+    }
+    for scheme, (kind, block) in CONTRAST_SCHEMES.items():
+        rng = np.random.default_rng(seed)
+        draws = np.empty((reps, len(pairs)))
+        for r in range(reps):
+            if kind == "moving_block":
+                idx = moving_block_indices(n, block, rng)
+            else:
+                idx = stationary_bootstrap_indices(n, expected_block=float(block), rng=rng)
+            draws[r] = statistic(values[idx])
+        lo, hi = np.percentile(draws, [2.5, 97.5], axis=0)
+        se = draws.std(axis=0, ddof=1)
+        sec = slice(primary, len(pairs))
+        with np.errstate(divide="ignore", invalid="ignore"):  # zero SE only in degenerate inputs
+            max_dev = np.max(np.abs(draws[:, sec] - estimate[sec]) / se[sec], axis=1)
+        critical = float(np.percentile(max_dev, 95))
+        contrasts = {}
+        for j, name in enumerate(names):
+            entry = {"percentile_ci": [float(lo[j]), float(hi[j])], "bootstrap_se": float(se[j]),
+                     "percentile_ci_excludes_zero": bool(lo[j] > 0 or hi[j] < 0)}
+            if j >= primary:
+                sim = [float(estimate[j] - critical * se[j]), float(estimate[j] + critical * se[j])]
+                entry["simultaneous_ci"] = sim
+                entry["simultaneous_ci_excludes_zero"] = bool(sim[0] > 0 or sim[1] < 0)
+            contrasts[name] = entry
+        out["schemes"][scheme] = {
+            "kind": kind, "block_weeks": block,
+            "secondary_max_statistic_critical_value": critical,
+            "contrasts": contrasts,
+            "any_primary_excludes_zero": any(
+                contrasts[nm]["percentile_ci_excludes_zero"] for nm in names[:primary]),
+            "any_secondary_simultaneous_excludes_zero": any(
+                contrasts[nm]["simultaneous_ci_excludes_zero"] for nm in names[primary:]),
+        }
+    return out
+
+
+WEEKEND_GAP_WILD_REPS = 9999
+WEEKEND_GAP_POWER_DELTAS_BPS = tuple(float(d) for d in range(0, 21))
+WEEKEND_GAP_POWER_SIMS = 1000
+WEEKEND_GAP_POWER_WILD_REPS = 999
+WEEKEND_GAP_POWER_TARGET = 0.80
+WEEKEND_GAP_ALPHA = 0.05
+
+
+def weekend_gap_test(weekly: pd.DataFrame, base, seed: int = SEED) -> dict:
+    """Does the entry rule predict the weekend gap a position is about to bear?
+
+    The gap is the move from the Friday close at which a position is decided to
+    the first trading-session open after it.  The sample is the decision weeks in
+    which the rule holds a position, so the clusters are the holding episodes of
+    those DECISIONS: labels indexed by decision week, which equal the applied-week
+    labels of ``episode_ids`` shifted by one week (invariant B.2 in
+    docs/REVIEW_NOTES.md; the uncommitted script that first ran this test paired
+    them unshifted, and its first figures were withdrawn for that reason).
+
+    Two regressions, each with an intercept: the gap on the signed position
+    (primary) and on the direction alone.  Inference is CR2 clustered by episode
+    with a restricted wild cluster bootstrap-t p-value, as in the factor
+    regression.
+
+    The detectable effect follows the method fixed in the pre-specification
+    (docs/REVIEW_NOTES.md, "Power bound for the weekend-gap test"): resample the
+    holding episodes with replacement, inject a known slope delta on the signed
+    position into the residuals of the fitted regression, and record how often the
+    wild cluster bootstrap rejects at 5%.  The simulation settings (the delta grid,
+    the number of simulations, 999 bootstrap replicates per test, common random
+    numbers across deltas, linear interpolation to 80% power) are fixed here. The
+    script that produced the earlier 8.8 bps figure was never committed and its
+    settings are unknown, so that figure is superseded by the one recorded here.
+    """
+
+    gap = weekly["execution_open"].shift(-1) / weekly["Close"] - 1.0
+    labels = decision_episode_ids(base.position_ledger)
+    sample = pd.DataFrame({"gap": gap, "position": base.position, "episode": labels})
+    sample = sample.loc[(sample["position"] != 0) & sample["gap"].notna()]
+    applied_labels = episode_ids(base.position_ledger).shift(-1).reindex(sample.index)
+    if not (applied_labels.to_numpy() == sample["episode"].to_numpy()).all():
+        raise AssertionError("decision-week episode labels must equal applied-week labels shifted by -1")
+    if (sample["episode"] == 0).any():
+        raise AssertionError("a decision week with a position carries no episode label")
+
+    y = sample["gap"].to_numpy()
+    groups = sample["episode"].to_numpy()
+    regressions = {}
+    for name, x in (("signed_position", sample["position"].to_numpy()),
+                    ("direction", np.sign(sample["position"].to_numpy()))):
+        X = np.column_stack([np.ones(len(y)), x])
+        cr2 = cr2_inference(y, X, groups, 1)
+        wild = wild_cluster_bootstrap(y, X, groups, 1, reps=WEEKEND_GAP_WILD_REPS, seed=seed)
+        regressions[name] = {
+            "b": cr2["b"], "b_bps": cr2["b"] * 1e4, "se": cr2["se"], "t": cr2["t"],
+            "cr2_dof": cr2["dof"], "cr2_p": cr2["p"], "cr2_ci": cr2["ci"],
+            "wild_cluster_bootstrap_p": wild["p"], "wild_reps": wild["reps"],
+        }
+
+    # Power simulation on the primary (signed-position) regression.
+    X = np.column_stack([np.ones(len(y)), sample["position"].to_numpy()])
+    beta = np.linalg.lstsq(X, y, rcond=None)[0]
+    resid = y - X @ beta
+    episodes = np.unique(groups)
+    rows_of = {g: np.where(groups == g)[0] for g in episodes}
+    rng = np.random.default_rng(seed)
+    plans = []
+    for _ in range(WEEKEND_GAP_POWER_SIMS):
+        drawn = rng.choice(episodes, size=len(episodes), replace=True)
+        idx = np.concatenate([rows_of[g] for g in drawn])
+        lab = np.concatenate([np.full(len(rows_of[g]), k) for k, g in enumerate(drawn)])
+        plans.append((idx, lab, int(rng.integers(0, 2**31 - 1))))
+    power = []
+    for delta_bps in WEEKEND_GAP_POWER_DELTAS_BPS:
+        delta = delta_bps * 1e-4
+        rejections = 0
+        for idx, lab, wild_seed in plans:
+            Xs = X[idx]
+            ys = beta[0] + delta * Xs[:, 1] + resid[idx]
+            p = wild_cluster_bootstrap_vectorized(
+                ys, Xs, lab, 1, reps=WEEKEND_GAP_POWER_WILD_REPS, seed=wild_seed)["p"]
+            rejections += int(p < WEEKEND_GAP_ALPHA)
+        power.append(rejections / len(plans))
+    detectable = None
+    for i in range(1, len(power)):
+        if power[i] >= WEEKEND_GAP_POWER_TARGET > power[i - 1]:
+            d0, d1 = WEEKEND_GAP_POWER_DELTAS_BPS[i - 1], WEEKEND_GAP_POWER_DELTAS_BPS[i]
+            p0, p1 = power[i - 1], power[i]
+            detectable = d0 + (WEEKEND_GAP_POWER_TARGET - p0) * (d1 - d0) / (p1 - p0)
+            break
+    observed_bps = regressions["signed_position"]["b_bps"]
+    return {
+        "gap_definition": "first trading-session open after the decision Friday over that Friday's close, minus one",
+        "sample": "decision weeks in which the rule holds a position",
+        "n_weeks": int(len(y)),
+        "n_episodes": int(len(episodes)),
+        "regressions": regressions,
+        "power": {
+            "method": ("episodes resampled with replacement; a slope delta on the signed position "
+                       "injected into the fitted regression's residuals; rejection at 5% by the "
+                       "restricted wild cluster bootstrap-t"),
+            "deltas_bps_per_unit_position": list(WEEKEND_GAP_POWER_DELTAS_BPS),
+            "simulations_per_delta": WEEKEND_GAP_POWER_SIMS,
+            "wild_reps_per_test": WEEKEND_GAP_POWER_WILD_REPS,
+            "rejection_rate": power,
+            "target": WEEKEND_GAP_POWER_TARGET,
+            "detectable_effect_bps_per_unit_position": detectable,
+            "detectable_over_observed": (detectable / abs(observed_bps)
+                                         if detectable is not None and observed_bps != 0 else None),
+            "superseded_figure_note": ("An uncommitted script reported 8.8 bps at 80% power, about six "
+                                       "times the point estimate; its simulation settings were not recorded."),
+        },
     }
 
 
@@ -326,6 +572,21 @@ def episode_ids(position_ledger):
         decision[date] = current if float(row["new_position"]) != 0 else 0
     order = list(position_ledger.index)
     return pd.Series({d: (decision[order[i - 1]] if i else 0) for i, d in enumerate(order)})
+
+
+def decision_episode_ids(position_ledger):
+    """Episode number of the position DECIDED in each week (0 when flat).
+
+    ``episode_ids`` labels the week in which a position is applied, which is the
+    week after it is decided.  A sample indexed by decision weeks needs these
+    labels instead; they equal ``episode_ids`` shifted by -1.
+    """
+    labels, current = {}, 0
+    for date, row in position_ledger.iterrows():
+        if row["event_type"] in ("entry", "reversal"):
+            current += 1
+        labels[date] = current if float(row["new_position"]) != 0 else 0
+    return pd.Series(labels)
 
 
 def stationary_bootstrap_indices(n, expected_block=4.0, size=None, rng=None):
@@ -992,6 +1253,16 @@ def main() -> int:
     execution_grid = execution_timing_grid(datasets["EURJPY"], weekly)
     log(f"Execution-timing grid: common sample n={execution_grid['common_sample_n']}, "
         f"dropped {execution_grid['dropped_weeks']}")
+    contrasts = execution_grid["paired_contrasts"]
+    for name in contrasts["primary"]:
+        ci = contrasts["schemes"]["moving_block_4"]["contrasts"][name]["percentile_ci"]
+        log(f"  paired contrast {name}: {contrasts['estimate'][name]:+.3f} pp, "
+            f"95% CI [{ci[0]:.2f}, {ci[1]:.2f}] (4-week moving block)")
+    execution_grid["weekend_gap_test"] = weekend_gap_test(weekly, base)
+    gap_test = execution_grid["weekend_gap_test"]
+    log(f"Weekend-gap test: b={gap_test['regressions']['signed_position']['b_bps']:.2f} bps per unit, "
+        f"wild p={gap_test['regressions']['signed_position']['wild_cluster_bootstrap_p']:.4f}; "
+        f"80% power at {gap_test['power']['detectable_effect_bps_per_unit_position']} bps")
 
     results = {
         "specification": {"execution": "Friday-close signal; position executes at the first trading-session open after the signal (Monday open, or the next available session open after a holiday) and earns to the first open after the following Friday",

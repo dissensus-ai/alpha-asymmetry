@@ -98,12 +98,43 @@ def run(weekly: pd.DataFrame | None = None) -> dict:
             "match": bool(abs(got - want) < 1e-9),
         }
 
+    # --- The same four rules under the withdrawn Friday-close execution ---
+    # The manuscript compares the equal-threshold rule with the published hybrid
+    # under both execution conventions. The Friday-close figures had come from an
+    # earlier run of this module, before the primary execution moved to the first
+    # post-signal open, and were no longer in any committed output. They are
+    # recomputed here: a Friday-close position earns the Friday-close-to-Friday-
+    # close return, which is the panel's market_return column.
+    friday_close = weekly.copy()
+    friday_close["weekly_return"] = friday_close["market_return"]
+    results_fc = {key: _metrics(friday_close, key) for key in VARIANTS}
+
+    # --- I3: the Friday-close control reproduces the execution grid's row ---
+    grid_fc = json.loads(CANONICAL.read_text())["execution_timing"]["timings"]["friday_close"]
+    i3 = {
+        "committed": grid_fc["cumulative_return"],
+        "recomputed": results_fc["published"]["return"],
+        "match": bool(abs(results_fc["published"]["return"] - grid_fc["cumulative_return"]) < 1e-9),
+    }
+
+    gap_pp = {
+        "monday_open": results["published"]["return"] - results["equal_threshold"]["return"],
+        "friday_close": results_fc["published"]["return"] - results_fc["equal_threshold"]["return"],
+    }
+
     payload = {
         "preregistration": "docs/PREREGISTRATION_ENTRY_SYMMETRY.md",
         "net_cost_pips": NET_COST_PIPS,
         "labels": VARIANTS,
         "sample": sample,
         "invariant_I1_published_reproduces_baseline": i1,
+        "invariant_I3_friday_close_control_reproduces_execution_grid": i3,
+        "equal_threshold_shortfall_vs_published_pp": gap_pp,
+        "friday_close_execution": {
+            "note": ("Robustness timing only. Same rules, sizing and sample; each position earns "
+                     "the Friday-close-to-Friday-close return."),
+            "variants": results_fc,
+        },
         "variants": results,
     }
     OUTPUT.write_text(json.dumps(payload, indent=2) + "\n")
@@ -118,6 +149,8 @@ if __name__ == "__main__":
     for f, v in i1.items():
         if not v["match"]:
             print(f"   MISMATCH {f}: committed {v['committed']} vs recomputed {v['recomputed']}")
+    i3 = p["invariant_I3_friday_close_control_reproduces_execution_grid"]
+    print(f"I3 Friday-close control reproduces the execution grid: {'PASS' if i3['match'] else 'FAIL'}")
     s = p["sample"]
     print(f"I2 sample: analysis panel n={s['analysis_panel_n']}; "
           f"executable strategy n={s['executable_strategy_n']}; "

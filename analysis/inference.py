@@ -127,3 +127,55 @@ def wild_cluster_bootstrap(y, X, groups, coef_index, reps=9999, seed=42):
     return {"observed_t": float(observed), "reps": int(reps),
             "p": float((count + 1) / (reps + 1)), "weights": "Rademacher, one draw per cluster",
             "null_imposed": True}
+
+
+def wild_cluster_bootstrap_vectorized(y, X, groups, coef_index, reps=999, seed=42):
+    """The same restricted wild cluster bootstrap-t, with the replicates computed in one pass.
+
+    Exists for the weekend-gap power simulation, which runs the bootstrap tens of
+    thousands of times; reported p-values elsewhere still come from
+    ``wild_cluster_bootstrap``.  The Rademacher weights are drawn one replicate at a
+    time, in the same order and from the same generator as ``wild_cluster_bootstrap``,
+    so for the same inputs and seed the two return the same p-value (a test checks
+    this).  Only the CR2 t-ratios are vectorized: the CR2 adjustment matrices depend
+    on ``X`` and the clusters alone, so they are formed once and applied to every
+    bootstrap sample.
+    """
+
+    y = np.asarray(y, dtype=float)
+    X = np.asarray(X, dtype=float)
+    groups = np.asarray(groups)
+    observed = cr2_inference(y, X, groups, coef_index)["t"]
+
+    keep = [j for j in range(X.shape[1]) if j != coef_index]
+    Xr = X[:, keep]
+    beta_r = np.linalg.pinv(Xr.T @ Xr) @ Xr.T @ y
+    fitted_r = Xr @ beta_r
+    resid_r = y - fitted_r
+
+    uniq = np.unique(groups)
+    rng = np.random.default_rng(seed)
+    weights = np.empty((reps, len(uniq)))
+    for r in range(reps):
+        weights[r] = rng.choice([-1.0, 1.0], size=len(uniq))
+    position = {g: i for i, g in enumerate(uniq)}
+    member = np.array([position[g] for g in groups])
+    y_star = fitted_r[:, None] + weights[:, member].T * resid_r[:, None]  # n x reps
+
+    xtx_inv = np.linalg.pinv(X.T @ X)
+    beta_star = xtx_inv @ X.T @ y_star
+    resid_star = y_star - X @ beta_star
+    ell = np.zeros(X.shape[1])
+    ell[coef_index] = 1.0
+    se2 = np.zeros(reps)
+    for g in uniq:
+        idx = np.where(groups == g)[0]
+        Xg = X[idx]
+        Ag = _symmetric_inv_sqrt(np.eye(len(idx)) - Xg @ xtx_inv @ Xg.T)
+        se2 += (ell @ xtx_inv @ Xg.T @ Ag @ resid_star[idx]) ** 2
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t_star = beta_star[coef_index] / np.sqrt(se2)
+    count = int(np.sum(np.isfinite(t_star) & (np.abs(t_star) >= abs(observed))))
+    return {"observed_t": float(observed), "reps": int(reps),
+            "p": float((count + 1) / (reps + 1)), "weights": "Rademacher, one draw per cluster",
+            "null_imposed": True}
