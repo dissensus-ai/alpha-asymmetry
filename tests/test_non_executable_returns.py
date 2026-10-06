@@ -205,3 +205,51 @@ def test_the_guard_does_not_fire_at_zero_cost():
 def test_the_eurjpy_default_still_passes():
     frame = _cost_frame(price_missing_on_trade=False)
     run_asymmetry_strategy(frame, 0.75, round_trip_cost_pips=2.0)
+
+
+# ---------------------------------------------------------------------------
+# The same distinction, applied to the pipeline's return summaries and bootstrap
+# ---------------------------------------------------------------------------
+
+def _returns_with_terminal_gap(n: int = 120) -> pd.Series:
+    idx = pd.date_range("2020-01-03", periods=n, freq="W-FRI")
+    rng = np.random.default_rng(5)
+    values = rng.normal(0.0005, 0.01, n)
+    values[-1] = np.nan  # terminal week: no subsequent executable open
+    return pd.Series(values, index=idx)
+
+
+def test_return_bootstrap_resamples_executable_weeks_only():
+    """A NaN left in the resampled array turned ~63% of Sharpe draws into 0.0.
+
+    Any draw containing the missing week had a NaN standard deviation, the
+    ``sd > 0`` guard failed, and the draw was recorded as a Sharpe ratio of
+    exactly zero, narrowing the interval. The bootstrap must resample the
+    executable weeks and nothing else.
+    """
+    from analysis.full_pipeline import stationary_bootstrap_return_stats
+
+    rets = _returns_with_terminal_gap()
+    ann, sharpe, n = stationary_bootstrap_return_stats(rets, b=300)
+    ann_ref, sharpe_ref, n_ref = stationary_bootstrap_return_stats(rets.dropna(), b=300)
+    assert n == n_ref == len(rets) - 1
+    np.testing.assert_array_equal(sharpe, sharpe_ref)
+    np.testing.assert_array_equal(ann, ann_ref)
+    assert not np.isnan(ann).any(), "annualized-return draws must not be NaN-poisoned"
+    assert (sharpe == 0.0).sum() == 0, (
+        "continuous returns cannot produce a Sharpe draw of exactly zero; zeros here "
+        "mean the non-executable week entered the resample")
+
+
+def test_performance_summary_skips_the_non_executable_week():
+    """Volatility, Sharpe and Sortino must not count a missing week as a zero return."""
+    from analysis.full_pipeline import performance
+
+    rets = _returns_with_terminal_gap()
+    position = pd.Series(1.0, index=rets.index)
+    with_gap = performance(rets, position)
+    executable = rets.dropna()
+    assert with_gap["vol"] == pytest.approx(float(executable.std()) * np.sqrt(52) * 100)
+    assert with_gap["sharpe"] == pytest.approx(
+        float(executable.mean() / executable.std() * np.sqrt(52)))
+    assert with_gap["ret"] == pytest.approx(float((1 + executable).prod() - 1) * 100)

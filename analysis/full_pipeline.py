@@ -338,8 +338,38 @@ def stationary_bootstrap_indices(n, expected_block=4.0, size=None, rng=None):
     return idx
 
 
+def stationary_bootstrap_return_stats(returns, b, expected_block=4.0, seed=SEED):
+    """Stationary-bootstrap draws of the annualized return and Sharpe ratio.
+
+    Weeks with no realizable return are dropped BEFORE resampling. Under
+    first-post-signal-open execution the terminal week has no subsequent open,
+    so its return is NaN. Resampling the array with that NaN left in gave every
+    draw containing its index a NaN standard deviation; the ``sd > 0`` guard then
+    failed and the draw was recorded as a Sharpe ratio of exactly 0.0 (about 63%
+    of draws), which narrowed every printed interval. A non-executable week is
+    missing, not a zero return and not a zero Sharpe ratio.
+
+    Returns (annualized_return_draws_pct, sharpe_draws, n_resampled).
+    """
+
+    values = pd.Series(returns, dtype="float64").dropna().to_numpy()
+    rng = np.random.default_rng(seed)
+    ann_boot, sharpe_boot = [], []
+    for _ in range(b):
+        sample = values[stationary_bootstrap_indices(len(values), expected_block=expected_block, rng=rng)]
+        growth = float(np.prod(1 + sample))
+        ann_boot.append((growth ** (52 / len(sample)) - 1) * 100)
+        sample_sd = sample.std(ddof=1)
+        sharpe_boot.append(sample.mean() / sample_sd * np.sqrt(52) if sample_sd > 0 else 0.0)
+    return np.asarray(ann_boot), np.asarray(sharpe_boot), len(values)
+
+
 def performance(rets: pd.Series, position: pd.Series) -> dict:
-    rets = rets.fillna(0.0)
+    # A non-executable week (NaN return) is missing, not a zero return: filling
+    # it with 0.0 put an observation that does not exist into the volatility,
+    # Sharpe and Sortino denominators. The compounded return and drawdown are
+    # unaffected either way.
+    rets = rets.dropna()
     cum = float((1 + rets).prod() - 1)
     sd = float(rets.std())
     neg = rets[rets < 0]
@@ -771,7 +801,21 @@ def main() -> int:
     candidates["always_long"] = benchmark_returns["Buy and hold"]
     rng_random = np.random.default_rng(SEED)
     candidates["random_candidate"] = simple_strategy(pd.Series(rng_random.choice([-1.0, 1.0], len(weekly)), index=weekly.index), weekly["weekly_return"])
-    universe = pd.DataFrame(candidates).fillna(0.0)
+
+    # Rows of the test universe are weeks. A week with no realizable return (the
+    # terminal week under first-post-signal-open execution) is dropped, not
+    # filled with 0.0: the fill put a fabricated zero-return week into every
+    # candidate's mean and into the bootstrap, contrary to the rule that a
+    # non-executable week is missing. Every other week must be complete.
+    executable_weeks = weekly["weekly_return"].notna()
+
+    def executable_universe(cands: dict) -> pd.DataFrame:
+        frame = pd.DataFrame(cands).loc[executable_weeks]
+        if frame.isna().any().any():
+            raise AssertionError("a candidate return is missing on an executable week")
+        return frame
+
+    universe = executable_universe(candidates)
     values = universe.to_numpy()
     n_obs, n_k = values.shape
     means = values.mean(axis=0)
@@ -789,7 +833,7 @@ def main() -> int:
     recenter = np.where(means >= cutoff, means, 0.0)
     boot_spa = np.maximum((np.sqrt(n_obs) * (boot_means - recenter) / omega).max(axis=1), 0.0)
     real_only = {k: v for k, v in candidates.items() if k != "random_candidate"}
-    values_r = pd.DataFrame(real_only).fillna(0.0).to_numpy()
+    values_r = executable_universe(real_only).to_numpy()
     n_r, k_r = values_r.shape
     means_r = values_r.mean(axis=0)
     observed_rc_r = np.sqrt(n_r) * means_r.max()
@@ -814,7 +858,7 @@ def main() -> int:
     # the changed candidate. That is a claim about this universe, so it is tested.
     frozen_full = run_asymmetry_strategy(weekly, 0.75, sizing="entry").returns
     real_frozen = dict(real_only, asym_full=frozen_full)
-    values_f = pd.DataFrame(real_frozen).fillna(0.0).to_numpy()
+    values_f = executable_universe(real_frozen).to_numpy()
     means_f = values_f.mean(axis=0)
     observed_rc_f = np.sqrt(n_r) * means_f.max()
     rng_f = np.random.default_rng(SEED)
@@ -835,8 +879,8 @@ def main() -> int:
             k for k in real_only if not np.allclose(
                 pd.Series(real_only[k]).fillna(0.0).to_numpy(),
                 pd.Series(real_frozen[k]).fillna(0.0).to_numpy())],
-        "argmax_weekly": pd.DataFrame(real_only).fillna(0.0).mean().idxmax(),
-        "argmax_frozen": pd.DataFrame(real_frozen).fillna(0.0).mean().idxmax(),
+        "argmax_weekly": executable_universe(real_only).mean().idxmax(),
+        "argmax_frozen": executable_universe(real_frozen).mean().idxmax(),
         "white_rc_stat_weekly": observed_rc_r, "white_rc_stat_frozen": observed_rc_f,
         "spa_stat_weekly": observed_spa_r, "spa_stat_frozen": observed_spa_f,
         "white_rc_stat_identical": bool(observed_rc_r == observed_rc_f),
@@ -859,7 +903,7 @@ def main() -> int:
                               "white_rc_p": float((boot_rc_r >= observed_rc_r).mean()),
                               "spa_stat": observed_spa_r,
                               "spa_p": float((boot_spa_r >= observed_spa_r).mean()),
-                              "best_candidate": pd.DataFrame(real_only).fillna(0.0).mean().idxmax()},
+                              "best_candidate": executable_universe(real_only).mean().idxmax()},
                 "with_random_candidate_note": "retained for comparison; the random sequence is the argmax, so removing it lowers the observed statistic more than the bootstrap distribution and raises the RC p-value",
                  "n_strategies": n_k, "white_rc_stat": observed_rc, "white_rc_p": float((boot_rc >= observed_rc).mean()),
                  "spa_stat": observed_spa, "spa_p": float((boot_spa >= observed_spa).mean()),
@@ -915,28 +959,18 @@ def main() -> int:
            "theta": theta, "theta_ci": list(np.percentile(theta_boot, [2.5, 97.5])), "xi": xi,
            "xi_ci": list(np.percentile(xi_boot, [2.5, 97.5])), "scale": scale, "ks_stat": ks_stat, "ks_p": ks_p}
 
-    rng_ci = np.random.default_rng(SEED)
-    ann_boot, sharpe_boot = [], []
-    xret = base.returns.to_numpy()
-    for _ in range(2000):
-        sample = xret[stationary_bootstrap_indices(len(xret), rng=rng_ci)]
-        growth = float(np.prod(1 + sample))
-        ann_boot.append((growth ** (52 / len(sample)) - 1) * 100)
-        sample_sd = sample.std(ddof=1)
-        sharpe_boot.append(sample.mean() / sample_sd * np.sqrt(52) if sample_sd > 0 else 0.0)
+    # Non-executable weeks are dropped inside the helper, before resampling.
+    ann_boot, sharpe_boot, n_exec = stationary_bootstrap_return_stats(base.returns, b=2000)
     block_sensitivity = []
     for eb in (2.0, 4.0, 8.0, 13.0):
-        rng_b = np.random.default_rng(SEED)
-        sh = []
-        for _ in range(1000):
-            s = xret[stationary_bootstrap_indices(len(xret), expected_block=eb, rng=rng_b)]
-            sd_s = s.std(ddof=1)
-            sh.append(s.mean() / sd_s * np.sqrt(52) if sd_s > 0 else 0.0)
+        _, sh, _ = stationary_bootstrap_return_stats(base.returns, b=1000, expected_block=eb)
         block_sensitivity.append({"expected_block_weeks": eb,
                                   "sharpe_ci": list(np.percentile(sh, [2.5, 97.5]))})
 
     inference = {"block_length_sensitivity": block_sensitivity,
-                 "annualized_return": ((1 + base.metrics["return"] / 100) ** (52 / len(xret)) - 1) * 100,
+                 "bootstrap_weeks": n_exec,
+                 "bootstrap_note": "weeks with no realizable return are excluded before resampling",
+                 "annualized_return": ((1 + base.metrics["return"] / 100) ** (52 / n_exec) - 1) * 100,
                  "annualized_return_ci": list(np.percentile(ann_boot, [2.5, 97.5])),
                  "sharpe": base.metrics["sharpe"], "sharpe_ci": list(np.percentile(sharpe_boot, [2.5, 97.5]))}
 
