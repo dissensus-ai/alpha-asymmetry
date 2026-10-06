@@ -24,6 +24,11 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+analysis/cache/
+analysis/data_manifest.observed.json
+.matplotlib/
+.tools/
+tmp/
 
 # Tarballs and copies
 *.tar.gz
