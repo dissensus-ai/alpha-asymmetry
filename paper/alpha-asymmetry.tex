@@ -274,7 +274,7 @@ This Lagrange multiplier test is asymptotically equivalent to the likelihood rat
 \subsection{Backtesting Framework}
 \label{sec:backtestmethod}
 
-We evaluate the asymmetry strategy against three benchmarks, with explicit signal generation and execution rules to ensure reproducibility.
+We evaluate the asymmetry strategy against three benchmarks, with explicit signal generation and execution rules to ensure reproducibility. Table~\ref{tab:spec} lists every free parameter.
 
 \textbf{Asymmetry Strategy}:
 
@@ -375,7 +375,7 @@ The momentum and mean-reversion benchmarks are the same rules that enter the dat
 \subsection{Asymmetry Detection}
 \label{sec:asymdetect}
 
-Table \ref{tab:asymmetry} presents distributional statistics for each alpha type.
+Table \ref{tab:asymmetry} presents distributional statistics for each alpha type, and Figure~\ref{fig:asymmetry} plots the five distributions with their block-bootstrap skewness intervals (Appendix~\ref{appendix:figures} reproduces both figures at larger scale).
 
 \begin{table}[H]
 \centering
@@ -492,7 +492,7 @@ The finding is therefore the sensitivity itself: \textbf{the tail signal's distr
 \subsection{Backtest Performance}
 \label{sec:backtest}
 
-Table \ref{tab:backtest} compares the asymmetry strategy against the three benchmarks of Section~2.4 on the EUR/JPY analysis-ready sample (January 2016--August 2025). We report standard performance measures alongside risk-adjusted metrics to enable fair comparison across strategies with different return and volatility profiles.
+Table \ref{tab:backtest} compares the asymmetry strategy against the three benchmarks of Section~\ref{sec:backtestmethod} on the EUR/JPY analysis-ready sample (January 2016--August 2025). We report standard performance measures alongside risk-adjusted metrics to enable fair comparison across strategies with different return and volatility profiles.
 
 \begin{table}[H]
 \centering
@@ -519,6 +519,8 @@ Buy \& Hold & 34.63\% & 8.77\% & 0.394 & 0.608 & $-$15.40\% & 1 / 1 \\
 
 \textbf{Trading Frequency.} The corrected ledger records 15 asymmetry holding episodes, 61 execution legs, one direct reversal, 31 weekly resizings, and total absolute turnover of 52.00 units. The resizings more than double the leg count while adding only 5.8\% to turnover, because they are small: they average 0.19 units of notional against 1.64 units at entry, the asymmetry index being a twenty-week rolling statistic that moves slowly. Momentum has 54 directional episodes because every sign reversal closes one episode and opens another; dividing position-change events by two understated this count. These definitions separate economic holding episodes from executions and turnover.
 
+Figure~\ref{fig:backtest} shows the equity curves and drawdowns.
+
 \textbf{Statistical Significance of Returns.} Stationary-bootstrap inference (expected block length 4 weeks, $B = 2000$) gives an annualized return of $-0.08\%$ with a Sharpe interval of $[-0.51, 0.49]$. The sample estimate is slightly negative and the interval is far too wide to establish a nonzero population mean. Failure to reject zero is not proof that the true effect is exactly absent.
 
 \begin{figure}[H]
@@ -530,7 +532,7 @@ Buy \& Hold & 34.63\% & 8.77\% & 0.394 & 0.608 & $-$15.40\% & 1 / 1 \\
 
 \subsection{Cross-Market Validation}
 
-To test whether the EUR/JPY findings generalize, we apply the identical alpha construction and the identical trading strategy (unchanged code, unchanged parameters) to GBP/USD, SPY, and GLD (Section~2.1). Hedge alpha is excluded as EUR/JPY-specific; the four remaining signals and the two-sided asymmetry strategy (0.75 threshold) transfer directly. Table \ref{tab:crossmarket} reports the signed weekly skewness of each signal alongside the strategy's gross cumulative return and, for scale, each market's buy-and-hold return over the same 504-week window.
+To test whether the EUR/JPY findings generalize, we apply the identical alpha construction and the identical trading strategy (unchanged code, unchanged parameters) to GBP/USD, SPY, and GLD (Section~\ref{sec:data}). Hedge alpha is excluded as EUR/JPY-specific; the four remaining signals and the two-sided asymmetry strategy (0.75 threshold) transfer directly. Table \ref{tab:crossmarket} reports the signed weekly skewness of each signal alongside the strategy's gross cumulative return and, for scale, each market's buy-and-hold return over the same 504-week window.
 
 \begin{table}[H]
 \centering
@@ -662,7 +664,7 @@ Rate Hike Regime (2022--2025) & 191 & -0.71 & -0.13 & -0.53 & 7.21\% \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: The strategy is run once on the complete chronological calendar; realized weekly returns are then attributed to rows in each regime. VIX is the mean of daily closes within each Friday-ending week. No stateful strategy is rerun on filtered, nonconsecutive dates. Skewness uses the observations in each displayed subsample. The 2020 return of 2.77\% is identical under both position-sizing specifications of Section~2.4, and is the same figure as the lone walk-forward episode of Table~\ref{tab:oos}: 2020 contains a single holding episode whose notional the sizing rule never revised, so weekly and frozen sizing coincide on it. It is not a figure left un-updated.}
+\parbox{\linewidth}{\footnotesize Note: The strategy is run once on the complete chronological calendar; realized weekly returns are then attributed to rows in each regime. VIX is the mean of daily closes within each Friday-ending week. No stateful strategy is rerun on filtered, nonconsecutive dates. Skewness uses the observations in each displayed subsample. The 2020 return of 2.77\% is identical under both position-sizing specifications of Section~\ref{sec:backtestmethod}, and is the same figure as the lone walk-forward episode of Table~\ref{tab:oos}: 2020 contains a single holding episode whose notional the sizing rule never revised, so weekly and frozen sizing coincide on it. It is not a figure left un-updated.}
 \end{table}
 
 \textbf{Temporal Stability.} Tail skewness is strongly negative pre-COVID ($-3.40$), positive in 2020 ($+5.02$), and moderately negative thereafter ($-0.73$). These point estimates are based on small, sparse exceedance samples and are descriptive. Fast skew remains near zero; pricing skew is more negative after 2020.
@@ -689,7 +691,7 @@ Threshold & Episodes & Exposed Weeks & Return & Sharpe & Hit Rate \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Returns use the full asymmetry strategy specification of Section~2.4 with weekly position sizing. Activity is placed first because it is the stable feature of the grid: raising the threshold monotonically reduces the number of episodes and the weeks of exposure, while the return does not vary monotonically. \textbf{The 1.25 row reports no performance figures, for the same reason as Table~\ref{tab:oos} and in fact from the same episode:} one holding episode supplies no sample over which a Sharpe ratio or a hit rate can be computed. The replication pipeline applies this rule to every such statistic in every table, and records the suppressed values in \texttt{analysis/full\_pipeline\_results.json}.}
+\parbox{\linewidth}{\footnotesize Note: Returns use the full asymmetry strategy specification of Section~\ref{sec:backtestmethod} with weekly position sizing. Activity is placed first because it is the stable feature of the grid: raising the threshold monotonically reduces the number of episodes and the weeks of exposure, while the return does not vary monotonically. \textbf{The 1.25 row reports no performance figures, for the same reason as Table~\ref{tab:oos} and in fact from the same episode:} one holding episode supplies no sample over which a Sharpe ratio or a hit rate can be computed. The replication pipeline applies this rule to every such statistic in every table, and records the suppressed values in \texttt{analysis/full\_pipeline\_results.json}.}
 \end{table}
 
 \textbf{Threshold Selection.} What the grid shows unambiguously is that activity falls as the threshold rises: 25 episodes and 89 exposed weeks at 0.50, down to a single episode and four exposed weeks at 1.25. Activity falls monotonically as the threshold rises, but return and Sharpe do not: the return improves from $-$10.55\% to $-$0.73\%, falls back to $-$1.25\%, and turns positive only at the threshold with a single episode. Every threshold with enough episodes to evaluate loses money. The 1.25 threshold is the same lone 2020 episode that the walk-forward selects, and it is reported here only as an activity count, for the reason given in Section~\ref{sec:robustness}: a single episode cannot distinguish an edge from a coin flip. Selecting it after seeing the full sample would in any case be data snooping rather than robustness. The prespecified 0.75 baseline remains the confirmatory result.
@@ -756,7 +758,7 @@ Equal-threshold hybrid & $-$1.65\% & $-$1.96\% & $-$0.029 & $-$10.83\% & 12 & 43
 \parbox{\linewidth}{\footnotesize Note: All four rules use the identical sample of 504 weeks, the identical sizing, exit and execution conventions, and differ only in the entry condition. ``Weeks'' counts in-position weeks and ``bps/week'' is the mean gross weekly return over those weeks, reported for every rule under the pre-specified exposure guard so that a rule which is out of the market more often cannot be read as safer. Net returns are quoted at 2.0 pips round-trip, the widest tier in the paper's cost table. Generated from \texttt{analysis/entry\_symmetry\_results.json}.}
 \end{table}
 
-Realized performance varies materially across the four pre-specified entry rules, and the variation includes a change of sign. The published hybrid loses 0.73\% gross; pure-fast loses 3.48\%; the equal-threshold hybrid loses 1.65\%; and \textbf{pure-pricing gains 5.57\% gross, 5.21\% net of the widest cost tier}. The spread is 9.04 percentage points, against a published-hybrid loss of 0.73\%, an order of magnitude larger than the result it surrounds.
+Realized performance varies materially across the four pre-specified entry rules (Table~\ref{tab:entrysymmetry}), and the variation includes a change of sign. The published hybrid loses 0.73\% gross; pure-fast loses 3.48\%; the equal-threshold hybrid loses 1.65\%; and \textbf{pure-pricing gains 5.57\% gross, 5.21\% net of the widest cost tier}. The spread is 9.04 percentage points, against a published-hybrid loss of 0.73\%, an order of magnitude larger than the result it surrounds.
 
 \textbf{What the positive variant does and does not establish.} Pure-pricing is a pre-specified variant, not a rule found by searching. Its return is reported because the pre-specification, committed to the repository before the execution convention was decided and before any of these figures existed, required all three symmetrizations to be disclosed whatever they produced. It is \emph{not} offered as a preferred strategy, and no comparative inference among the four was pre-specified or run, so nothing here establishes that pure-pricing has positive expected alpha. What it establishes is narrower: \textbf{the sample does not support a stable performance conclusion across the pre-specified entry-rule constructions.}
 
@@ -814,7 +816,7 @@ We regress asymmetry strategy returns on proxy FX factors:
 \begin{equation}
     R_{\text{asym},t} = \alpha + \beta_1 \cdot \text{Carry}_t + \beta_2 \cdot \text{Mom}_t + \beta_3 \cdot \text{Dollar}_t + \varepsilon_t
 \end{equation}
-where the factors are single-market proxies constructible from our data, not the published cross-sectional factors: Carry is the average weekly spot return of the classic carry crosses AUD/JPY and NZD/JPY (a spot-only proxy for the \citealp{lustig2011common} carry factor, omitting interest accrual), Mom is the return of a 12-week time-series momentum rule on EUR/JPY itself (in the spirit of \citealp{menkhoff2012currency}), and Dollar is the DXY weekly return (proxying \citealp{verdelhan2018dollar}). Constructing the published factors requires a G10 forward-rate cross-section we do not use; the proxies capture the same directional exposures at the single-pair level, and we label them as proxies throughout. Because the strategy is out of the market most weeks, we estimate the regression twice: on the full weekly sample (where the dependent variable is structurally zero in out-of-position weeks) and on in-position weeks only, whose count is the effective sample size.
+where the factors are single-market proxies constructible from our data, not the published cross-sectional factors: Carry is the average weekly spot return of the classic carry crosses AUD/JPY and NZD/JPY (a spot-only proxy for the \citealp{lustig2011common} carry factor, omitting interest accrual), Mom is the return of a 12-week time-series momentum rule on EUR/JPY itself (in the spirit of \citealp{menkhoff2012currency}), and Dollar is the DXY weekly return (proxying \citealp{verdelhan2018dollar}). Constructing the published factors requires a G10 forward-rate cross-section we do not use; the proxies capture the same directional exposures at the single-pair level, and we label them as proxies throughout. Because the strategy is out of the market most weeks, we estimate the regression twice: on the full weekly sample (where the dependent variable is structurally zero in out-of-position weeks) and on in-position weeks only, whose count is the effective sample size. Table~\ref{tab:factors} reports both.
 
 \begin{table}[H]
 \centering
@@ -965,7 +967,7 @@ Expected block length & 95\% Sharpe interval \\
 
 \textbf{Candidate Universe.} The formal tests are run on the \textbf{twelve real candidate strategies}. A seeded random position sequence is reported alongside as a diagnostic but is excluded from the formal universe: a data-snooping correction should control the error rate across the space actually searched, and a coin-flip rule was never a strategy under consideration.
 
-\textbf{White's Reality Check.} Following \citet{white2000reality}, we test the twelve-strategy universe against a zero-return benchmark. The Reality Check does not reject the null of no superior strategy ($RC = 0.015$, $p = 0.30$). Including the random sequence as a thirteenth candidate gives $RC = 0.025$, $p = 0.06$. The direction runs opposite to what candidate-dilution intuition suggests: the random sequence has the highest realized sample mean in the universe, so removing it lowers the observed statistic more than it lowers the bootstrap distribution, and the $p$-value \emph{rises}. Neither universe rejects.
+\textbf{White's Reality Check.} Table~\ref{tab:snooping} collects both tests. Following \citet{white2000reality}, we test the twelve-strategy universe against a zero-return benchmark. The Reality Check does not reject the null of no superior strategy ($RC = 0.015$, $p = 0.30$). Including the random sequence as a thirteenth candidate gives $RC = 0.025$, $p = 0.06$. The direction runs opposite to what candidate-dilution intuition suggests: the random sequence has the highest realized sample mean in the universe, so removing it lowers the observed statistic more than it lowers the bootstrap distribution, and the $p$-value \emph{rises}. Neither universe rejects.
 
 \textbf{Hansen's SPA Test.} The Superior Predictive Ability test \citep{hansen2005test} agrees ($SPA = 1.43$, $p = 0.58$ on the twelve-strategy universe; $p = 0.22$ including the random sequence): no candidate demonstrates superior predictive ability over the zero-return benchmark at conventional levels.
 
