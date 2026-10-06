@@ -13,16 +13,19 @@ authors:
     affiliation: "Dissensus"
 title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
 # Authorship note: adds Tofik Israfilov as co-author. The published deposits
-# (SSRN 6147567, Zenodo v2.0.1) are sole-authored and stay that way -- this
-# change takes effect from the next deposit onward.
+# (SSRN 6147567, Zenodo v2.0.1 and v3.0.0) are sole-authored and stay that way --
+# this change takes effect from the next deposit onward.
 #
 # VERSION IDENTIFIERS DISAGREED ACROSS FILES before this branch, and the
 # reconciliation is still the author's to confirm:
 #   paper/alpha-asymmetry.tex  carried \paperver 3.0.0 for the July 2026
 #                              manuscript (set in f04ae08, 21 Jul 2026)
 #   this file                  called the same work v2.1.0-dev
-#   last DEPOSITED version     is v2.0.1 (10.5281/zenodo.20635291)
-# Neither 3.0.0 nor 2.1.0-dev was ever deposited to Zenodo or SSRN.
+#   last DEPOSITED version     is v3.0.0 (Zenodo record 21315494,
+#                              10.5281/zenodo.21315494, published 11 Jul 2026;
+#                              verified against the Zenodo API 6 Oct 2026)
+# 2.1.0-dev was never deposited. v3.0.0 carries strategy figures from code whose
+# exit rule did not match the specification; this branch supersedes them.
 #
 # v3.1.0-dev = the present correction pass: holding rule, execution lag and
 # asymmetry index corrected against the published specification; all downstream
@@ -33,8 +36,8 @@ title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploit
 version: "3.1.0-dev"
 date-released: "2026-09-12"
 license: "CC-BY-4.0"
-doi: "10.2139/ssrn.6147567"
-url: "https://dissensus.ai"
+doi: "10.5281/zenodo.18638784"
+url: "https://dissensus.ai/papers/alpha-asymmetry-fx"
 repository-code: "https://github.com/dissensus-ai/alpha-asymmetry"
 identifiers:
   - type: doi
@@ -44,8 +47,11 @@ identifiers:
     value: "10.5281/zenodo.18638784"
     description: "Zenodo archive (concept DOI, resolves to latest version)"
   - type: doi
+    value: "10.5281/zenodo.21315494"
+    description: "Zenodo archive (v3.0.0, 11 Jul 2026, latest published; strategy figures superseded by v3.1.0-dev)"
+  - type: doi
     value: "10.5281/zenodo.20635291"
-    description: "Zenodo archive (v2.0.1, latest published; predates the v2.1 correction pass)"
+    description: "Zenodo archive (v2.0.1, pre-correction)"
 keywords:
   - foreign exchange
   - alpha asymmetry
@@ -64,5 +70,5 @@ preferred-citation:
       affiliation: "Dissensus"
   title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
   year: 2026
-  doi: "10.2139/ssrn.6147567"
-  journal: "SSRN Electronic Journal"
+  doi: "10.5281/zenodo.18638784"
+  journal: "Dissensus Working Paper DAI-2605"

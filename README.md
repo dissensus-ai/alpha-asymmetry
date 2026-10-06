@@ -6,11 +6,11 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Status](https://img.shields.io/badge/Status-Preprint-green.svg)](https://doi.org/10.5281/zenodo.18638784)
 
-**Working Paper DAI-2605** | [Dissensus AI](https://dissensus.ai)
+**Working Paper DAI-2605** | [Dissensus](https://dissensus.ai)
 
 ## Abstract
 
-This paper investigates whether distributional asymmetries in foreign-exchange signals are exploitable in EUR/JPY. The analysis-ready sample contains 504 Friday observations from January 2016 through August 2025. Coverage alpha is the only signal whose skewness interval excludes zero (1.75, 95% block-bootstrap CI [1.18, 2.16]). Under the corrected one-lag chronology, four-return-period holding rule, and equation-consistent asymmetry index, the headline strategy loses 7.57% gross (15 directional episodes; Sharpe -0.17). Its stationary-bootstrap return and Sharpe intervals include zero, and walk-forward selection produces only one OOS episode. White's Reality Check (p = 0.15) and Hansen's SPA (p = 0.26) find no statistically superior candidate against a zero-return benchmark. These are negative results; no parameter search was performed to make the strategy profitable.
+This paper investigates whether distributional asymmetries in foreign-exchange signals are exploitable in EUR/JPY. The analysis-ready sample contains 504 Friday observations from January 2016 through August 2025. Coverage alpha is the only signal whose skewness interval excludes zero (1.75, 95% block-bootstrap CI [1.18, 2.16]). Under the corrected one-lag chronology (execution at the first trading-session open after each Friday signal), four-return-period holding rule, and equation-consistent asymmetry index, the headline strategy returns -0.73% gross (15 directional episodes; Sharpe +0.005). Its stationary-bootstrap Sharpe interval includes zero, and walk-forward selection produces only one OOS episode. Four pre-specified readings of the entry rule span 9.04 percentage points and change sign. White's Reality Check (p = 0.30) and Hansen's SPA (p = 0.58) find no statistically superior candidate against a zero-return benchmark. These are negative results; no parameter search was performed to make the strategy profitable.
 
 ## Key Findings
 
@@ -19,10 +19,11 @@ This paper investigates whether distributional asymmetries in foreign-exchange s
 | Alpha signals deviate from normality? | Mostly -- 4 of 5 reject; fast alpha does not reject normality |
 | Skewness robust to serial dependence? | Only coverage alpha; the tail signal skews *negative* and fragilely |
 | Pareto-type heavy tails in weekly absolute returns established? | No -- GPD shape -0.25, wide CI [-1.49, 0.27] |
-| Corrected baseline | -7.57% gross; 15 episodes; Sharpe -0.17 |
-| Strategy returns distinguishable from zero? | No -- annualized-return CI [-3.57%, 1.48%] |
+| Corrected baseline | -0.73% gross; 15 episodes; Sharpe +0.005 |
+| Strategy returns distinguishable from zero? | No -- stationary-bootstrap Sharpe interval [-0.51, 0.49] |
+| Robust to the entry-rule specification? | No -- four pre-specified rules span 9.04 pp and change sign |
 | Do transaction costs rescue the result? | No -- they monotonically worsen an already negative gross return |
-| Survives data-snooping correction? | No -- RC p = 0.15, SPA p = 0.26 against zero return |
+| Survives data-snooping correction? | No -- RC p = 0.30, SPA p = 0.58 against zero return |
 | Cross-market generalization? | No -- the tail-skew signature reverses sign in GBP/USD, SPY, and GLD |
 
 ## Why This Matters
@@ -130,25 +131,30 @@ for those files and compare their hashes before making that claim.
 ## Versions
 
 - **Current correction branch:** fixes strategy state, execution timing, AI, trade accounting, regime attribution, output portability, and reproducibility; regenerates downstream results without optimizing for profitability.
-- **v2.0.x (Zenodo/SSRN):** pre-correction preprint reporting the unsigned-magnitude tail skew (5.05); superseded by this version. The Zenodo concept DOI resolves to the latest deposited version.
+- **v3.0.0 (Zenodo record 21315494, 11 Jul 2026):** corrected the unsigned-magnitude tail skew and replaced the walk-forward, but its strategy figures came from code whose exit rule did not match the specification; superseded by the current branch. The Zenodo concept DOI resolves to v3.0.0 until a new version is deposited.
+- **v2.0.x (Zenodo v2.0.1; SSRN 6147567):** pre-correction preprint reporting the unsigned-magnitude tail skew (5.05). SSRN may still serve this version.
 
 ## Citation
 
 ```bibtex
 @article{farzulla2026alpha,
-  author  = {Farzulla, Murad},
+  author  = {Farzulla, Murad and Israfilov, Tofik},
   title   = {Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability},
   year    = {2026},
-  journal = {Dissensus AI Working Paper DAI-2605},
+  journal = {Dissensus Working Paper DAI-2605},
   doi     = {10.5281/zenodo.18638784}
 }
 ```
 
+Co-authorship takes effect from the next deposit; the published deposits (Zenodo v2.0.1 and v3.0.0, SSRN 6147567) are sole-authored.
+
 ## Authors
 
-- **Murad Farzulla** -- [Dissensus AI](https://dissensus.ai) & King's College London
+- **Murad Farzulla** -- [Dissensus](https://dissensus.ai) & King's College London
   - ORCID: [0009-0002-7164-8704](https://orcid.org/0009-0002-7164-8704)
   - Email: murad@dissensus.ai
+- **Tofik Israfilov** -- [Dissensus](https://dissensus.ai)
+  - Email: tofik@dissensus.ai
 
 ## Links
 
@@ -156,7 +162,7 @@ for those files and compare their hashes before making that claim.
 - **Paper (SSRN):** [SSRN:6147567](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6147567)
 - **Code (GitHub):** [github.com/dissensus-ai/alpha-asymmetry](https://github.com/dissensus-ai/alpha-asymmetry)
 - **ASCRI Programme:** [systems.ac/2/DAI-2605](https://systems.ac/2/DAI-2605)
-- **Dissensus AI:** [dissensus.ai](https://dissensus.ai)
+- **Dissensus:** [dissensus.ai](https://dissensus.ai)
 
 ## License
 
