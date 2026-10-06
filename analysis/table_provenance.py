@@ -82,11 +82,17 @@ _ALPHA_ROWS = {"Tail": "tail_alpha", "Fast": "fast_alpha", "Pricing": "pricing_a
 
 
 def _tests_row(key: str) -> dict:
-    """gamma-hat, iid t, block CI (one cell, two values), SW, JB, K2, Ljung-Box Q(4)."""
+    """gamma-hat, iid t, block CI (one cell, two values), Ljung-Box Q(4)."""
     return {"label": [], "cells": [
         f"{_AS}.{key}.skew", f"{_AS}.{key}.skew_t_iid",
         [f"{_AS}.{key}.skew_ci[0]", f"{_AS}.{key}.skew_ci[1]"],
-        f"{_AS}.{key}.sw", f"{_AS}.{key}.jb", f"{_AS}.{key}.k2", f"{_AS}.{key}.lb_q4"]}
+        f"{_AS}.{key}.lb_q4"]}
+
+
+def _normality_row(key: str) -> dict:
+    """Shapiro-Wilk, Jarque-Bera, D'Agostino-Pearson K2 (moved from tab:tests, Oct 2026)."""
+    return {"label": [], "cells": [
+        f"{_AS}.{key}.sw", f"{_AS}.{key}.jb", f"{_AS}.{key}.k2"]}
 
 
 def _boot_row(key: str) -> dict:
@@ -201,6 +207,17 @@ PROVENANCE = {
         "Tight": _tcost_row(3), "Wide": _tcost_row(4),
     },
     "tab:tests": {name: _tests_row(key) for name, key in _ALPHA_ROWS.items()},
+    # The normality battery moved to Appendix B in October 2026 (lean-body rule);
+    # its cells are the same canonical fields the tab:tests columns named before.
+    "tab:normality": {name: _normality_row(key) for name, key in _ALPHA_ROWS.items()},
+    # Frozen-notional alternative, Appendix F. The body had pointed to a table
+    # that did not report it; the values come from sizing_variants.
+    "tab:sizing": {
+        "Weekly": {"label": [], "cells": [f"sizing_variants.weekly.{c}" for c in
+                   ("return", "sharpe", "mdd", "holding_episodes", "execution_legs", "resizes", "turnover")]},
+        "Frozen": {"label": [], "cells": [f"sizing_variants.entry.{c}" for c in
+                   ("return", "sharpe", "mdd", "holding_episodes", "execution_legs", "resizes", "turnover")]},
+    },
     "tab:bootcompare": {name: _boot_row(key) for name, key in _ALPHA_ROWS.items()},
     "tab:tailagg": {
         "Friday observation": _tailagg_row("friday_sampled"),

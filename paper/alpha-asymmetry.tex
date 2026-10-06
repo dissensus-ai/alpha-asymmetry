@@ -214,8 +214,6 @@ The pipeline computes five alpha signals, each capturing a distinct aspect of ma
     where $\rho$ is a 100-trading-day ($\approx$20-week) rolling correlation of daily EUR/JPY and DXY returns (US Dollar Index, DX-Y.NYB from Yahoo Finance). The code does not use a time-varying interest-rate series: it multiplies the correlation by a fixed $-2\%$ constant, so hedge alpha is a fixed-rate correlation proxy, not a measure of changing interest-rate regimes. Replacing the constant with a dated EUR--JPY rate differential or forward-implied measure is left for future work.
 \end{itemize}
 
-For cross-market validation, we apply the same transformations to GBP/USD, SPY (S\&P 500 ETF), and GLD (Gold ETF) daily closes from Yahoo Finance, constructing tail, fast, pricing, and coverage alphas identically to EUR/JPY. Hedge alpha is excluded from the cross-market set because the DXY-correlation proxy was specified for the EUR/JPY setting and is not a genuine transferable rate-differential signal.
-
 \subsection{Asymmetry Metrics}
 \label{sec:asymmetrymetrics}
 
@@ -240,7 +238,7 @@ Under normality with zero mean, $POR = 0.5$; deviations indicate location-scale 
 \subsection{Statistical Tests}
 \label{sec:stattests}
 
-\textbf{Normality Tests.} We assess departures from normality with three standard tests, each with distinct power properties against different alternatives. The Shapiro-Wilk test \citep{shapiro1965analysis} has high power against asymmetric and heavy-tailed alternatives for moderate sample sizes. The D'Agostino-Pearson omnibus $K^2$ test \citep{dagostino1990suggestion} combines normalizing transformations of sample skewness and kurtosis and is particularly powerful against asymmetric alternatives. As a robustness check, the Jarque-Bera test \citep{jarque1980efficient} is a Lagrange multiplier test based on the same two moments. Appendix~\ref{appendix:tests} gives the three statistics.
+\textbf{Normality Tests.} We also apply three standard normality tests: Shapiro-Wilk \citep{shapiro1965analysis}, the D'Agostino-Pearson omnibus $K^2$ \citep{dagostino1990suggestion} and Jarque-Bera \citep{jarque1980efficient}. Appendix~\ref{appendix:tests} describes them and reports the results (Table~\ref{tab:normality}).
 
 \textbf{Skewness Significance.} We test $H_0: \gamma_1 = 0$ using the $t$-ratio $t = \hat{\gamma}_1 / \text{SE}(\hat{\gamma}_1)$, with the normal-theory approximation $\text{SE}(\hat{\gamma}_1) = \sqrt{6/n} \approx 0.109$ for $n = 504$, which is the value used in Table~\ref{tab:tests}. The exact finite-sample formula under normality differs only in the third decimal.
 
@@ -273,7 +271,7 @@ We evaluate the asymmetry strategy against three benchmarks, with explicit signa
 \end{equation}
 where $AI_t$ is the contemporaneous asymmetry index, evaluated at each Friday close for as long as a direction is held. $AI_t$ is computed by Equation~\ref{eq:ai} on a trailing 20-week window of weekly fast-alpha observations, requiring a minimum of 10 observations; before that minimum is met it is undefined and the neutral one-unit size applies. The window is the same 20-week window used for the rolling skewness entry conditions. Because $AI_t \geq 0$, the formula spans 1--2 gross-notional units; the previously stated 0.5-unit lower bound was unreachable. A missing AI uses the neutral one-unit size. Resizing changes the notional only: it does not open or close a holding episode, reverse a direction, or reset the holding clock.
 
-We flag one specification choice explicitly, because it is a choice and not a correction. Repairing the exit rule (above) creates weeks in which a direction is held while no entry signal fires. The original implementation could not reach that state, because it closed any position as soon as its entry signal stopped firing, so the published specification never had to size it. Evaluating $AI_t$ weekly, as the equation and the rebalancing convention state, and freezing the notional at entry are both extensions of the published rule to that new state. We adopt weekly evaluation as the smaller extension, since it preserves both the contemporaneous subscript in Equation~\ref{eq:possize} and the stated rebalancing frequency. Section~\ref{sec:tcosts} reports the frozen-notional alternative; no conclusion in this paper depends on which is used.
+We flag one specification choice explicitly, because it is a choice and not a correction. Repairing the exit rule (above) creates weeks in which a direction is held while no entry signal fires. The original implementation could not reach that state, because it closed any position as soon as its entry signal stopped firing, so the published specification never had to size it. Evaluating $AI_t$ weekly, as the equation and the rebalancing convention state, and freezing the notional at entry are both extensions of the published rule to that new state. We adopt weekly evaluation as the smaller extension, since it preserves both the contemporaneous subscript in Equation~\ref{eq:possize} and the stated rebalancing frequency. Appendix~\ref{appendix:sizing} reports the frozen-notional alternative (Table~\ref{tab:sizing}); no conclusion in this paper depends on which is used.
 
 \textit{Execution:}
 \begin{itemize}
@@ -389,29 +387,29 @@ Hedge & 0.15 & $-$0.51 & 1.01 & 53.57\% \\
 \subsection{Statistical Significance}
 \label{sec:significance}
 
-Table \ref{tab:tests} presents hypothesis test results for each alpha type. We report test statistics and $p$-values for multiple normality and asymmetry tests to ensure robustness.
+Table \ref{tab:tests} reports the skewness tests for each alpha type.
 
 \begin{table}[H]
 \centering
-\caption{Statistical Test Results}
+\caption{Skewness Tests}
 \label{tab:tests}
 \small
-\begin{tabular}{@{}lccccccc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Alpha & $\hat{\gamma}_1$ & $t$-stat & Block CI & SW & JB & $K^2$ & LB $Q(4)$ \\
+Alpha & $\hat{\gamma}_1$ & $t$-stat & Block CI & LB $Q(4)$ \\
 \midrule
-Tail & $-$1.48 & $-$13.5*** & $[-3.10, 0.54]$ & 0.335*** & 7922*** & 244.4*** & 12.6* \\
-Fast & 0.01 & 0.1 & $[-0.21, 0.21]$ & 0.997 & 0.0 & 0.0 & 6.5 \\
-Pricing & $-$0.17 & $-$1.5 & $[-0.45, 0.09]$ & 0.984*** & 13.3** & 30.1*** & 679.1*** \\
-Coverage & 1.75 & 16.1*** & $[1.18, 2.16]$ & 0.865*** & 1489*** & 217.6*** & 72.6*** \\
-Hedge & 0.15 & 1.4 & $[-0.25, 0.54]$ & 0.990** & 7.4* & 11.7** & 1716.2*** \\
+Tail & $-$1.48 & $-$13.5*** & $[-3.10, 0.54]$ & 12.6* \\
+Fast & 0.01 & 0.1 & $[-0.21, 0.21]$ & 6.5 \\
+Pricing & $-$0.17 & $-$1.5 & $[-0.45, 0.09]$ & 679.1*** \\
+Coverage & 1.75 & 16.1*** & $[1.18, 2.16]$ & 72.6*** \\
+Hedge & 0.15 & 1.4 & $[-0.25, 0.54]$ & 1716.2*** \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: $t$-stat tests $H_0: \gamma_1 = 0$ with $\text{SE} = \sqrt{6/n} = 0.109$ ($n = 504$) and assumes i.i.d.\ observations; Block CI = 95\% circular block bootstrap confidence interval for $\hat{\gamma}_1$ (block length 13 weeks, $B = 2000$), which relaxes both the normality and the independence assumptions of the $t$-test; Table~\ref{tab:bootcompare} adds an i.i.d.\ bootstrap interval, which relaxes normality only, so that the two effects can be separated; SW = Shapiro-Wilk statistic; JB = Jarque-Bera statistic; $K^2$ = D'Agostino-Pearson omnibus; LB $Q(4)$ = Ljung-Box statistic at four lags, reported per series. * $p < 0.05$, ** $p < 0.01$, *** $p < 0.001$ (unadjusted); the qualitative conclusions below apply Bonferroni correction at family size $m = 5$. Because pricing, coverage, and hedge alphas are built from overlapping rolling windows, their Ljung-Box statistics are large by construction and the block-bootstrap intervals are the appropriate basis for skewness inference.}
+\parbox{\linewidth}{\footnotesize Note: $t$-stat tests $H_0: \gamma_1 = 0$ with $\text{SE} = \sqrt{6/n} = 0.109$ ($n = 504$) and assumes i.i.d.\ observations; Block CI = 95\% circular block bootstrap confidence interval for $\hat{\gamma}_1$ (block length 13 weeks, $B = 2000$), which relaxes both the normality and the independence assumptions of the $t$-test; Table~\ref{tab:bootcompare} adds an i.i.d.\ bootstrap interval, which relaxes normality only, so that the two effects can be separated; LB $Q(4)$ = Ljung-Box statistic at four lags, reported per series. * $p < 0.05$, ** $p < 0.01$, *** $p < 0.001$ (unadjusted); the qualitative conclusions below apply Bonferroni correction at family size $m = 5$. Because pricing, coverage, and hedge alphas are built from overlapping rolling windows, their Ljung-Box statistics are large by construction and the block-bootstrap intervals are the appropriate basis for skewness inference. The Shapiro-Wilk, Jarque-Bera and D'Agostino-Pearson statistics are in Table~\ref{tab:normality} (Appendix~\ref{appendix:tests}).}
 \end{table}
 
-\textbf{Normality.} Four of five alpha types reject normality. For fast alpha, none of the reported tests rejects the Gaussian null (SW $p = 0.55$, JB \emph{statistic} $\approx 0$, $K^2$ $p = 0.99$). This is compatibility with the null in this sample, not proof of exact Gaussianity. Tail and coverage depart severely; pricing and hedge reject more mildly. All three normality tests assume independent observations, which the overlapping rolling constructions violate, so these rejections are indicative; dependence-robust versions exist \citep{bai2005tests} but are not computed here.
+\textbf{Normality.} Four of five alpha types reject normality; for fast alpha the tests do not, which is compatibility with the null in this sample, not proof of exact Gaussianity (Table~\ref{tab:normality}, Appendix~\ref{appendix:tests}). All three normality tests assume independent observations, which the overlapping rolling constructions violate, so these rejections are indicative; dependence-robust versions exist \citep{bai2005tests} but are not computed here.
 
 \textbf{Skewness.} Under the i.i.d.\ $t$-test, tail and coverage alphas show large-magnitude skewness of opposite signs. That test is not merely dependence-blind. For the sparser signals it is invalid on its own terms, because the normal-theory standard error $\sqrt{6/n} = 0.109$ presumes a Gaussian null that tail alpha violates severely (excess kurtosis 19.20, and only 35 of 504 weekly observations are non-zero). Table~\ref{tab:bootcompare} separates the two failures by reporting an i.i.d.\ bootstrap, which relaxes normality alone, beside the block bootstrap, which relaxes normality and dependence together.
 
@@ -510,31 +508,10 @@ Figure~\ref{fig:backtest} shows the equity curves and drawdowns.
 \label{fig:backtest}
 \end{figure}
 
-\subsection{Cross-Market Validation}
+\subsection{Cross-Market Check}
 \label{sec:crossmarket}
 
-To test whether the EUR/JPY findings generalize, we apply the identical alpha construction and the identical trading strategy (unchanged code, unchanged parameters) to GBP/USD, SPY, and GLD (Section~\ref{sec:data}). Hedge alpha is excluded as EUR/JPY-specific; the four remaining signals and the two-sided asymmetry strategy (0.75 threshold) transfer directly. Table \ref{tab:crossmarket} reports the signed weekly skewness of each signal alongside the strategy's gross cumulative return and, for scale, each market's buy-and-hold return over the same 504-week window.
-
-\begin{table}[H]
-\centering
-\caption{Cross-Market Check}
-\label{tab:crossmarket}
-\small
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Market & Tail Skew & Fast Skew & Pricing Skew & Coverage Skew & Strat.\ Ret. & B\&H Ret. \\
-\midrule
-EUR/JPY & $-$1.48 & 0.01 & $-$0.17 & 1.75 & $-$0.73\% & 33.53\% \\
-GBP/USD & 0.82 & 0.01 & $-$0.14 & 1.58 & $-$14.45\% & $-$7.63\% \\
-SPY & 0.94 & $-$0.21 & $-$1.09 & 1.85 & 14.71\% & 294.30\% \\
-GLD & 0.69 & $-$0.00 & $-$0.19 & 1.32 & $-$13.03\% & 200.97\% \\
-\bottomrule
-\end{tabular}
-\par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Bias-corrected skewness of signed weekly signals ($n = 504$ per market). Strategy returns use the corrected one-lag strategy with 15, 19, 4, and 17 directional holding episodes respectively. SPY uses adjusted prices, explicitly requested from the data provider. Point estimates do not include market-specific block-bootstrap inference or costs; this remains exploratory. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported aggregated ``MR/TF/HAT'' skewness categories and returns that traced to no committed code, and has been replaced.}
-\end{table}
-
-The distributional signature does not travel: EUR/JPY's negative tail-skew point estimate is positive in all three other markets, while coverage alpha's right skew recurs. Strategy outcomes are likewise unstable: the unchanged rules lose 14.45\% on GBP/USD, gain 14.71\% on SPY while trailing buy-and-hold by roughly 280 percentage points, and lose 13.03\% on GLD. These exploratory transfers lack pair-specific costs and dependence-aware inference, so they do not establish effects in any market. They are an illustrative transfer check, not a multi-asset analysis, which would need asset-specific signal calibration, market-specific cost models and asset-by-asset inference with multiple-testing correction (Section~\ref{sec:limitations}).
+Applied unchanged to GBP/USD, SPY and GLD, the construction and the rule do not transfer cleanly: EUR/JPY's negative tail-skew point estimate is positive in all three other markets while coverage alpha's right skew recurs, and the strategy loses 14.45\% on GBP/USD, gains 14.71\% on SPY while trailing buy-and-hold by roughly 280 percentage points, and loses 13.03\% on GLD (Appendix~\ref{appendix:crossmarket}, Table~\ref{tab:crossmarket}). These exploratory transfers lack pair-specific costs and dependence-aware inference, so they do not establish effects in any market. An earlier version of this check reported aggregated ``MR/TF/HAT'' skewness categories and returns that traced to no committed code; they have been replaced.
 
 \section{Robustness Analysis}
 \label{sec:robustness}
@@ -813,72 +790,17 @@ The selection problem described above is a different kind of objection. Improved
 
 Two further qualifications bound whatever descriptive content remains. Mom is a twelve-week time-series momentum rule on EUR/JPY itself, not the published cross-sectional currency momentum factor of \citet{menkhoff2012currency}, so a strong loading of a single-pair strategy on a single-pair momentum rule is neither surprising nor transferable. And the three proxies together leave most of the variation in in-position returns unexplained ($R^2 = 0.170$, Table~\ref{tab:factors}).
 
-\subsection{Weekly-Return Tail Distribution Analysis}
+\subsection{Weekly-Return Tail Distribution}
 \label{sec:evt}
 
-A concern with any exceedance-based signal is whether extreme observations reflect a stable tail distribution or sparse outliers that may not recur out-of-sample. As a separate diagnostic, we characterize absolute Friday-close-to-Friday-close EUR/JPY returns using Extreme Value Theory \citep{mcneil2000estimation, coles2001introduction}. This is not the same sample as tail alpha, which flags daily exceedances before Friday sampling. The exercise therefore describes weekly return magnitudes and does not establish an upside-asymmetry story.
-
-\textbf{Methodology.} We fit a Generalized Pareto Distribution (GPD) to cluster maxima above the 95th percentile threshold. The GPD is characterized by shape parameter $\xi$ (determining tail heaviness) and scale parameter $\sigma$. Positive $\xi$ indicates Pareto-type heavy tails; $\xi = 0$ corresponds to exponential decay; negative $\xi$ implies bounded tails.
-
-\textbf{Exceedance Preprocessing.} Financial tail events exhibit temporal clustering (volatility clustering), violating the GPD independence assumption. We apply runs declustering with minimum inter-exceedance separation of 5 weeks, following \citet{coles2001introduction}. Of the 26 raw exceedances above the 95th percentile threshold, declustering yields 20 cluster maxima used for GPD estimation.
-
-A five-week separation is aggressive for weekly data, where persistence is far shorter than in the daily series runs declustering was developed for. We therefore report what a shorter window does. At a one-week separation, the shortest declustering that does anything at all, the fit uses 22 cluster maxima instead of 20 and gives $\hat{\xi} = -0.209$ against $-0.248$, with a confidence interval of $[-1.53, 0.22]$ against $[-1.51, 0.25]$. Two weeks gives 21 maxima and $-0.241$. The full grid is in Table~\ref{tab:decluster}.
-
-\begin{table}[H]
-\centering
-\caption{Sensitivity of the GPD Fit to the Declustering Separation}
-\label{tab:decluster}
-\small
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Separation & Cluster maxima & $\hat{\xi}$ & 95\% CI & KS $p$ \\
-\midrule
-1 week & 22 & $-$0.209 & $[-1.53, 0.22]$ & 0.997 \\
-2 weeks & 21 & $-$0.241 & $[-1.51, 0.22]$ & 0.981 \\
-3 weeks & 20 & $-$0.248 & $[-1.51, 0.25]$ & 0.971 \\
-5 weeks (reported) & 20 & $-$0.248 & $[-1.51, 0.25]$ & 0.971 \\
-\bottomrule
-\end{tabular}
-\par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: GPD fitted by maximum likelihood to cluster maxima above the 95th percentile of weekly absolute returns. $\hat{\xi}$ CI from a nonparametric bootstrap of cluster maxima, $B = 1000$. The 5-week row therefore differs slightly from Table~\ref{tab:gpd}, which uses $B = 2000$.}
-\end{table}
-
-The shortest separation therefore recovers 2 additional cluster maxima and moves the shape estimate by 0.04, inside intervals roughly 1.75 wide. The imprecision of the tail estimate is a consequence of having 26 exceedances in ten years, not of how they are declustered, and no conclusion in this section changes at any separation we tried. We estimate the extremal index $\theta = 0.83$ via the Ferro--Segers intervals estimator \citep{ferro2003inference}, with a 95\% confidence interval of $[0.60, 1.00]$ obtained by bootstrap resampling of the inter-exceedance times themselves ($B = 2000$). That scheme preserves the gap distribution the estimator is built on and, unlike a naive index bootstrap, produces an interval containing its own point estimate.
-
-\begin{table}[H]
-\centering
-\caption{GPD Parameter Estimates: Weekly Absolute Returns (Declustered)}
-\label{tab:gpd}
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Parameter & Estimate & 95\% CI \\
-\midrule
-Shape ($\xi$) & $-0.25$ & $[-1.49, 0.27]$ \\
-Scale ($\sigma$) & 0.0089 & --- \\
-Threshold (95th pctl) & 0.0244 & --- \\
-Extremal index ($\theta$) & 0.83 & $[0.60, 1.00]$ \\
-Raw exceedances & 26 & --- \\
-Cluster maxima & 20 & --- \\
-KS test $p$-value & 0.971 & Fail to reject \\
-\bottomrule
-\end{tabular}
-\par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: GPD fitted via maximum likelihood to cluster maxima of weekly absolute returns above the 95th percentile after runs declustering (5-week separation). $\xi$ CI from a nonparametric bootstrap of cluster maxima ($B = 2000$); $\theta$ CI from bootstrap resampling of inter-exceedance times ($B = 2000$). KS = Kolmogorov-Smirnov goodness-of-fit test. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported a $\theta$ confidence interval of $[0.42, 0.63]$ that excluded its own point estimate---an invalid interval produced by a biased index-resampling scheme, replaced here.}
-\end{table}
-
-\textbf{Tail Characterization.} Table~\ref{tab:gpd} reports the fit. The estimated shape parameter $\hat{\xi} = -0.25$ (95\% CI: $[-1.49, 0.27]$) is imprecise. The interval admits bounded, exponential-type, and moderately Pareto-type behavior; the data therefore do not support a strong tail-classification claim. The Kolmogorov-Smirnov test does not reject the fitted GPD ($p = 0.97$), but with only 20 cluster maxima it has limited diagnostic power.
-
-\textbf{Clustering Dynamics.} The extremal index $\theta = 0.83$ indicates weak temporal clustering in tail events: the mean cluster size is $1/\theta \approx 1.2$, and the confidence interval reaches 1.0 (no clustering). Exceedances arrive close to independently, with mild GARCH-type persistence \citep{bollerslev1986generalized} at most. Clustering therefore does little to reduce the effective sample size for tail inference; the binding constraint is simply the small number of exceedances.
-
-\textbf{Implications.} EVT provides no affirmative evidence for the lottery-like right-tail mechanism required by the trading story. It does not justify assuming a particular tail class or finite variance outside this sample.
+As a separate diagnostic, Appendix~\ref{appendix:evt} fits a generalized Pareto distribution to the cluster maxima of absolute Friday-close-to-Friday-close EUR/JPY returns above their 95th percentile, a different sample from tail alpha. The shape estimate, $\hat{\xi} = -0.25$ with 95\% CI $[-1.49, 0.27]$ from 20 cluster maxima, is too imprecise to establish either heavy tails or exponential decay, at every declustering separation tried; clustering is weak (extremal index $\theta = 0.83$, CI $[0.60, 1.00]$), and the fit provides no affirmative evidence for the lottery-like right tail the trading story needs (Tables~\ref{tab:decluster} and~\ref{tab:gpd}). An earlier version reported an extremal-index interval of $[0.42, 0.63]$ that excluded its own point estimate; it came from a biased index-resampling scheme and has been replaced.
 
 \subsection{Multiple Testing Corrections}
 \label{sec:snooping}
 
 With five alpha types examined across multiple statistical tests, data-snooping concerns arise: apparent significance may reflect chance discoveries from multiple hypothesis testing. We address this through both formal corrections and bootstrap-based reality checks.
 
-\textbf{Bonferroni Corrections.} Table \ref{tab:tests} applies plain Bonferroni correction at family size $m = 5$ (one skewness test per alpha type; a per-signal threshold of 0.01 for a 5\% family-wise level). At the corrected threshold, four of five alpha types reject \emph{normality}, but the asymmetry inventory is far thinner: under the primary construction only coverage alpha's skewness survives both the correction and, more demandingly, the block-bootstrap dependence adjustment. Coverage is the only signal for which that statement does not depend on a sampling choice. Fast alpha, for which the tests do not reject normality (Section~\ref{sec:significance}), serves as a control.
+\textbf{Bonferroni Corrections.} Table \ref{tab:tests} applies plain Bonferroni correction at family size $m = 5$ (one skewness test per alpha type; a per-signal threshold of 0.01 for a 5\% family-wise level). At the corrected threshold, four of five alpha types reject \emph{normality} (Table~\ref{tab:normality}), but the asymmetry inventory is far thinner: under the primary construction only coverage alpha's skewness survives both the correction and, more demandingly, the block-bootstrap dependence adjustment. Coverage is the only signal for which that statement does not depend on a sampling choice. Fast alpha, for which the tests do not reject normality (Section~\ref{sec:significance}), serves as a control.
 
 \textbf{Return Bootstrap Block Length.} The resampling schemes are described in Section~\ref{sec:inference}. Table~\ref{tab:blocklen} reports the Sharpe interval of Section~\ref{sec:backtest} across expected block lengths from 2 to 13 weeks; every interval contains zero, so no conclusion rests on the choice.
 
@@ -909,7 +831,7 @@ Expected block length & 95\% Sharpe interval \\
 
 \textbf{Hansen's SPA Test.} The Superior Predictive Ability test \citep{hansen2005test} agrees ($SPA = 1.43$, $p = 0.55$ on the twelve-strategy universe; $p = 0.22$ including the random sequence): no candidate demonstrates superior predictive ability over the zero-return benchmark at conventional levels.
 
-\textbf{Why These Statistics Are Insensitive to the Sizing Specification.} Both test statistics are numerically identical under the weekly and frozen-notional sizing specifications, and the $p$-values differ by 0.003 and 0.001 respectively. This is not a transcription error, and the reason is a property of the formal universe that we verify in the replication output. Of the twelve formal candidates, only the full asymmetry strategy depends on the sizing convention at all; the other eleven are built with fixed unit sizing or are buy-and-hold. Both tests take a maximum across that universe, and the maximum is attained by the always-long candidate, whose returns do not depend on the asymmetry rule in any respect. The observed statistic therefore cannot move when the sizing changes. The $p$-value can, because the bootstrap distribution is computed across the whole universe and does include the one candidate that changed, which is why the shift is small but not zero. A reader should expect these two rows to be stable across any change confined to the asymmetry rule, and should not read that stability as evidence about the rule. The argmax, the identity of the two statistics and the two $p$-value differences are all recorded in \texttt{data\_snooping.sizing\_invariance} in the replication output.
+\textbf{Sizing.} Both test statistics are identical under the frozen-notional sizing alternative, and the $p$-values move by 0.003 and 0.001, because the universe maximum is attained by the always-long candidate, which does not depend on the asymmetry rule; Appendix~\ref{appendix:sizing} explains why that stability says nothing about the rule.
 
 \begin{table}[H]
 \centering
@@ -968,7 +890,7 @@ The corrected statistics still reveal genuine features of the signals' distribut
 
 Several limitations warrant acknowledgment. First, 504 weekly observations and only 15 holding episodes provide limited power, especially for tail and trade-level inference. Second, the alpha definitions are fully disclosed here but are ad hoc and may not generalize. The tail signal in particular is aliased by its sampling rule: it is constructed from daily exceedances but read only on Fridays, so 70 of the 105 weeks containing an exceedance enter the panel as zeros and only 35 of 504 weekly observations are non-zero. Every tail-alpha statistic in this paper is computed on that sparse series, which is the proximate reason its skewness interval is so wide. Table~\ref{tab:tailagg} reports what two all-trading-days aggregations do to the tail statistics; they agree neither with each other nor with the published rule, and for the reasons given in Section~\ref{sec:significance} we adopt neither. The sensitivity is the reportable finding. Third, the factor exercise uses single-pair spot proxies in place of published cross-sectional FX factors; even with 55 in-position weeks, the effective sample is small, and the negative momentum loading is descriptive, not a stable structural estimate. Fourth, costs use stylized spreads and indicative mid-prices, omit financing, charge no fixed or minimum per-order component, and assume fills at the indicative first-session open; no executable bid or ask quotes are used. Fifth, cross-market transfer omits pair-specific financing and costs, asset-specific calibration of the signals, and dependence-aware inference with multiple-testing correction. Finally, Yahoo history can be revised. The original raw snapshots were not committed, so exact reproduction of the archived figures is impossible without the original raw files; the revised pipeline caches local inputs and records hashes and software versions.
 
-\textbf{The Limits of the Verification Used Here.} This revision leans on machine checking: every free parameter is declared in one module from which the specification table is generated, restored historical footnotes are verified verbatim, two arithmetic identities are confirmed after every rerun, and the tables carrying the headline performance, factor and data-snooping results are tied cell by cell to named fields of the replication output. That last mechanism is recent and its coverage is partial: it reaches twelve of the twenty-one tables (thirteen counting the specification table, which is generated from and checked against the specification module) and, among prose figures, the regression $t$-statistics only. Figures outside it are checked less formally, and we do not claim otherwise. Three of the errors corrected here were found by computing a quantity twice by different routes and requiring agreement; none was found by re-reading the code that contained it.
+\textbf{The Limits of the Verification Used Here.} This revision leans on machine checking: every free parameter is declared in one module from which the specification table is generated, restored historical footnotes are verified verbatim, two arithmetic identities are confirmed after every rerun, and the tables carrying the headline performance, factor and data-snooping results are tied cell by cell to named fields of the replication output. That last mechanism is recent and its coverage is partial: it reaches fourteen of the twenty-three tables (fifteen counting the specification table, which is generated from and checked against the specification module) and, among prose figures, the regression $t$-statistics only. Figures outside it are checked less formally, and we do not claim otherwise. Three of the errors corrected here were found by computing a quantity twice by different routes and requiring agreement; none was found by re-reading the code that contained it.
 
 That apparatus has a further limitation. A test that cannot fail is indistinguishable, in its output, from a test that passes. Nine checks written during this revision passed while being structurally incapable of detecting the defect they were written for, most because they ran on data where the quantity they examined could not move. Of these, two arose while we were deliberately testing whether the existing checks could fail, which is to say while we were actively looking for that flaw. One was subtler and is the reason this paragraph exists: it was exercised on a deliberately defective input, it failed as required, and it failed for a reason incidental to the defect class it was written to detect, so that the successful detection was itself misleading evidence. And one was a guard written to prevent incorrect status figures, which produced one: it counted the test suite through a subprocess that silently resolved to an interpreter lacking the project's dependencies, collected less than half the suite, and reported the reduced figure as a success. A check may therefore appear to succeed for a reason unrelated to the failure mode it claims to test. The remedy adopted is to require a check to fail on a deliberately defective input, and to establish that it fails for the stated reason, before its passes are credited. Several of the principal checks have been exercised this way; this is not a property we claim for every check in the repository.
 
@@ -1075,7 +997,31 @@ For improved readability, this appendix reproduces all figures at enlarged scale
 \setcounter{equation}{0}
 \renewcommand{\theequation}{\thesection.\arabic{equation}}
 
-This appendix gives the standard estimators and normality tests described in Sections~\ref{sec:asymmetrymetrics} and~\ref{sec:stattests} and reported in Tables~\ref{tab:asymmetry} and~\ref{tab:tests}.
+This appendix gives the standard estimators and normality tests described in Sections~\ref{sec:asymmetrymetrics} and~\ref{sec:stattests} and reported in Tables~\ref{tab:asymmetry}, \ref{tab:tests} and~\ref{tab:normality}.
+
+\textbf{Normality Tests.} We assess departures from normality with three standard tests, each with distinct power properties against different alternatives. The Shapiro-Wilk test \citep{shapiro1965analysis} has high power against asymmetric and heavy-tailed alternatives for moderate sample sizes. The D'Agostino-Pearson omnibus $K^2$ test \citep{dagostino1990suggestion} combines normalizing transformations of sample skewness and kurtosis and is particularly powerful against asymmetric alternatives. As a robustness check, the Jarque-Bera test \citep{jarque1980efficient} is a Lagrange multiplier test based on the same two moments.
+
+\textbf{Normality Test Results.} Four of five alpha types reject normality. For fast alpha, none of the reported tests rejects the Gaussian null (SW $p = 0.55$, JB \emph{statistic} $\approx 0$, $K^2$ $p = 0.99$). This is compatibility with the null in this sample, not proof of exact Gaussianity. Tail and coverage depart severely; pricing and hedge reject more mildly. All three normality tests assume independent observations, which the overlapping rolling constructions violate, so these rejections are indicative; dependence-robust versions exist \citep{bai2005tests} but are not computed here.
+
+\begin{table}[H]
+\centering
+\caption{Normality Tests}
+\label{tab:normality}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Alpha & SW & JB & $K^2$ \\
+\midrule
+Tail & 0.335*** & 7922*** & 244.4*** \\
+Fast & 0.997 & 0.0 & 0.0 \\
+Pricing & 0.984*** & 13.3** & 30.1*** \\
+Coverage & 0.865*** & 1489*** & 217.6*** \\
+Hedge & 0.990** & 7.4* & 11.7** \\
+\bottomrule
+\end{tabular}
+\par\vspace{0.3em}
+\parbox{\linewidth}{\footnotesize Note: SW = Shapiro-Wilk statistic; JB = Jarque-Bera statistic; $K^2$ = D'Agostino-Pearson omnibus statistic; signed weekly series, $n = 504$. * $p < 0.05$, ** $p < 0.01$, *** $p < 0.001$ (unadjusted). All three tests assume independent observations. Generated by \texttt{analysis/full\_pipeline.py}.}
+\end{table}
 
 \textbf{Sample Skewness.} For a sample $\{x_1, \ldots, x_n\}$ with sample mean $\bar{x}$ and standard deviation $s$, we compute the adjusted Fisher-Pearson coefficient:
 \begin{equation}
@@ -1107,7 +1053,34 @@ where $Z_1$ and $Z_2$ are normalizing transformations of sample skewness and kur
 \end{equation}
 This Lagrange multiplier test is asymptotically equivalent to the likelihood ratio test for normality.
 
-\clearpage
+\section{Cross-Market Check}
+\label{appendix:crossmarket}
+
+For cross-market validation, we apply the same transformations to GBP/USD, SPY (S\&P 500 ETF), and GLD (Gold ETF) daily closes from Yahoo Finance, constructing tail, fast, pricing, and coverage alphas identically to EUR/JPY. Hedge alpha is excluded from the cross-market set because the DXY-correlation proxy was specified for the EUR/JPY setting and is not a genuine transferable rate-differential signal.
+
+To test whether the EUR/JPY findings generalize, we apply the identical alpha construction and the identical trading strategy (unchanged code, unchanged parameters) to GBP/USD, SPY, and GLD (Section~\ref{sec:data}). Hedge alpha is excluded as EUR/JPY-specific; the four remaining signals and the two-sided asymmetry strategy (0.75 threshold) transfer directly. Table \ref{tab:crossmarket} reports the signed weekly skewness of each signal alongside the strategy's gross cumulative return and, for scale, each market's buy-and-hold return over the same 504-week window.
+
+\begin{table}[H]
+\centering
+\caption{Cross-Market Check}
+\label{tab:crossmarket}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Market & Tail Skew & Fast Skew & Pricing Skew & Coverage Skew & Strat.\ Ret. & B\&H Ret. \\
+\midrule
+EUR/JPY & $-$1.48 & 0.01 & $-$0.17 & 1.75 & $-$0.73\% & 33.53\% \\
+GBP/USD & 0.82 & 0.01 & $-$0.14 & 1.58 & $-$14.45\% & $-$7.63\% \\
+SPY & 0.94 & $-$0.21 & $-$1.09 & 1.85 & 14.71\% & 294.30\% \\
+GLD & 0.69 & $-$0.00 & $-$0.19 & 1.32 & $-$13.03\% & 200.97\% \\
+\bottomrule
+\end{tabular}
+\par\vspace{0.3em}
+\parbox{\linewidth}{\footnotesize Note: Bias-corrected skewness of signed weekly signals ($n = 504$ per market). Strategy returns use the corrected one-lag strategy with 15, 19, 4, and 17 directional holding episodes respectively. SPY uses adjusted prices, explicitly requested from the data provider. Point estimates do not include market-specific block-bootstrap inference or costs; this remains exploratory. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported aggregated ``MR/TF/HAT'' skewness categories and returns that traced to no committed code, and has been replaced.}
+\end{table}
+
+The distributional signature does not travel: EUR/JPY's negative tail-skew point estimate is positive in all three other markets, while coverage alpha's right skew recurs. Strategy outcomes are likewise unstable: the unchanged rules lose 14.45\% on GBP/USD, gain 14.71\% on SPY while trailing buy-and-hold by roughly 280 percentage points, and lose 13.03\% on GLD. These exploratory transfers lack pair-specific costs and dependence-aware inference, so they do not establish effects in any market. They are an illustrative transfer check, not a multi-asset analysis, which would need asset-specific signal calibration, market-specific cost models and asset-by-asset inference with multiple-testing correction (Section~\ref{sec:limitations}).
+
 \section{Paired Execution-Timing Contrasts}
 \label{appendix:contrasts}
 
@@ -1134,5 +1107,89 @@ Tuesday open $-$ Monday open & Secondary & $-$0.79 & $[-2.47, 0.90]$ & $[-2.27, 
 \par\vspace{0.3em}
 \parbox{\linewidth}{\footnotesize Note: Difference in geometric annualized gross return, in percentage points, on the common sample of 502 weeks (Table~\ref{tab:exectiming}). Each replicate resamples one set of weeks and applies it to all four timings; the position path is held fixed. Moving-block schemes draw overlapping blocks of fixed length; the stationary bootstrap uses an expected block of four weeks; $B = 2000$ throughout. Primary rows: 95\% percentile intervals. Secondary rows: 95\% simultaneous intervals for the three secondary contrasts, from the maximum standardized deviation across them. Generated by \texttt{analysis/full\_pipeline.py} (\texttt{execution\_timing.paired\_contrasts}).}
 \end{table}
+
+\section{Tail Distribution of Weekly Returns}
+\label{appendix:evt}
+
+A concern with any exceedance-based signal is whether extreme observations reflect a stable tail distribution or sparse outliers that may not recur out-of-sample. As a separate diagnostic, we characterize absolute Friday-close-to-Friday-close EUR/JPY returns using Extreme Value Theory \citep{mcneil2000estimation, coles2001introduction}. This is not the same sample as tail alpha, which flags daily exceedances before Friday sampling. The exercise therefore describes weekly return magnitudes and does not establish an upside-asymmetry story.
+
+\textbf{Methodology.} We fit a Generalized Pareto Distribution (GPD) to cluster maxima above the 95th percentile threshold. The GPD is characterized by shape parameter $\xi$ (determining tail heaviness) and scale parameter $\sigma$. Positive $\xi$ indicates Pareto-type heavy tails; $\xi = 0$ corresponds to exponential decay; negative $\xi$ implies bounded tails.
+
+\textbf{Exceedance Preprocessing.} Financial tail events exhibit temporal clustering (volatility clustering), violating the GPD independence assumption. We apply runs declustering with minimum inter-exceedance separation of 5 weeks, following \citet{coles2001introduction}. Of the 26 raw exceedances above the 95th percentile threshold, declustering yields 20 cluster maxima used for GPD estimation.
+
+A five-week separation is aggressive for weekly data, where persistence is far shorter than in the daily series runs declustering was developed for. We therefore report what a shorter window does. At a one-week separation, the shortest declustering that does anything at all, the fit uses 22 cluster maxima instead of 20 and gives $\hat{\xi} = -0.209$ against $-0.248$, with a confidence interval of $[-1.53, 0.22]$ against $[-1.51, 0.25]$. Two weeks gives 21 maxima and $-0.241$. The full grid is in Table~\ref{tab:decluster}.
+
+\begin{table}[H]
+\centering
+\caption{Sensitivity of the GPD Fit to the Declustering Separation}
+\label{tab:decluster}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Separation & Cluster maxima & $\hat{\xi}$ & 95\% CI & KS $p$ \\
+\midrule
+1 week & 22 & $-$0.209 & $[-1.53, 0.22]$ & 0.997 \\
+2 weeks & 21 & $-$0.241 & $[-1.51, 0.22]$ & 0.981 \\
+3 weeks & 20 & $-$0.248 & $[-1.51, 0.25]$ & 0.971 \\
+5 weeks (reported) & 20 & $-$0.248 & $[-1.51, 0.25]$ & 0.971 \\
+\bottomrule
+\end{tabular}
+\par\vspace{0.3em}
+\parbox{\linewidth}{\footnotesize Note: GPD fitted by maximum likelihood to cluster maxima above the 95th percentile of weekly absolute returns. $\hat{\xi}$ CI from a nonparametric bootstrap of cluster maxima, $B = 1000$. The 5-week row therefore differs slightly from Table~\ref{tab:gpd}, which uses $B = 2000$.}
+\end{table}
+
+The shortest separation therefore recovers 2 additional cluster maxima and moves the shape estimate by 0.04, inside intervals roughly 1.75 wide. The imprecision of the tail estimate is a consequence of having 26 exceedances in ten years, not of how they are declustered, and no conclusion in this section changes at any separation we tried. We estimate the extremal index $\theta = 0.83$ via the Ferro--Segers intervals estimator \citep{ferro2003inference}, with a 95\% confidence interval of $[0.60, 1.00]$ obtained by bootstrap resampling of the inter-exceedance times themselves ($B = 2000$). That scheme preserves the gap distribution the estimator is built on and, unlike a naive index bootstrap, produces an interval containing its own point estimate.
+
+\begin{table}[H]
+\centering
+\caption{GPD Parameter Estimates: Weekly Absolute Returns (Declustered)}
+\label{tab:gpd}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Parameter & Estimate & 95\% CI \\
+\midrule
+Shape ($\xi$) & $-0.25$ & $[-1.49, 0.27]$ \\
+Scale ($\sigma$) & 0.0089 & --- \\
+Threshold (95th pctl) & 0.0244 & --- \\
+Extremal index ($\theta$) & 0.83 & $[0.60, 1.00]$ \\
+Raw exceedances & 26 & --- \\
+Cluster maxima & 20 & --- \\
+KS test $p$-value & 0.971 & Fail to reject \\
+\bottomrule
+\end{tabular}
+\par\vspace{0.3em}
+\parbox{\linewidth}{\footnotesize Note: GPD fitted via maximum likelihood to cluster maxima of weekly absolute returns above the 95th percentile after runs declustering (5-week separation). $\xi$ CI from a nonparametric bootstrap of cluster maxima ($B = 2000$); $\theta$ CI from bootstrap resampling of inter-exceedance times ($B = 2000$). KS = Kolmogorov-Smirnov goodness-of-fit test. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported a $\theta$ confidence interval of $[0.42, 0.63]$ that excluded its own point estimate---an invalid interval produced by a biased index-resampling scheme, replaced here.}
+\end{table}
+
+\textbf{Tail Characterization.} Table~\ref{tab:gpd} reports the fit. The estimated shape parameter $\hat{\xi} = -0.25$ (95\% CI: $[-1.49, 0.27]$) is imprecise. The interval admits bounded, exponential-type, and moderately Pareto-type behavior; the data therefore do not support a strong tail-classification claim. The Kolmogorov-Smirnov test does not reject the fitted GPD ($p = 0.97$), but with only 20 cluster maxima it has limited diagnostic power.
+
+\textbf{Clustering Dynamics.} The extremal index $\theta = 0.83$ indicates weak temporal clustering in tail events: the mean cluster size is $1/\theta \approx 1.2$, and the confidence interval reaches 1.0 (no clustering). Exceedances arrive close to independently, with mild GARCH-type persistence \citep{bollerslev1986generalized} at most. Clustering therefore does little to reduce the effective sample size for tail inference; the binding constraint is simply the small number of exceedances.
+
+\textbf{Implications.} EVT provides no affirmative evidence for the lottery-like right-tail mechanism required by the trading story. It does not justify assuming a particular tail class or finite variance outside this sample.
+
+\section{Position-Sizing Alternative}
+\label{appendix:sizing}
+
+Section~\ref{sec:backtestmethod} adopts weekly re-evaluation of the asymmetry index while a direction is held. Table~\ref{tab:sizing} compares it with freezing the notional at entry, the other extension of the published rule to held-but-unsignalled weeks.
+
+\begin{table}[H]
+\centering
+\caption{Position Sizing: Weekly Re-evaluation and Notional Frozen at Entry}
+\label{tab:sizing}
+\small
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Sizing & Return & Sharpe & MDD & Episodes & Legs & Resizes & Turnover \\
+\midrule
+Weekly re-evaluation (reported) & $-$0.73\% & 0.005 & $-$10.64\% & 15 & 61 & 31 & 52.00 \\
+Frozen at entry & $-$2.01\% & $-$0.023 & $-$12.17\% & 15 & 30 & 0 & 49.15 \\
+\bottomrule
+\end{tabular}
+\par\vspace{0.3em}
+\parbox{\linewidth}{\footnotesize Note: Cumulative gross return over the 503 weeks with a realizable return; both rules hold the same 55 weeks in the same 15 episodes and differ only in whether the notional follows the weekly asymmetry index. Turnover in gross-notional units. Generated by \texttt{analysis/full\_pipeline.py} (\texttt{sizing\_variants}).}
+\end{table}
+
+\textbf{Why These Statistics Are Insensitive to the Sizing Specification.} Both test statistics are numerically identical under the weekly and frozen-notional sizing specifications, and the $p$-values differ by 0.003 and 0.001 respectively. This is not a transcription error, and the reason is a property of the formal universe that we verify in the replication output. Of the twelve formal candidates, only the full asymmetry strategy depends on the sizing convention at all; the other eleven are built with fixed unit sizing or are buy-and-hold. Both tests take a maximum across that universe, and the maximum is attained by the always-long candidate, whose returns do not depend on the asymmetry rule in any respect. The observed statistic therefore cannot move when the sizing changes. The $p$-value can, because the bootstrap distribution is computed across the whole universe and does include the one candidate that changed, which is why the shift is small but not zero. A reader should expect these two rows to be stable across any change confined to the asymmetry rule, and should not read that stability as evidence about the rule. The argmax, the identity of the two statistics and the two $p$-value differences are all recorded in \texttt{data\_snooping.sizing\_invariance} in the replication output.
 
 \end{document}
