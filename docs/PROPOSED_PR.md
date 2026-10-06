@@ -512,8 +512,10 @@ statistics are unchanged in all four markets.
   tables (`tab:asymmetry`, `tab:blocklen`, `tab:claims`, `tab:crossmarket`,
   `tab:decluster`, `tab:gpd`, `tab:sensitivity`, `tab:subsample`) are checked
   less formally and we do not claim otherwise. (6 Oct: 12 of 19 on 14 Sep.)
-- The nine original provenance sentences are machine-checked for verbatim
-  presence.
+- The nine original provenance sentences were checked for verbatim presence
+  by a substring check when they were restored (`docs/REVIEW_NOTES.md`; the
+  check caught two inserted words). No test in the current suite repeats it.
+  (6 Oct: corrected from "are machine-checked", which no test or code does.)
 - After every rerun (checked by `tests/test_identities.py` since 6 Oct): n = 504 spanning 2016-01-08 to 2025-08-29; the factor
   intercept reconciles to the strategy's own mean weekly return through the factor decomposition (intercept +0.00000351, mean +0.00000409, the gap being the sum of beta times factor mean); the low- and high-VIX returns compound to the full-sample return (-0.730055% against -0.730055%).
 
