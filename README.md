@@ -167,3 +167,6 @@ Co-authorship takes effect from the next deposit; the published deposits (Zenodo
 ## License
 
 Paper content: [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)
+
+The repository's only licence file, `LICENSE`, grants CC BY 4.0. No separate
+software licence (such as MIT) is granted for the code.
