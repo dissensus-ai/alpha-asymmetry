@@ -364,6 +364,66 @@ rather than eyeballed.
 
 ---
 
+## Post-merge correction (6 Oct 2026): the non-executable week in the bootstrap and two summaries
+
+Branch `polish-oct2026`: `c809c55` (code and tests), `2280d5d` (rerun),
+`6960906` (paper). This defect is not measured against `4d21c69`: it entered
+during this revision, when first-post-signal-open execution left the final week
+with no realizable return (NaN).
+
+**Defect.** The paper's Executable Sample paragraph and `analysis/strategy.py`
+say a non-executable week is missing, not a zero return. Three computations in
+`analysis/full_pipeline.py` did otherwise:
+
+1. *Sharpe bootstrap.* Both stationary-bootstrap loops resampled
+   `base.returns` with the NaN left in. A draw containing it had a NaN standard
+   deviation, failed the `sd > 0` guard, and was recorded as a Sharpe ratio of
+   exactly 0.0: 1,298 of 2,000 draws for the main interval and 622 to 648 of
+   1,000 per block-length row (counted by rerunning the pre-fix loop, seed 42,
+   on `analysis/position_ledger.csv`, which reproduces the old intervals
+   exactly). Every interval was too narrow.
+2. *`performance()` (Table 6)* filled the NaN with 0.0, adding a zero week to
+   the volatility, Sharpe and Sortino.
+3. *Reality Check / SPA universes* filled the NaN with 0.0 in every candidate.
+
+**Fix.** Non-executable weeks are dropped before resampling
+(`stationary_bootstrap_return_stats`), in `performance()`, and from the rows of
+the test universes (with an assertion that no candidate is missing on any other
+week). Two tests in `tests/test_non_executable_returns.py`.
+
+**Reproduction first.** The unmodified code at `1eed57e` regenerated the
+committed `full_pipeline_results.json` to 1e-9 relative in every field, the
+defective intervals included, except six SPY cross-market values (the
+documented SPY hash drift).
+
+| Figure | Old | New |
+|---|---|---|
+| Sharpe interval, §3.3 (B = 2000) | [−0.51, 0.49] | [−0.73, 0.64] |
+| Table 18, 2 / 4 / 8 / 13 wk (B = 1000) | [−0.484, 0.505] / [−0.451, 0.496] / [−0.370, 0.558] / [−0.236, 0.593] | [−0.733, 0.600] / [−0.723, 0.664] / [−0.654, 0.608] / [−0.755, 0.585] |
+| Table 6 vol, momentum / mean reversion / buy-and-hold | 8.51% / 3.48% / 8.77% | 8.52% / 3.49% / 8.78% |
+| Table 6 Sortino, momentum / buy-and-hold | −0.393 / 0.608 | −0.394 / 0.610 |
+| Reality Check p, twelve strategies | 0.30 (0.302) | 0.29 (0.294) |
+| SPA p, twelve strategies | 0.58 (0.580) | 0.55 (0.546) |
+| SPA statistic with the random candidate | 2.00 | 2.06 |
+| Sizing-invariance p differences (RC / SPA) | 0.002 / 0.002 | 0.003 / 0.001 |
+| `return_inference.annualized_return_ci` | [null, null] | [−3.09%, 2.93%] (not printed) |
+
+Unchanged at printed precision: the annualized return (−0.08%; now annualized
+over 503 weeks), RC 0.015, SPA 1.43, and the random-candidate RC 0.025
+(p 0.06) and SPA p 0.22. Most of the RC/SPA p-value movement comes from the
+bootstrap drawing over 503 rows instead of 504, not from the zero row itself.
+Ledgers and figures are unaffected.
+
+**Conclusions unchanged.** Every Sharpe interval still contains zero, and
+neither data-snooping universe rejects.
+
+**Residual, left as is.** `walk_forward.pooled.annualized_return` annualizes
+over 400 weeks, one of which is the terminal NaN week (399 executable): 0.356%
+against 0.357%. The figure is withheld from the paper under the single-episode
+rule, so nothing printed depends on it.
+
+---
+
 ## Standing limitations
 
 Unchanged by this work, and in several cases sharpened by it.
