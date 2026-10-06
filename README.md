@@ -134,6 +134,7 @@ for those files and compare their hashes before making that claim.
 - **v3.1.0 (PR #2 by Tofik Israfilov, merged 29 Sep 2026; not deposited):** corrected the holding rule, the execution lag, the asymmetry index, trade accounting and regime attribution against the published specification, and regenerated every downstream result without optimizing for profitability.
 - **v3.0.0 (Zenodo record 21315494, 11 Jul 2026):** corrected the unsigned-magnitude tail skew and replaced the walk-forward, but its strategy figures came from code whose exit rule did not match the specification (3.60% gross, 17 trades); superseded by v3.1.x.
 - **v2.0.x (Zenodo v2.0.0 and v2.0.1; SSRN 6147567):** pre-correction preprint reporting the unsigned-magnitude tail skew (5.05). The SSRN record was registered in February 2026 for this version.
+- **v1.0.0 (Zenodo record 17918374, 13 Dec 2025; its own concept DOI, 10.5281/zenodo.17918373):** the first deposited version, titled "Alpha Asymmetry in Foreign Exchange Markets — Detection and Exploitation: Evidence from EUR/JPY and Cross-Market Analysis". It reports the unsigned-magnitude tail skew (5.05) and an asymmetry-strategy Sharpe ratio of 0.154, both superseded. The record carries a notice pointing to the concept DOI 10.5281/zenodo.18638784.
 
 ## Citation
 
@@ -148,7 +149,7 @@ for those files and compare their hashes before making that claim.
 }
 ```
 
-Co-authorship takes effect from v3.1.x; the published deposits (Zenodo v2.0.0, v2.0.1 and v3.0.0, SSRN 6147567) are sole-authored.
+Co-authorship takes effect from v3.1.x; the published deposits (Zenodo v1.0.0, v2.0.0, v2.0.1 and v3.0.0, SSRN 6147567) are sole-authored.
 
 ## Authors
 
@@ -161,7 +162,7 @@ Co-authorship takes effect from v3.1.x; the published deposits (Zenodo v2.0.0, v
 ## Links
 
 - **Paper (Zenodo):** [10.5281/zenodo.18638784](https://doi.org/10.5281/zenodo.18638784)
-- **Paper (SSRN):** [SSRN:6147567](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6147567)
+- **Paper (SSRN):** [SSRN:6147567](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6147567) -- registered for v2.0.0 and superseded; until it is revised it may still serve that version (see Versions)
 - **Code (GitHub):** [github.com/dissensus-ai/alpha-asymmetry](https://github.com/dissensus-ai/alpha-asymmetry)
 - **ASCRI Programme:** [systems.ac/2/DAI-2605](https://systems.ac/2/DAI-2605)
 - **Dissensus:** [dissensus.ai](https://dissensus.ai)
