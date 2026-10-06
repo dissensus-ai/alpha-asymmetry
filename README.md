@@ -130,9 +130,10 @@ for those files and compare their hashes before making that claim.
 
 ## Versions
 
-- **Current correction branch:** fixes strategy state, execution timing, AI, trade accounting, regime attribution, output portability, and reproducibility; regenerates downstream results without optimizing for profitability.
-- **v3.0.0 (Zenodo record 21315494, 11 Jul 2026):** corrected the unsigned-magnitude tail skew and replaced the walk-forward, but its strategy figures came from code whose exit rule did not match the specification; superseded by the current branch. The Zenodo concept DOI resolves to v3.0.0 until a new version is deposited.
-- **v2.0.x (Zenodo v2.0.1; SSRN 6147567):** pre-correction preprint reporting the unsigned-magnitude tail skew (5.05). SSRN may still serve this version.
+- **v3.1.1 (October 2026, this repository):** v3.1.0 plus the corrections of 6 Oct 2026. The return bootstrap and the performance statistics now exclude the non-executable final week (stationary-bootstrap Sharpe interval [-0.51, 0.49] → [-0.73, 0.64]; Reality Check p 0.30 → 0.29; SPA p 0.58 → 0.55); the execution-timing contrasts and the weekend-gap test are now pipeline output; robustness detail moved to appendices; the licence statement now matches `LICENSE`. No conclusion changes. Details: `docs/CORRECTION_CHANGELOG.md`. Prepared as a new Zenodo version under the concept DOI, with Tofik Israfilov as co-author; until that version is published, the concept DOI resolves to v3.0.0.
+- **v3.1.0 (PR #2 by Tofik Israfilov, merged 29 Sep 2026; not deposited):** corrected the holding rule, the execution lag, the asymmetry index, trade accounting and regime attribution against the published specification, and regenerated every downstream result without optimizing for profitability.
+- **v3.0.0 (Zenodo record 21315494, 11 Jul 2026):** corrected the unsigned-magnitude tail skew and replaced the walk-forward, but its strategy figures came from code whose exit rule did not match the specification (3.60% gross, 17 trades); superseded by v3.1.x.
+- **v2.0.x (Zenodo v2.0.0 and v2.0.1; SSRN 6147567):** pre-correction preprint reporting the unsigned-magnitude tail skew (5.05). The SSRN record was registered in February 2026 for this version.
 
 ## Citation
 
@@ -142,11 +143,12 @@ for those files and compare their hashes before making that claim.
   title   = {Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability},
   year    = {2026},
   journal = {Dissensus Working Paper DAI-2605},
+  version = {3.1.1},
   doi     = {10.5281/zenodo.18638784}
 }
 ```
 
-Co-authorship takes effect from the next deposit; the published deposits (Zenodo v2.0.1 and v3.0.0, SSRN 6147567) are sole-authored.
+Co-authorship takes effect from v3.1.x; the published deposits (Zenodo v2.0.0, v2.0.1 and v3.0.0, SSRN 6147567) are sole-authored.
 
 ## Authors
 
