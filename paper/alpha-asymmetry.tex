@@ -102,6 +102,65 @@
 \newcommand{\paperurl}{https://systems.ac/2/DAI-2605}
 
 % ============================================================================
+% KNOWN DEFECT: SHARPE BOOTSTRAP INTERVALS (marker added 6 Oct 2026)
+% ============================================================================
+% Every stationary-bootstrap Sharpe interval printed in this paper is computed
+% incorrectly and is too narrow. Affected text: the method description in
+% subsection sec:inference, the [-0.51, 0.49] interval in subsection
+% sec:backtest ("Statistical Significance of Returns"), all four rows of table
+% tab:blocklen, and the "bootstrap intervals that include zero" cell of the
+% claims summary table. Each location carries a marker comment.
+%
+% Cause: analysis/full_pipeline.py lines 919--935 resample
+% base.returns.to_numpy(). That array has 504 entries and its last entry, the
+% final week with no subsequent open, is NaN. Any draw that contains the NaN
+% index has a NaN standard deviation, the "if sample_sd > 0" test fails, and the
+% draw is recorded as a Sharpe of exactly 0.0 (about 63% of draws). This also
+% contradicts the "Executable Sample" paragraph of the methodology, which says
+% a missing week is treated as missing, not as a zero return.
+%
+% Fix owed (code; T.I./MF): drop non-executable weeks before both bootstrap
+% loops (xret = base.returns.dropna().to_numpy()), rerun full_pipeline.py, then
+% update sec:backtest, tab:blocklen and the provenance declarations from the
+% regenerated JSON. Related, milder instances of the same NaN handling:
+% performance() fills NaN with 0 (full_pipeline.py:342; no displayed value
+% changes) and the RC/SPA universe uses fillna(0.0) (full_pipeline.py:774, 792,
+% 817).
+%
+% The printed numbers are deliberately NOT changed here: no number changes
+% without a trace to a committed rerun. Corrected values from an ad hoc replay
+% of the committed ledger are recorded in _reviews/POLISH_OCT2026.md; do not
+% copy them in. Rerun the committed pipeline instead.
+%
+% Remove this block, the \ifdraft switch, \sharpedefect and \sharpedefectfloat
+% (and every call to them) once the rerun lands. Do not hide the markers by
+% setting \draftfalse for a release build: fix the code instead.
+% ============================================================================
+\newif\ifdraft
+\drafttrue % true: red notes at every affected location in the PDF
+% In running text: compile-time warning, plus a red margin note in draft mode.
+\newcommand{\sharpedefect}{%
+  \PackageWarning{alpha-asymmetry}{Known-defective Sharpe bootstrap interval
+    printed here: NaN week enters the bootstrap at
+    analysis/full_pipeline.py:919-935. Code fix and rerun pending; numbers not
+    yet updated}%
+  \ifdraft\marginpar{\raggedright\scriptsize\color{red}\textbf{Known defect.}
+    Sharpe interval too narrow: a NaN week enters the bootstrap
+    (\texttt{full\_\allowbreak pipeline.py}: 919--935). Fix and rerun
+    pending.}\fi}
+% Inside floats (no \marginpar allowed): warning, plus a red line in draft mode.
+\newcommand{\sharpedefectfloat}{%
+  \PackageWarning{alpha-asymmetry}{Known-defective Sharpe bootstrap intervals
+    in this float: NaN week enters the bootstrap at
+    analysis/full_pipeline.py:919-935. Code fix and rerun pending; numbers not
+    yet updated}%
+  \ifdraft\par\textcolor{red}{\textbf{Known defect, pending a code fix:} the
+    intervals in this table are computed incorrectly and are too narrow,
+    because the final, non-executable week enters the bootstrap as a missing
+    value (\texttt{analysis/full\_pipeline.py}, lines 919--935). The numbers
+    will be replaced after the fix and rerun.}\fi}
+
+% ============================================================================
 % DOCUMENT
 % ============================================================================
 
@@ -249,7 +308,10 @@ Under normality with zero mean, $POR = 0.5$; deviations indicate location-scale 
 \subsection{Inference Under Serial Dependence}
 \label{sec:inference}
 
-The skewness and return intervals reported in this paper come from two resampling schemes, applied to different objects. Skewness of the alpha signals is resampled with a \emph{circular block} bootstrap at a fixed 13-week block: each replicate joins blocks of 13 consecutive weekly observations, drawn from random start points and wrapping around the end of the sample, until it holds 504 observations, and recomputes the bias-corrected skewness. The 95\% interval is the 2.5th to 97.5th percentile of $B = 2000$ replicates. The block is fixed because the signals are constructed from overlapping rolling windows of 5 to 252 trading days, most of them 20 to 100 days long (Table~\ref{tab:spec}). Their dependence is mechanical, long, and of known length, so a fixed block of the same order as those windows is the natural choice. Strategy returns are resampled with the \emph{stationary} bootstrap of \citet{politis1994stationary} at an expected 4-week block, because they are not overlapping constructions and their dependence is short and of unknown length, which is the case the stationary bootstrap's random block length is designed for. The Sharpe interval is again the percentile interval of $B = 2000$ replicates, and Table~\ref{tab:blocklen} reports it across expected block lengths from 2 to 13 weeks. Both schemes cover sampling variability in the weekly observations; neither covers the construction choices themselves, which Sections~\ref{sec:significance}, \ref{sec:exectiming} and~\ref{sec:entrysymmetry} report as sensitivities.
+% KNOWN DEFECT (see the preamble block): the Sharpe intervals this paragraph
+% describes are computed with a NaN week left in (full_pipeline.py:919--935).
+% Text and numbers unchanged pending the code fix and rerun.
+The skewness and return intervals reported in this paper come from two resampling schemes, applied to different objects. Skewness of the alpha signals is resampled with a \emph{circular block} bootstrap at a fixed 13-week block: each replicate joins blocks of 13 consecutive weekly observations, drawn from random start points and wrapping around the end of the sample, until it holds 504 observations, and recomputes the bias-corrected skewness. The 95\% interval is the 2.5th to 97.5th percentile of $B = 2000$ replicates. The block is fixed because the signals are constructed from overlapping rolling windows of 5 to 252 trading days, most of them 20 to 100 days long (Table~\ref{tab:spec}). Their dependence is mechanical, long, and of known length, so a fixed block of the same order as those windows is the natural choice. Strategy returns are resampled with the \emph{stationary} bootstrap of \citet{politis1994stationary} at an expected 4-week block, because they are not overlapping constructions and their dependence is short and of unknown length, which is the case the stationary bootstrap's random block length is designed for. The Sharpe interval is again the percentile interval of $B = 2000$ replicates, and Table~\ref{tab:blocklen} reports it across expected block lengths from 2 to 13 weeks.\sharpedefect{} Both schemes cover sampling variability in the weekly observations; neither covers the construction choices themselves, which Sections~\ref{sec:significance}, \ref{sec:exectiming} and~\ref{sec:entrysymmetry} report as sensitivities.
 
 \subsection{Backtesting Framework}
 \label{sec:backtestmethod}
@@ -501,7 +563,11 @@ Buy \& Hold & 34.63\% & 8.77\% & 0.394 & 0.608 & $-$15.40\% & 1 / 1 \\
 
 Figure~\ref{fig:backtest} shows the equity curves and drawdowns.
 
-\textbf{Statistical Significance of Returns.} The compounded annualized return is slightly negative, at $-0.08\%$. Stationary-bootstrap inference (expected block length 4 weeks, $B = 2000$; Section~\ref{sec:inference}) gives a 95\% Sharpe interval of $[-0.51, 0.49]$, far too wide to establish a nonzero population mean. Failure to reject zero is not proof that the true effect is exactly absent.
+% KNOWN DEFECT (see the preamble block): [-0.51, 0.49] reproduces exactly with
+% the NaN week included (6 Oct ad hoc replay of the committed ledger, seed 42:
+% 1,298 of 2,000 draws = 0.0). Interval left unchanged pending the code fix
+% (full_pipeline.py:919--935) and rerun.
+\textbf{Statistical Significance of Returns.} The compounded annualized return is slightly negative, at $-0.08\%$. Stationary-bootstrap inference (expected block length 4 weeks, $B = 2000$; Section~\ref{sec:inference}) gives a 95\% Sharpe interval of $[-0.51, 0.49]$, far too wide to establish a nonzero population mean.\sharpedefect{} Failure to reject zero is not proof that the true effect is exactly absent.
 
 \begin{figure}[H]
 \centering
@@ -880,6 +946,12 @@ With five alpha types examined across multiple statistical tests, data-snooping 
 
 \textbf{Bonferroni Corrections.} Table \ref{tab:tests} applies plain Bonferroni correction at family size $m = 5$ (one skewness test per alpha type; a per-signal threshold of 0.01 for a 5\% family-wise level). At the corrected threshold, four of five alpha types reject \emph{normality}, but the asymmetry inventory is far thinner: under the primary construction only coverage alpha's skewness survives both the correction and, more demandingly, the block-bootstrap dependence adjustment. Coverage is the only signal for which that statement does not depend on a sampling choice. Fast alpha, for which the tests do not reject normality (Section~\ref{sec:significance}), serves as a control.
 
+% KNOWN DEFECT (see the preamble block): all four rows of tab:blocklen
+% (the B = 1000 loop, full_pipeline.py:928--936) reproduce exactly with the NaN week
+% included (6 Oct ad hoc replay: 622--648 of 1,000 draws = 0.0 per row). Rows
+% left unchanged pending the code fix and rerun. The replay's corrected
+% intervals also contain zero, but that is not yet committed output, so the
+% "every interval contains zero" sentence below stands on the defective run.
 \textbf{Return Bootstrap Block Length.} The resampling schemes are described in Section~\ref{sec:inference}. Table~\ref{tab:blocklen} reports the Sharpe interval of Section~\ref{sec:backtest} across expected block lengths from 2 to 13 weeks; every interval contains zero, so no conclusion rests on the choice.
 
 \begin{table}[H]
@@ -898,7 +970,7 @@ Expected block length & 95\% Sharpe interval \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Stationary bootstrap, $B = 1000$, applied to the corrected weekly strategy return series. Every interval contains zero. The 4-week row uses $B = 1000$ and therefore differs slightly from the interval reported in Section~\ref{sec:backtest}, which uses $B = 2000$. Generated by \texttt{analysis/full\_pipeline.py}.}
+\parbox{\linewidth}{\footnotesize Note: Stationary bootstrap, $B = 1000$, applied to the corrected weekly strategy return series. Every interval contains zero. The 4-week row uses $B = 1000$ and therefore differs slightly from the interval reported in Section~\ref{sec:backtest}, which uses $B = 2000$. Generated by \texttt{analysis/full\_pipeline.py}.\sharpedefectfloat}
 \end{table}
 
 \textbf{Bootstrap Implementation.} White's Reality Check and Hansen's SPA employ the stationary block bootstrap with expected block length $\ell = 4$ weeks. The 12 formal candidates comprise five simplified asymmetry rules, the full rule, three momentum rules, two mean-reversion rules and always-long. Bootstrap replications: 1,000. The formal benchmark is zero weekly return.
@@ -994,6 +1066,9 @@ Claim tested & Evidence & Verdict \\
 The alpha signals are asymmetrically distributed & Tables~\ref{tab:asymmetry}--\ref{tab:bootcompare} & Under the primary construction only coverage alpha has a dependence-robust skewness interval that excludes zero; the other four intervals include zero. \\
 The tail signal is negatively skewed & Table~\ref{tab:tailagg} & Not established. Across three weekly aggregations of the identical daily exceedance rule the estimate changes sign and the interval excludes zero under one; we report the sensitivity and do not select among the aggregations. \\
 Weekly returns have Pareto-type heavy tails & Tables~\ref{tab:decluster} and~\ref{tab:gpd} & Not established. The GPD shape estimate is too imprecise to establish heavy tails or exponential decay; clustering appears weak but is estimated from few exceedances. \\
+% KNOWN DEFECT (see the preamble block): "bootstrap intervals that include zero"
+% rests on the NaN-defective Sharpe intervals (full_pipeline.py:919--935).
+% Re-check this cell against the rerun before release.
 The asymmetry rule earns a positive return & Tables~\ref{tab:backtest} and~\ref{tab:oos} & No. The corrected rule returns $-0.73\%$ gross over 15 holding episodes (Sharpe $+0.005$), with bootstrap intervals that include zero; walk-forward selection opens one episode in eight test years. \\
 Costs explain the failure & Table~\ref{tab:tcosts} & No. Costs worsen the already negative gross return monotonically, and no break-even cost exists: the published 19.2-pip figure presumed a positive gross return. Omitted financing, the absence of any per-order cost component, and fills assumed at indicative opening mid-quotes remain limitations. \\
 The economic result is robust to specification & Tables~\ref{tab:exectiming} and~\ref{tab:entrysymmetry} & No. Four execution timings span 7.3 percentage points with no pre-specified paired contrast distinguishable from zero; four pre-specified entry rules span 9.04 points and change sign, and the earlier claim of robustness to symmetrization is withdrawn. \\
