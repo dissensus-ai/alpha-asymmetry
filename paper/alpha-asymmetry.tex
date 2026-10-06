@@ -102,65 +102,6 @@
 \newcommand{\paperurl}{https://systems.ac/2/DAI-2605}
 
 % ============================================================================
-% KNOWN DEFECT: SHARPE BOOTSTRAP INTERVALS (marker added 6 Oct 2026)
-% ============================================================================
-% Every stationary-bootstrap Sharpe interval printed in this paper is computed
-% incorrectly and is too narrow. Affected text: the method description in
-% subsection sec:inference, the [-0.51, 0.49] interval in subsection
-% sec:backtest ("Statistical Significance of Returns"), all four rows of table
-% tab:blocklen, and the "bootstrap intervals that include zero" cell of the
-% claims summary table. Each location carries a marker comment.
-%
-% Cause: analysis/full_pipeline.py lines 919--935 resample
-% base.returns.to_numpy(). That array has 504 entries and its last entry, the
-% final week with no subsequent open, is NaN. Any draw that contains the NaN
-% index has a NaN standard deviation, the "if sample_sd > 0" test fails, and the
-% draw is recorded as a Sharpe of exactly 0.0 (about 63% of draws). This also
-% contradicts the "Executable Sample" paragraph of the methodology, which says
-% a missing week is treated as missing, not as a zero return.
-%
-% Fix owed (code; T.I./MF): drop non-executable weeks before both bootstrap
-% loops (xret = base.returns.dropna().to_numpy()), rerun full_pipeline.py, then
-% update sec:backtest, tab:blocklen and the provenance declarations from the
-% regenerated JSON. Related, milder instances of the same NaN handling:
-% performance() fills NaN with 0 (full_pipeline.py:342; no displayed value
-% changes) and the RC/SPA universe uses fillna(0.0) (full_pipeline.py:774, 792,
-% 817).
-%
-% The printed numbers are deliberately NOT changed here: no number changes
-% without a trace to a committed rerun. Corrected values from an ad hoc replay
-% of the committed ledger are recorded in _reviews/POLISH_OCT2026.md; do not
-% copy them in. Rerun the committed pipeline instead.
-%
-% Remove this block, the \ifdraft switch, \sharpedefect and \sharpedefectfloat
-% (and every call to them) once the rerun lands. Do not hide the markers by
-% setting \draftfalse for a release build: fix the code instead.
-% ============================================================================
-\newif\ifdraft
-\drafttrue % true: red notes at every affected location in the PDF
-% In running text: compile-time warning, plus a red margin note in draft mode.
-\newcommand{\sharpedefect}{%
-  \PackageWarning{alpha-asymmetry}{Known-defective Sharpe bootstrap interval
-    printed here: NaN week enters the bootstrap at
-    analysis/full_pipeline.py:919-935. Code fix and rerun pending; numbers not
-    yet updated}%
-  \ifdraft\marginpar{\raggedright\scriptsize\color{red}\textbf{Known defect.}
-    Sharpe interval too narrow: a NaN week enters the bootstrap
-    (\texttt{full\_\allowbreak pipeline.py}: 919--935). Fix and rerun
-    pending.}\fi}
-% Inside floats (no \marginpar allowed): warning, plus a red line in draft mode.
-\newcommand{\sharpedefectfloat}{%
-  \PackageWarning{alpha-asymmetry}{Known-defective Sharpe bootstrap intervals
-    in this float: NaN week enters the bootstrap at
-    analysis/full_pipeline.py:919-935. Code fix and rerun pending; numbers not
-    yet updated}%
-  \ifdraft\par\textcolor{red}{\textbf{Known defect, pending a code fix:} the
-    intervals in this table are computed incorrectly and are too narrow,
-    because the final, non-executable week enters the bootstrap as a missing
-    value (\texttt{analysis/full\_pipeline.py}, lines 919--935). The numbers
-    will be replaced after the fix and rerun.}\fi}
-
-% ============================================================================
 % DOCUMENT
 % ============================================================================
 
@@ -308,10 +249,7 @@ Under normality with zero mean, $POR = 0.5$; deviations indicate location-scale 
 \subsection{Inference Under Serial Dependence}
 \label{sec:inference}
 
-% KNOWN DEFECT (see the preamble block): the Sharpe intervals this paragraph
-% describes are computed with a NaN week left in (full_pipeline.py:919--935).
-% Text and numbers unchanged pending the code fix and rerun.
-The skewness and return intervals reported in this paper come from two resampling schemes, applied to different objects. Skewness of the alpha signals is resampled with a \emph{circular block} bootstrap at a fixed 13-week block: each replicate joins blocks of 13 consecutive weekly observations, drawn from random start points and wrapping around the end of the sample, until it holds 504 observations, and recomputes the bias-corrected skewness. The 95\% interval is the 2.5th to 97.5th percentile of $B = 2000$ replicates. The block is fixed because the signals are constructed from overlapping rolling windows of 5 to 252 trading days, most of them 20 to 100 days long (Table~\ref{tab:spec}). Their dependence is mechanical, long, and of known length, so a fixed block of the same order as those windows is the natural choice. Strategy returns are resampled with the \emph{stationary} bootstrap of \citet{politis1994stationary} at an expected 4-week block, because they are not overlapping constructions and their dependence is short and of unknown length, which is the case the stationary bootstrap's random block length is designed for. The Sharpe interval is again the percentile interval of $B = 2000$ replicates, and Table~\ref{tab:blocklen} reports it across expected block lengths from 2 to 13 weeks.\sharpedefect{} Both schemes cover sampling variability in the weekly observations; neither covers the construction choices themselves, which Sections~\ref{sec:significance}, \ref{sec:exectiming} and~\ref{sec:entrysymmetry} report as sensitivities.
+The skewness and return intervals reported in this paper come from two resampling schemes, applied to different objects. Skewness of the alpha signals is resampled with a \emph{circular block} bootstrap at a fixed 13-week block: each replicate joins blocks of 13 consecutive weekly observations, drawn from random start points and wrapping around the end of the sample, until it holds 504 observations, and recomputes the bias-corrected skewness. The 95\% interval is the 2.5th to 97.5th percentile of $B = 2000$ replicates. The block is fixed because the signals are constructed from overlapping rolling windows of 5 to 252 trading days, most of them 20 to 100 days long (Table~\ref{tab:spec}). Their dependence is mechanical, long, and of known length, so a fixed block of the same order as those windows is the natural choice. Strategy returns are resampled with the \emph{stationary} bootstrap of \citet{politis1994stationary} at an expected 4-week block, because they are not overlapping constructions and their dependence is short and of unknown length, which is the case the stationary bootstrap's random block length is designed for. Only the 503 weeks with a realizable return are resampled; the final, non-executable week is excluded before resampling. The Sharpe interval is again the percentile interval of $B = 2000$ replicates, and Table~\ref{tab:blocklen} reports it across expected block lengths from 2 to 13 weeks. Both schemes cover sampling variability in the weekly observations; neither covers the construction choices themselves, which Sections~\ref{sec:significance}, \ref{sec:exectiming} and~\ref{sec:entrysymmetry} report as sensitivities.
 
 \subsection{Backtesting Framework}
 \label{sec:backtestmethod}
@@ -546,13 +484,13 @@ Table \ref{tab:backtest} compares the asymmetry strategy against the three bench
 Strategy & Return & Vol & Sharpe & Sortino & MDD & Episodes / Legs \\
 \midrule
 Asymmetry & $-$0.73\% & 4.42\% & 0.005 & 0.003 & $-$10.64\% & 15 / 61 \\
-Momentum (20w) & $-$23.48\% & 8.51\% & $-$0.282 & $-$0.393 & $-$34.77\% & 54 / 107 \\
-Mean Rev.\ (2.0$\sigma$) & $-$1.27\% & 3.48\% & $-$0.021 & $-$0.010 & $-$7.63\% & 27 / 54 \\
-Buy \& Hold & 34.63\% & 8.77\% & 0.394 & 0.608 & $-$15.40\% & 1 / 1 \\
+Momentum (20w) & $-$23.48\% & 8.52\% & $-$0.282 & $-$0.394 & $-$34.77\% & 54 / 107 \\
+Mean Rev.\ (2.0$\sigma$) & $-$1.27\% & 3.49\% & $-$0.021 & $-$0.010 & $-$7.63\% & 27 / 54 \\
+Buy \& Hold & 34.63\% & 8.78\% & 0.394 & 0.610 & $-$15.40\% & 1 / 1 \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Return = cumulative gross return over the 503 weeks with a realizable return; Vol = annualized volatility; MDD = maximum drawdown. A holding episode is one continuous directional position; a direct reversal closes one episode and opens another. Execution legs count entries and exits separately, so a reversal has two legs. Turnover, resizing, and reversals are also recorded in the dated ledgers. All strategies use one timing lag. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported benchmark rows (momentum $-15.66\%$, mean reversion $34.03\%$, buy-and-hold $2.31\%$) that traced to no committed code, and the buy-and-hold figure was inconsistent with the $+33.5\%$ close-to-close EUR/JPY spot move over the sample (Table~\ref{tab:crossmarket}); all benchmark rows have been recomputed from the replication pipeline.}
+\parbox{\linewidth}{\footnotesize Note: Return = cumulative gross return; Vol = annualized volatility; MDD = maximum drawdown; all measures are computed over the 503 weeks with a realizable return. A holding episode is one continuous directional position; a direct reversal closes one episode and opens another. Execution legs count entries and exits separately, so a reversal has two legs. Turnover, resizing, and reversals are also recorded in the dated ledgers. All strategies use one timing lag. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported benchmark rows (momentum $-15.66\%$, mean reversion $34.03\%$, buy-and-hold $2.31\%$) that traced to no committed code, and the buy-and-hold figure was inconsistent with the $+33.5\%$ close-to-close EUR/JPY spot move over the sample (Table~\ref{tab:crossmarket}); all benchmark rows have been recomputed from the replication pipeline. An earlier draft of this revision counted the final, non-executable week as a zero return in Vol, Sharpe and Sortino, which changed five cells by one or two units in the last printed digit (momentum 8.51\% and $-0.393$, mean reversion 3.48\%, buy-and-hold 8.77\% and 0.608).}
 \end{table}
 
 \textbf{Risk-Adjusted Performance.} The corrected asymmetry strategy loses 0.73\% gross, with a Sharpe ratio of $+0.005$ that is indistinguishable from zero, versus a 34.63\% buy-and-hold gain. The Sharpe ratio uses the arithmetic mean weekly return, which is marginally positive ($+0.04$ bps, Table~\ref{tab:exectiming}); the cumulative return compounds the same weekly returns and is negative. It holds a position in 55 of the 503 weeks with a realizable return. Its low 4.42\% annualized volatility still largely reflects inactivity rather than skill. The 20-week momentum and 2$\sigma$ mean-reversion benchmarks also lose money ($-23.48\%$ and $-1.27\%$); only buy-and-hold is positive.
@@ -563,11 +501,7 @@ Buy \& Hold & 34.63\% & 8.77\% & 0.394 & 0.608 & $-$15.40\% & 1 / 1 \\
 
 Figure~\ref{fig:backtest} shows the equity curves and drawdowns.
 
-% KNOWN DEFECT (see the preamble block): [-0.51, 0.49] reproduces exactly with
-% the NaN week included (6 Oct ad hoc replay of the committed ledger, seed 42:
-% 1,298 of 2,000 draws = 0.0). Interval left unchanged pending the code fix
-% (full_pipeline.py:919--935) and rerun.
-\textbf{Statistical Significance of Returns.} The compounded annualized return is slightly negative, at $-0.08\%$. Stationary-bootstrap inference (expected block length 4 weeks, $B = 2000$; Section~\ref{sec:inference}) gives a 95\% Sharpe interval of $[-0.51, 0.49]$, far too wide to establish a nonzero population mean.\sharpedefect{} Failure to reject zero is not proof that the true effect is exactly absent.
+\textbf{Statistical Significance of Returns.} The compounded annualized return is slightly negative, at $-0.08\%$. Stationary-bootstrap inference (expected block length 4 weeks, $B = 2000$; Section~\ref{sec:inference}) gives a 95\% Sharpe interval of $[-0.73, 0.64]$, far too wide to establish a nonzero population mean (the correction to this interval is recorded under Table~\ref{tab:blocklen}). Failure to reject zero is not proof that the true effect is exactly absent.
 
 \begin{figure}[H]
 \centering
@@ -946,12 +880,6 @@ With five alpha types examined across multiple statistical tests, data-snooping 
 
 \textbf{Bonferroni Corrections.} Table \ref{tab:tests} applies plain Bonferroni correction at family size $m = 5$ (one skewness test per alpha type; a per-signal threshold of 0.01 for a 5\% family-wise level). At the corrected threshold, four of five alpha types reject \emph{normality}, but the asymmetry inventory is far thinner: under the primary construction only coverage alpha's skewness survives both the correction and, more demandingly, the block-bootstrap dependence adjustment. Coverage is the only signal for which that statement does not depend on a sampling choice. Fast alpha, for which the tests do not reject normality (Section~\ref{sec:significance}), serves as a control.
 
-% KNOWN DEFECT (see the preamble block): all four rows of tab:blocklen
-% (the B = 1000 loop, full_pipeline.py:928--936) reproduce exactly with the NaN week
-% included (6 Oct ad hoc replay: 622--648 of 1,000 draws = 0.0 per row). Rows
-% left unchanged pending the code fix and rerun. The replay's corrected
-% intervals also contain zero, but that is not yet committed output, so the
-% "every interval contains zero" sentence below stands on the defective run.
 \textbf{Return Bootstrap Block Length.} The resampling schemes are described in Section~\ref{sec:inference}. Table~\ref{tab:blocklen} reports the Sharpe interval of Section~\ref{sec:backtest} across expected block lengths from 2 to 13 weeks; every interval contains zero, so no conclusion rests on the choice.
 
 \begin{table}[H]
@@ -963,25 +891,25 @@ With five alpha types examined across multiple statistical tests, data-snooping 
 \toprule
 Expected block length & 95\% Sharpe interval \\
 \midrule
-2 weeks & $[-0.484, 0.505]$ \\
-4 weeks (reported) & $[-0.451, 0.496]$ \\
-8 weeks & $[-0.370, 0.558]$ \\
-13 weeks & $[-0.236, 0.593]$ \\
+2 weeks & $[-0.733, 0.600]$ \\
+4 weeks (reported) & $[-0.723, 0.664]$ \\
+8 weeks & $[-0.654, 0.608]$ \\
+13 weeks & $[-0.755, 0.585]$ \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Stationary bootstrap, $B = 1000$, applied to the corrected weekly strategy return series. Every interval contains zero. The 4-week row uses $B = 1000$ and therefore differs slightly from the interval reported in Section~\ref{sec:backtest}, which uses $B = 2000$. Generated by \texttt{analysis/full\_pipeline.py}.\sharpedefectfloat}
+\parbox{\linewidth}{\footnotesize Note: Stationary bootstrap, $B = 1000$, applied to the corrected weekly strategy returns over the 503 weeks with a realizable return. Every interval contains zero. The 4-week row uses $B = 1000$ and therefore differs slightly from the interval reported in Section~\ref{sec:backtest}, which uses $B = 2000$. Generated by \texttt{analysis/full\_pipeline.py}. An earlier draft of this revision reported narrower intervals in this table and in Section~\ref{sec:backtest} ($[-0.51, 0.49]$ there; $[-0.484, 0.505]$, $[-0.451, 0.496]$, $[-0.370, 0.558]$ and $[-0.236, 0.593]$ here). They were computed with the final, non-executable week left in the resampled series as a missing value, so every draw that contained it was recorded as a Sharpe ratio of zero. The intervals shown exclude that week; they are wider, and every one still contains zero.}
 \end{table}
 
 \textbf{Bootstrap Implementation.} White's Reality Check and Hansen's SPA employ the stationary block bootstrap with expected block length $\ell = 4$ weeks. The 12 formal candidates comprise five simplified asymmetry rules, the full rule, three momentum rules, two mean-reversion rules and always-long. Bootstrap replications: 1,000. The formal benchmark is zero weekly return.
 
 \textbf{Candidate Universe.} The formal tests are run on the twelve real candidate strategies. A seeded random position sequence is reported alongside as a diagnostic but is excluded from the formal universe: a data-snooping correction should control the error rate across the space actually searched, and a coin-flip rule was never a strategy under consideration.
 
-\textbf{White's Reality Check.} Table~\ref{tab:snooping} collects both tests. Following \citet{white2000reality}, we test the twelve-strategy universe against a zero-return benchmark. The Reality Check does not reject the null of no superior strategy ($RC = 0.015$, $p = 0.30$). Including the random sequence as a thirteenth candidate gives $RC = 0.025$, $p = 0.06$. The direction runs opposite to what candidate-dilution intuition suggests: the random sequence has the highest realized sample mean in the universe, so removing it lowers the observed statistic more than it lowers the bootstrap distribution, and the $p$-value \emph{rises}. Neither universe rejects.
+\textbf{White's Reality Check.} Table~\ref{tab:snooping} collects both tests. Following \citet{white2000reality}, we test the twelve-strategy universe against a zero-return benchmark. The Reality Check does not reject the null of no superior strategy ($RC = 0.015$, $p = 0.29$). Including the random sequence as a thirteenth candidate gives $RC = 0.025$, $p = 0.06$. The direction runs opposite to what candidate-dilution intuition suggests: the random sequence has the highest realized sample mean in the universe, so removing it lowers the observed statistic more than it lowers the bootstrap distribution, and the $p$-value \emph{rises}. Neither universe rejects.
 
-\textbf{Hansen's SPA Test.} The Superior Predictive Ability test \citep{hansen2005test} agrees ($SPA = 1.43$, $p = 0.58$ on the twelve-strategy universe; $p = 0.22$ including the random sequence): no candidate demonstrates superior predictive ability over the zero-return benchmark at conventional levels.
+\textbf{Hansen's SPA Test.} The Superior Predictive Ability test \citep{hansen2005test} agrees ($SPA = 1.43$, $p = 0.55$ on the twelve-strategy universe; $p = 0.22$ including the random sequence): no candidate demonstrates superior predictive ability over the zero-return benchmark at conventional levels.
 
-\textbf{Why These Statistics Are Insensitive to the Sizing Specification.} Both test statistics are numerically identical under the weekly and frozen-notional sizing specifications, and the $p$-values differ by 0.002 and 0.002 respectively. This is not a transcription error, and the reason is a property of the formal universe that we verify in the replication output. Of the twelve formal candidates, only the full asymmetry strategy depends on the sizing convention at all; the other eleven are built with fixed unit sizing or are buy-and-hold. Both tests take a maximum across that universe, and the maximum is attained by the always-long candidate, whose returns do not depend on the asymmetry rule in any respect. The observed statistic therefore cannot move when the sizing changes. The $p$-value can, because the bootstrap distribution is computed across the whole universe and does include the one candidate that changed, which is why the shift is small but not zero. A reader should expect these two rows to be stable across any change confined to the asymmetry rule, and should not read that stability as evidence about the rule. The argmax, the identity of the two statistics and the two $p$-value differences are all recorded in \texttt{data\_snooping.sizing\_invariance} in the replication output.
+\textbf{Why These Statistics Are Insensitive to the Sizing Specification.} Both test statistics are numerically identical under the weekly and frozen-notional sizing specifications, and the $p$-values differ by 0.003 and 0.001 respectively. This is not a transcription error, and the reason is a property of the formal universe that we verify in the replication output. Of the twelve formal candidates, only the full asymmetry strategy depends on the sizing convention at all; the other eleven are built with fixed unit sizing or are buy-and-hold. Both tests take a maximum across that universe, and the maximum is attained by the always-long candidate, whose returns do not depend on the asymmetry rule in any respect. The observed statistic therefore cannot move when the sizing changes. The $p$-value can, because the bootstrap distribution is computed across the whole universe and does include the one candidate that changed, which is why the shift is small but not zero. A reader should expect these two rows to be stable across any change confined to the asymmetry rule, and should not read that stability as evidence about the rule. The argmax, the identity of the two statistics and the two $p$-value differences are all recorded in \texttt{data\_snooping.sizing\_invariance} in the replication output.
 
 \begin{table}[H]
 \centering
@@ -992,17 +920,17 @@ Expected block length & 95\% Sharpe interval \\
 \toprule
 Test & Statistic & $p$-value & Interpretation \\
 \midrule
-White's Reality Check & 0.015 & 0.30 & Not significant \\
-Hansen's SPA & 1.43 & 0.58 & Not significant \\
+White's Reality Check & 0.015 & 0.29 & Not significant \\
+Hansen's SPA & 1.43 & 0.55 & Not significant \\
 \# Candidate Strategies & 12 & --- & --- \\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Including the random sequence as a thirteenth candidate:}} \\
 White's Reality Check & 0.025 & 0.06 & Not significant \\
-Hansen's SPA & 2.00 & 0.22 & Not significant \\
+Hansen's SPA & 2.06 & 0.22 & Not significant \\
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-\parbox{\linewidth}{\footnotesize Note: Formal candidates: simplified asymmetry (5), full two-sided asymmetry (1), momentum (3), mean reversion (2), always-long (1). The seeded random sequence is reported as a diagnostic outside the formal universe. The formal benchmark is zero weekly return. All candidates use one execution lag. Stationary bootstrap: 1,000 replications, expected block length 4 weeks. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported $RC = 2.14$ ($p = 0.042$), which could not be reproduced from any specification of the stated universe. The values published in version 3.0.0, $RC = 0.02$ ($p = 0.15$), came from the earlier implementation; the values shown are those of the corrected specification.}
+\parbox{\linewidth}{\footnotesize Note: Formal candidates: simplified asymmetry (5), full two-sided asymmetry (1), momentum (3), mean reversion (2), always-long (1). The seeded random sequence is reported as a diagnostic outside the formal universe. The formal benchmark is zero weekly return. All candidates use one execution lag. Stationary bootstrap: 1,000 replications, expected block length 4 weeks. Generated by \texttt{analysis/full\_pipeline.py}; an earlier version of this table reported $RC = 2.14$ ($p = 0.042$), which could not be reproduced from any specification of the stated universe. The values published in version 3.0.0, $RC = 0.02$ ($p = 0.15$), came from the earlier implementation; the values shown are those of the corrected specification. An earlier draft of this revision reported $p = 0.30$ (Reality Check) and $p = 0.58$ (SPA) for the twelve-strategy universe, and $SPA = 2.00$ with the random sequence, because the final, non-executable week entered every candidate as a zero return. The values shown exclude that week, which also changes the bootstrap draws.}
 \end{table}
 
 \textbf{Interpretation.} The tests find no statistically superior candidate in either universe. This is a failure to reject superiority, not proof that every possible strategy has zero expected return. That a seeded coin-flip sequence would have posted the highest realized mean of the thirteen is not evidence about the coin flip. It shows how wide the dispersion of realized means is at this sample size, and therefore how little a ranking among these rules would mean.
@@ -1066,9 +994,6 @@ Claim tested & Evidence & Verdict \\
 The alpha signals are asymmetrically distributed & Tables~\ref{tab:asymmetry}--\ref{tab:bootcompare} & Under the primary construction only coverage alpha has a dependence-robust skewness interval that excludes zero; the other four intervals include zero. \\
 The tail signal is negatively skewed & Table~\ref{tab:tailagg} & Not established. Across three weekly aggregations of the identical daily exceedance rule the estimate changes sign and the interval excludes zero under one; we report the sensitivity and do not select among the aggregations. \\
 Weekly returns have Pareto-type heavy tails & Tables~\ref{tab:decluster} and~\ref{tab:gpd} & Not established. The GPD shape estimate is too imprecise to establish heavy tails or exponential decay; clustering appears weak but is estimated from few exceedances. \\
-% KNOWN DEFECT (see the preamble block): "bootstrap intervals that include zero"
-% rests on the NaN-defective Sharpe intervals (full_pipeline.py:919--935).
-% Re-check this cell against the rerun before release.
 The asymmetry rule earns a positive return & Tables~\ref{tab:backtest} and~\ref{tab:oos} & No. The corrected rule returns $-0.73\%$ gross over 15 holding episodes (Sharpe $+0.005$), with bootstrap intervals that include zero; walk-forward selection opens one episode in eight test years. \\
 Costs explain the failure & Table~\ref{tab:tcosts} & No. Costs worsen the already negative gross return monotonically, and no break-even cost exists: the published 19.2-pip figure presumed a positive gross return. Omitted financing, the absence of any per-order cost component, and fills assumed at indicative opening mid-quotes remain limitations. \\
 The economic result is robust to specification & Tables~\ref{tab:exectiming} and~\ref{tab:entrysymmetry} & No. Four execution timings span 7.3 percentage points with no pre-specified paired contrast distinguishable from zero; four pre-specified entry rules span 9.04 points and change sign, and the earlier claim of robustness to symmetrization is withdrawn. \\
