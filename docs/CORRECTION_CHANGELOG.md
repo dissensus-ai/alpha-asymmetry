@@ -424,6 +424,66 @@ rule, so nothing printed depends on it.
 
 ---
 
+## Post-merge corrections (6 Oct 2026, second set): provenance, attribution and claims
+
+Branch `polish-oct2026`, after the bootstrap correction above. Applied on MF's
+instruction of 6 Oct 2026 to resolve the remaining Alpha questions on stated
+defaults; the decision record is kept outside the repository.
+
+**Execution contrasts and the weekend-gap test now come from the pipeline**
+(`a608cbd` code and tests, `72e1cbe` rerun, `d45e10c` paper). Section 4.4 had
+printed paired bootstrap contrasts and a weekend-gap result from a script that
+was never committed, and Section 4.5 quoted Friday-close entry-rule figures no
+committed output held. `paired_execution_contrasts` implements the
+pre-specification in `docs/REVIEW_NOTES.md` (`c7af2f3`); `weekend_gap_test`
+implements the recorded test and its pre-specified power method;
+`entry_symmetry_variants.py` adds the Friday-close runs.
+
+| Figure | Old (uncommitted script) | New (pipeline) |
+|---|---|---|
+| Monday open minus Friday close, annualized | 0.64 pp, CI [−0.67, 2.03] | 0.63 pp, CI [−0.67, 2.03] |
+| Monday close minus Monday open | −0.02, CI [−0.08, 0.04] | −0.02, CI [−0.08, 0.04] |
+| Tuesday open minus Monday close | −0.76, CI [−2.36, 0.45] | −0.77, CI [−2.36, 0.45] |
+| Weekend-gap test, wild cluster bootstrap p (signed position / direction) | 0.5765 / 0.5138 | 0.5765 / 0.5138 |
+| Weekend-gap detectable effect at 80% power | 8.8 bps (about six times the estimate) | 8.03 bps (5.8 times −1.38 bps) |
+| Equal-threshold shortfall vs published rule, Friday close / Monday open | 1.22 / 0.92 pp | 1.22 / 0.92 pp |
+
+The intervals reproduce exactly; two point estimates did not, and the
+simulation settings of the old power figure were not recorded. Every interval
+at 4-, 8- and 13-week blocks and under the stationary bootstrap contains zero,
+as do the simultaneous intervals for the three secondary contrasts (new
+Appendix D table, provenance-checked).
+
+**Historical p-values re-attributed** (`fb1cac8`, `dd1b597`). Section 4.7 and
+the response letter said p = 0.00019 and p = 0.0091 came from an earlier
+specification of the strategy *and the momentum proxy*. They came from
+commits `0918a82` (Newey-West) and `0bfc720` (ordinary cluster-robust), both
+with Friday-close pricing and a momentum proxy numerically identical to the
+current one; the current code under Friday-close pricing reproduces both.
+
+**Claims narrowed or corrected, no figure changed.**
+- Cost section: "typical spreads of 0.5–1.0 pips" was attributed to King,
+  Osler and Rime (2013), whose text (Norges Bank WP 2013/12) states no spread
+  level; removed, and the citation kept for what the article says
+  (`f3d3aa3`).
+- Code Availability said "MIT License"; the repository's only licence is CC BY
+  4.0 (`3810556`).
+- Section 2.6 said the cost section reports the frozen-notional sizing
+  alternative; it did not. It is now Table 23 in Appendix F (`5e321a9`).
+- The AI-assistance statement said every figure is machine-checked and that
+  two identities are verified after every rerun; coverage is fourteen of
+  twenty-three tables plus the regression t-statistics, and the identities
+  were checked by hand. `tests/test_identities.py` now checks them, and the
+  statement says what is true (`58a8502`).
+- `before_after_results.csv` notes carried stale figures and false
+  "sign flips" claims; they are now computed from the run (`c5ef55b`).
+
+**Relocated, not removed** (`5e321a9`): the normality battery, the cross-market
+check, the EVT detail and the sizing alternative moved to Appendices B, C, E
+and F; summaries, limitations and correction notices stay in the body.
+
+---
+
 ## Standing limitations
 
 Unchanged by this work, and in several cases sharpened by it.
