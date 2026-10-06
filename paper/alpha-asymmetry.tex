@@ -139,45 +139,9 @@
 
 % Abstract
 \begin{abstract}
-\noindent This paper investigates whether distributional asymmetries in foreign
-exchange alpha signals represent exploitable market inefficiencies. Using EUR/JPY
-data sampled from November 2015--August 2025 (504 analysis-ready weekly observations from January 2016 onward), we find
-that the asymmetry premise itself largely dissolves under dependence-robust
-measurement: of five alpha signal types, only the volatility-expansion (coverage)
-signal exhibits skewness that survives block-bootstrap inference under the
-paper's primary construction ($\hat{\gamma}_1 = 1.75$, 95\% CI $[1.18, 2.16]$);
-the signed tail signal skews \emph{negative} rather than positive ($-1.48$,
-CI $[-3.10, 0.54]$), and momentum, mean-reversion, and correlation signals have
-skewness intervals that include zero. Tail inference is not robust to how daily
-exceedances are aggregated to weekly frequency: across three defensible
-aggregations of the identical daily rule the skewness estimate changes sign and
-the interval excludes zero under one of them. We report that sensitivity rather
-than resolve it, since selecting an aggregation on which result it produces is
-the practice this paper criticises.
-An earlier version of this paper reported pronounced positive tail-signal
-skewness; that figure described the unsigned exceedance magnitude, which is
-right-skewed by construction, and we document the correction. The economic null
-is correspondingly stark. Under the corrected chronology and holding rule, a
-skewness-threshold strategy loses 0.73\% cumulative gross over the decade (15
-directional holding episodes, Sharpe $+0.005$), is nearly inert in walk-forward
-testing (one episode in eight out-of-sample years), and provides no evidence of
-a positive residual alpha against proxy carry, momentum, and dollar factors
-(intercept $t = -0.45$ on in-position weeks). Conditioning on the weeks it is
-invested, the rule loads negatively on time-series momentum, but that sample is
-selected by the entry condition on the same prices the factor is built from, so
-we report the loading as a mechanical property of the rule rather than as a
-factor exposure. Transaction costs make an already negative gross
-result monotonically worse; no break-even cost exists, since the strategy does
-not break even at zero cost.
-Data-snooping corrections complete the null: neither White's Reality Check ($p = 0.30$) nor Hansen's SPA ($p = 0.58$) rejects the null of no superior performance against
-a zero-return benchmark across a 12-candidate universe, and neither rejects it
-when a thirteenth candidate is included
-consisting of a seeded coin flip, which posts the highest realized mean of the
-set. The weekly-return GPD shape parameter is imprecisely estimated ($\xi = -0.25$, 95\% CI $[-1.49, 0.27]$---an interval wide enough, and containing zero, that neither the sign nor a bounded-versus-heavy-tail reading is established), and tail clustering is weak ($\theta = 0.83$, 95\% CI $[0.60, 1.00]$). We conclude
-that the evidence does not support broad alpha signal asymmetry in this setting
-(with one distributional exception that does not yield a tradable edge) or its exploitability,
-and we caution that unsigned-magnitude constructions can manufacture an
-appearance of asymmetry that signed-data analysis does not support.
+\noindent Skewness-based trading rules presuppose asymmetrically distributed signals. We test that premise, and whether a rule built on it earns money, for five technical transformations of the EUR/JPY price (``alpha signals''), using weekly indicative Yahoo Finance mid-quotes from January 2016 to August 2025 (504 weeks). Under block-bootstrap inference only the volatility-expansion signal is robustly skewed (1.75, 95\% CI $[1.18, 2.16]$). The tail signal's skewness changes sign across three defensible weekly aggregations of one daily rule, and the positive tail skewness reported in an earlier version described an unsigned magnitude series, right-skewed by construction.
+
+\noindent A skewness-threshold rule executed at the first trading-session open after each Friday signal returns $-0.73\%$ cumulative gross over 15 holding episodes, with a Sharpe ratio indistinguishable from zero. Because the gross return is already negative, no break-even cost exists. The result is not stable across specifications: four execution timings return between $-8.03\%$ and $-0.73\%$, and four pre-specified readings of the entry rule span 9.04 percentage points and change sign. Walk-forward selection opens one episode in eight years, and proxy factor regressions show no positive residual alpha (intercept $t = -0.45$ on in-position weeks). Neither White's Reality Check nor Hansen's SPA rejects the null that none of twelve rules beats a zero-return benchmark. These figures correct the holding rule and execution timing of earlier versions. The evidence covers one currency pair and does not model capacity, financing or per-order costs. Within that scope the evidence does not establish an exploitable edge, and the results depend on construction choices the original specification did not justify.
 
 \vspace{0.5em}
 \noindent\textbf{Keywords:} null result, alpha asymmetry, foreign exchange, skewness, market efficiency, extreme value theory
@@ -198,20 +162,20 @@ Financial markets exhibit persistent deviations from the efficient market hypoth
 
 The preference for skewed returns has deep roots in asset pricing theory. \citet{kraus1976skewness} established that investors prefer positive skewness and dislike negative skewness, implying that assets with lottery-like payoffs command lower expected returns. Subsequent work has confirmed that skewness affects both individual asset pricing \citep{harvey2000conditional, bali2011maxing} and portfolio construction \citep{mitton2007equilibrium, brunnermeier2007optimal}.
 
-This paper investigates whether alpha signals exhibit systematic asymmetries in their probability distributions, and whether such asymmetries can inform profitable trading strategies. We report negative findings that begin earlier in the chain than the usual backtest disappointment: under dependence-robust measurement, most of the proposed asymmetry is not supported. We investigate the following questions:
+The test has two links. The first is statistical: does a signal's skewness survive inference that allows for the serial dependence its rolling construction creates? The second is economic: does a rule that enters when a signal's rolling skewness exceeds a threshold earn a positive return that survives costs, training-only parameter selection and a data-snooping correction? A positive result would require both links to hold; a failure at either is a null, and we report where in the chain it occurs. The proposition at stake is whether distributional asymmetry in simple price-based signals is a usable source of return in a liquid currency pair. The evidence comes from one pair, weekly indicative mid-quotes and a rule that holds a position in 55 of 503 weeks, so it does not reach other pairs, intraday horizons, executable quotes, capacity or financing. We address four questions:
 
 \begin{enumerate}
     \item Do alpha signals in forex markets deviate significantly from normal distributions? \textit{(Mostly: four of five types reject normality; normality is not rejected for the normalized-return signal)}
     \item Do these deviations manifest as exploitable skewness and heavy tails? \textit{(Largely no: one signal is robustly skewed, the tail signal skews negative and fragilely, and the tail-shape estimate is too imprecise to establish Pareto-type heavy tails)}
     \item Do distributional asymmetries persist across market regimes? \textit{(No: the tail signal's skewness flips sign across regimes)}
-    \item Do asymmetry-aware strategies outperform benchmarks? \textit{(No: returns are negative before costs and trail buy-and-hold outright, the strategy is dormant under walk-forward selection, and no candidate significantly beats the zero-return benchmark)}
+    \item Do asymmetry-aware strategies outperform benchmarks? \textit{(No: the baseline returns $-0.73\%$ gross with a Sharpe ratio indistinguishable from zero and trails buy-and-hold, its sign changes across pre-specified entry rules, it is dormant under walk-forward selection, and no candidate significantly beats the zero-return benchmark)}
 \end{enumerate}
 
-We document a plausible-sounding trading idea that does not survive rigorous testing, and we document \emph{where} it fails: earlier than expected. The asymmetry-exploitation thesis does not fall at the translation from statistical pattern to economic profit; it falls at signal detection, where an unsigned-magnitude construction had manufactured the appearance of pervasive positive skewness that corrected measurement does not support. Null results of this kind are underreported in quantitative finance \citep{harvey2017presidential}, yet they prevent wasted research effort and capital allocation to spurious patterns.
+The idea fails, and it fails first at the statistical link: an unsigned-magnitude construction in the earlier version had manufactured an appearance of pervasive positive skewness that corrected measurement does not support. The economic link fails as well. The one robust asymmetry, in the volatility-expansion signal, is not shown to predict the direction of returns, and the rule, which reads the skewness of two signals whose full-sample intervals include zero, has no stable economic result. Null results of this kind are underreported in quantitative finance \citep{harvey2017presidential}, yet they prevent wasted research effort and capital allocation to spurious patterns.
 
 The FX factor literature has seen recent advances in factor construction methodology. \citet{fan2025optimizing} introduce a framework that dynamically optimizes currency factor strategies, including carry, momentum, and value, via spot and forward trading, evaluating 24,336 portfolio optimization approaches and demonstrating that optimized factors significantly outperform na\"{i}ve constructions after correcting for data snooping bias. Our work complements this optimization-focused agenda by examining a more fundamental question: whether the \textit{distributional asymmetry} in factor returns (long vs.\ short side) itself constitutes an exploitable signal. Where Fan et al.\ optimize how factors are constructed, we test whether the asymmetric properties of the resulting return distributions carry economic information. \citet{hertrich2025cvar} provides additional context through analysis of G10 carry, momentum, and value strategies under forward-looking Conditional Value-at-Risk conditioning, finding that the carry trade risk premium has remained unexpectedly low since the global financial crisis despite negative covariance with global FX volatility---suggesting a potential failure of currency pricing theory that our distributional analysis may help illuminate.
 
-Our empirical contribution is threefold, and we state it narrowly. First, we provide a systematic characterization of distributional properties across five distinct alpha types in EUR/JPY forex data, of which one---the volatility-expansion signal---survives dependence-robust inference under the paper's primary construction. Second, we report a corrected analysis of the trading rule: it loses money before frictions, walk-forward selection leaves it nearly dormant, and data-snooping-corrected tests do not reject the null of no superior performance against a zero-return benchmark across a twelve-strategy universe. Third, we document the specification sensitivity of those results to three choices the original specification did not argue for, whose statistical behaviour differs and which we therefore report separately: the weekly aggregation of the tail signal, under which the skewness estimate changes sign and the inferential conclusion with it; the execution timing, where point estimates move materially and non-monotonically in delay while the pre-specified paired contrasts include zero; and the symmetry of the entry rule, where realised performance varies across the four pre-specified rules by an order of magnitude more than the reported result and changes sign. We do not claim a new empirical finding about factor exposure; the momentum loading reported in Section~\ref{sec:factors} is a property of the entry rules, not a discovery about the market.
+Our empirical contribution is threefold, and we state it narrowly. First, we characterize the distributional properties of five alpha signals in EUR/JPY data (Sections~\ref{sec:asymdetect} and~\ref{sec:significance}); one of them, the volatility-expansion signal, survives dependence-robust inference under the paper's primary construction. Second, we report a corrected analysis of the trading rule (Sections~\ref{sec:backtest} and~\ref{sec:robustness}): it returns $-0.73\%$ gross with a Sharpe ratio indistinguishable from zero, walk-forward selection leaves it nearly dormant, and data-snooping-corrected tests do not reject the null of no superior performance against a zero-return benchmark across a twelve-strategy universe. Third, we document the sensitivity of those results to three choices the original specification did not argue for, whose statistical behavior differs and which we therefore report separately: the weekly aggregation of the tail signal (Section~\ref{sec:significance}), under which the skewness estimate changes sign and the inferential conclusion with it; the execution timing (Section~\ref{sec:exectiming}), where point estimates move materially and non-monotonically in delay while the pre-specified paired contrasts include zero; and the symmetry of the entry rule (Section~\ref{sec:entrysymmetry}), where realized performance varies across the four pre-specified rules by an order of magnitude more than the reported result and changes sign. We do not claim a new empirical finding about factor exposure; the momentum loading reported in Section~\ref{sec:factors} is a property of the entry rules, not a discovery about the market.
 
 \section{Methodology}
 
@@ -407,6 +371,7 @@ The momentum and mean-reversion benchmarks are the same rules that enter the dat
 \section{Results}
 
 \subsection{Asymmetry Detection}
+\label{sec:asymdetect}
 
 Table \ref{tab:asymmetry} presents distributional statistics for each alpha type.
 
@@ -440,6 +405,7 @@ The corrected statistics tell a very different story from the one asymmetry-base
 \end{figure}
 
 \subsection{Statistical Significance}
+\label{sec:significance}
 
 Table \ref{tab:tests} presents hypothesis test results for each alpha type. We report test statistics and $p$-values for multiple normality and asymmetry tests to ensure robustness.
 
@@ -620,7 +586,7 @@ The corrected statistics still reveal genuine features of market structure, just
 
 Several limitations warrant acknowledgment. First, 504 weekly observations and only 15 holding episodes provide limited power, especially for tail and trade-level inference. Second, the alpha definitions are fully disclosed here but are ad hoc and may not generalize. The tail signal in particular is aliased by its sampling rule: it is constructed from daily exceedances but read only on Fridays, so 70 of the 105 weeks containing an exceedance enter the panel as zeros and only 35 of 504 weekly observations are non-zero. Every tail-alpha statistic in this paper is computed on that sparse series, which is the proximate reason its skewness interval is so wide. Table~\ref{tab:tailagg} reports what two all-trading-days aggregations do to the tail statistics, and they do not agree with each other or with the published rule. We have not adopted either: both redefine the signal rather than correct it, both require an economic argument about what weekly tail exposure means that this paper does not make, and selecting one after seeing its result would be specification selection on outcomes. The sensitivity is the reportable finding. Third, the factor exercise uses spot proxies rather than published cross-sectional FX factors; even with 55 in-position weeks, the effective sample is small, and the negative momentum loading is descriptive, not a stable structural estimate. Fourth, costs use stylized spreads and indicative mid-prices, omit financing, charge no fixed or minimum per-order component, and assume fills at the indicative first-session open; no executable bid or ask quotes are used. Fifth, cross-market transfer omits pair-specific financing, costs, and dependence-aware inference. Finally, Yahoo history can be revised. The original raw snapshots were not committed, so exact reproduction of the archived figures is impossible without the owner's files; the revised pipeline caches local inputs and records hashes and software versions.
 
-\textbf{The Limits of the Verification Used Here.} This revision leans on machine checking: every free parameter is declared in one module from which the specification table is generated, restored historical footnotes are verified verbatim, two arithmetic identities are confirmed after every rerun, and the tables carrying the headline performance, factor and data-snooping results are tied cell by cell to named fields of the replication output. That last mechanism is recent and its coverage is partial: it reaches twelve of the nineteen tables and, among prose figures, the regression $t$-statistics only. Figures outside it are checked less formally, and we do not claim otherwise. Three of the errors corrected here were found by computing a quantity twice by different routes and requiring agreement; none was found by re-reading the code that contained it.
+\textbf{The Limits of the Verification Used Here.} This revision leans on machine checking: every free parameter is declared in one module from which the specification table is generated, restored historical footnotes are verified verbatim, two arithmetic identities are confirmed after every rerun, and the tables carrying the headline performance, factor and data-snooping results are tied cell by cell to named fields of the replication output. That last mechanism is recent and its coverage is partial: it reaches twelve of the twenty tables and, among prose figures, the regression $t$-statistics only. Figures outside it are checked less formally, and we do not claim otherwise. Three of the errors corrected here were found by computing a quantity twice by different routes and requiring agreement; none was found by re-reading the code that contained it.
 
 That apparatus has a limitation worth stating rather than leaving implicit. \textbf{A test that cannot fail is indistinguishable, in its output, from a test that passes.} Nine checks written during this revision passed while being structurally incapable of detecting the defect they were written for, most because they ran on data where the quantity they examined could not move; two arose during the exercise of deliberately testing whether the existing checks could fail, which is to say while the investigator was actively looking for exactly that flaw. One was subtler and is the reason this paragraph exists: it was exercised on a deliberately defective input, it failed as required, and it failed for a reason incidental to the defect class it was written to detect, so that the successful detection was itself misleading evidence. A ninth was a guard written to prevent incorrect status figures, which produced one: it counted the test suite through a subprocess that silently resolved to an interpreter lacking the project's dependencies, collected less than half the suite, and reported the reduced figure as a success. \textbf{A check may appear to succeed for a reason unrelated to the failure mode it claims to test.} The remedy adopted is to require a check to fail on a deliberately defective input, and to establish that it fails for the stated reason, before its passes are credited. Several of the principal checks have been exercised this way; this is not a property we claim for every check in the repository.
 
@@ -633,7 +599,7 @@ One check is reported with a measured blind spot rather than repaired. The ident
 \section{Robustness Analysis}
 \label{sec:robustness}
 
-The preceding sections leave a thin asymmetry inventory (one robustly skewed signal among five under the primary construction, with tail inference aggregation-sensitive) and an in-sample backtest that loses money before costs, with a bootstrap interval wide enough to include zero. This section stress-tests what remains, addressing four questions: (1) Do results hold out-of-sample? (2) Are patterns stable across market regimes? (3) What do trading costs do to an already negative return? (4) Is asymmetry alpha distinct from known FX risk factors?
+The preceding sections leave a thin asymmetry inventory (one robustly skewed signal among five under the primary construction, with tail inference aggregation-sensitive) and an in-sample backtest whose gross return of $-0.73\%$ is indistinguishable from zero. This section stress-tests what remains, addressing four questions: (1) Do results hold out-of-sample? (2) Are patterns stable across market regimes? (3) What do trading costs do to an already negative return? (4) Is asymmetry alpha distinct from known FX risk factors?
 
 \subsection{Out-of-Sample Validation}
 
@@ -1029,21 +995,32 @@ Hansen's SPA & 2.00 & 0.22 & Not significant \\
 
 \section{Conclusions}
 
-This paper investigated whether distributional asymmetries in FX alpha signals represent exploitable inefficiencies. Our findings are negative at every layer:
+This paper investigated whether distributional asymmetries in FX alpha signals represent exploitable inefficiencies. Table~\ref{tab:claims} sets out each claim tested, the evidence for it and the verdict. The answer is negative at every link from signal to profit.
 
-\begin{enumerate}
-    \item Under the paper's primary construction, only coverage alpha has a dependence-robust skewness interval that excludes zero; the other four intervals include zero
-    \item Tail inference is aggregation-sensitive. Across three defensible weekly aggregations of the identical daily exceedance rule, the skewness estimate changes sign and the dependence-robust interval excludes zero under one of the three. The tail signal's distributional character is not established until weekly tail exposure is defined; we report the sensitivity rather than select among the aggregations
-    \item EVT tail-shape inference is too imprecise to establish Pareto-type heavy tails or exponential decay; clustering appears weak but is also estimated from few exceedances
-    \item The corrected asymmetry strategy loses 0.73\% gross (15 holding episodes, Sharpe $+0.005$), with bootstrap intervals that include zero; walk-forward selection opens one episode in eight test years
-    \item Execution costs monotonically worsen the already negative gross result, and no break-even cost exists: the published 19.2-pip figure presumed a positive gross return, and there is none to consume. Omitted financing, the absence of any per-order cost component, and fills assumed at indicative opening mid-quotes remain limitations
-    \item Conditioning on the weeks it is invested, the rule loads negatively on time-series momentum ($\beta_2 = -0.65$; CR2 $p = 0.042$ with an interval excluding zero, wild cluster bootstrap $p = 0.0506$---the methods disagree at the 5\% line). Because those weeks are selected by an entry condition defined on the same prices the factor is built from, we report this as a mechanical property of the rule and not as an empirical finding about factor exposure
-    \item Data-snooping tests find no statistically superior candidate against zero return, and exploratory cross-market outcomes are unstable
-\end{enumerate}
+\begin{table}[H]
+\centering
+\caption{Summary of Claims Tested, Evidence, and Verdicts}
+\label{tab:claims}
+\footnotesize
+\begin{tabular}{@{}p{0.25\linewidth}p{0.17\linewidth}p{0.52\linewidth}@{}}
+\toprule
+Claim tested & Evidence & Verdict \\
+\midrule
+The alpha signals are asymmetrically distributed & Tables~\ref{tab:asymmetry}--\ref{tab:bootcompare} & Under the primary construction only coverage alpha has a dependence-robust skewness interval that excludes zero; the other four intervals include zero. \\
+The tail signal is negatively skewed & Table~\ref{tab:tailagg} & Not established. Across three weekly aggregations of the identical daily exceedance rule the estimate changes sign and the interval excludes zero under one; we report the sensitivity and do not select among the aggregations. \\
+Weekly returns have Pareto-type heavy tails & Tables~\ref{tab:decluster} and~\ref{tab:gpd} & Not established. The GPD shape estimate is too imprecise to establish heavy tails or exponential decay; clustering appears weak but is estimated from few exceedances. \\
+The asymmetry rule earns a positive return & Tables~\ref{tab:backtest} and~\ref{tab:oos} & No. The corrected rule returns $-0.73\%$ gross over 15 holding episodes (Sharpe $+0.005$), with bootstrap intervals that include zero; walk-forward selection opens one episode in eight test years. \\
+Costs explain the failure & Table~\ref{tab:tcosts} & No. Costs worsen the already negative gross return monotonically, and no break-even cost exists: the published 19.2-pip figure presumed a positive gross return. Omitted financing, the absence of any per-order cost component, and fills assumed at indicative opening mid-quotes remain limitations. \\
+The economic result is robust to specification & Tables~\ref{tab:exectiming} and~\ref{tab:entrysymmetry} & No. Four execution timings span 7.3 percentage points with no pre-specified paired contrast distinguishable from zero; four pre-specified entry rules span 9.04 points and change sign, and the earlier claim of robustness to symmetrization is withdrawn. \\
+The rule carries residual alpha or a factor exposure & Tables~\ref{tab:factors} and~\ref{tab:sevariants} & No residual alpha. On in-position weeks the rule loads negatively on time-series momentum ($\beta_2 = -0.65$; CR2 $p = 0.042$, wild cluster bootstrap $p = 0.0506$, so the methods disagree at the 5\% line). Those weeks are selected by entry conditions defined on the same prices as the factor, so this is a mechanical property of the rule, not a finding about factor exposure. \\
+Some candidate rule beats a zero-return benchmark & Table~\ref{tab:snooping} & No statistically superior candidate; exploratory cross-market outcomes are unstable (Table~\ref{tab:crossmarket}). \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-These null findings contribute to the literature in three ways. First, they demonstrate the gap between statistical and economic significance in quantitative trading research---a pattern likely more common than publication bias reveals \citep{harvey2017presidential}. Second, they document, from the inside, how easily higher-moment ``stylized facts'' can be manufactured by measurement choices: this paper's own earlier version reported pronounced positive tail skewness that turned out to describe an unsigned magnitude series, right-skewed by construction. The corrected analysis is a case study in why skewness claims should be accompanied by the sign conventions, sampling frequency, and dependence-robust intervals that make them checkable. Third, they provide a documented negative result that may spare other researchers this particular dead end.
+These null findings contribute to the literature in three ways. First, they locate the failure before the familiar gap between statistical and economic significance: most of the proposed asymmetry is absent under dependence-robust measurement, and the one robust asymmetry does not yield a tradable rule. Null results of this kind are likely more common than publication bias reveals \citep{harvey2017presidential}. Second, they document, from the inside, how easily higher-moment ``stylized facts'' can be manufactured by measurement choices: this paper's own earlier version reported pronounced positive tail skewness that turned out to describe an unsigned magnitude series, right-skewed by construction. The corrected analysis is a case study in why skewness claims should be accompanied by the sign conventions, sampling frequency, and dependence-robust intervals that make them checkable. Third, they provide a documented negative result that may spare other researchers this particular dead end.
 
-The methodological lesson is sharper than ``backtests flatter'': most of the asymmetry was never there. Distributional anomalies in financial data are easily overstated at the measurement stage, before a single trade is simulated---and the sequence of checks (signed variables, dependence-robust intervals, training-data-only selection, data-snooping correction) dismantled this one layer by layer.
+The methodological lesson is sharper than ``backtests flatter'': most of the asymmetry was never there. Distributional anomalies in financial data are easily overstated at the measurement stage, before a single trade is simulated---and the sequence of checks (signed variables, dependence-robust intervals, training-data-only selection, data-snooping correction) dismantled this one layer by layer. What remained of the economic result then changed sign with design choices the original specification never argued for.
 
 Future research might examine whether asymmetry exploitation is viable at higher frequencies (intraday) where both signal counts and cost structures scale differently, or in markets with different microstructure. Parallel findings in cryptocurrency markets---where an apparent infrastructure-versus-regulatory volatility asymmetry dissolves once cross-asset dependence and heavy tails are handled correctly \citep{farzulla2026multimoment}---and in cross-market event studies more broadly \citep{farzulla2025market} reinforce that distributional asymmetries are easily overstated and rarely translate into exploitable strategies. Our results echo that the burden of proof for asymmetry-based strategies should be high: an apparently sharp effect is insufficient evidence of economic value, and is often not robust evidence of a statistical effect either.
 
