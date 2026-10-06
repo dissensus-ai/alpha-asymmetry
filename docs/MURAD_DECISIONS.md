@@ -1,6 +1,11 @@
 # Decisions for Murad
 
-**Status: all six are now closed as working decisions.** Execution timing was
+**Status (6 Oct 2026): all six are ratified.** Murad ruled on execution timing
+directly (item 2) and on 6 Oct 2026 ratified the other five as they stand
+(items 1 and 3 to 6), when he entered the merged v3.1.0 for the IQAM Research
+Prize. The paragraph below records how they stood from 14 Sep until then.
+
+**Status as of 14 Sep 2026: all six are now closed as working decisions.** Execution timing was
 ruled on by Murad directly. The remaining five are adopted as the recommendations
 already set out below — his own recommendations in each case, so nothing is
 decided against him — because they had been open across several rounds and were
@@ -12,12 +17,12 @@ without him. Where a choice would be expensive to reverse the cost is stated.
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Tail aggregation: Friday-sampled remains primary; both all-days constructions remain disclosed sensitivity checks | working decision |
+| 1 | Tail aggregation: Friday-sampled remains primary; both all-days constructions remain disclosed sensitivity checks | **ratified by Murad, 6 Oct 2026** (working decision from 14 Sep) |
 | 2 | Execution timing: first post-signal executable open | **ruled by Murad** |
-| 3 | Entry symmetrization: remains in the main text | working decision |
-| 4 | Raw Yahoo files: remain uncommitted absent affirmative redistribution permission | working decision |
-| 5 | Versioning: new corrected version under the existing concept DOI, with explicit supersession | working decision |
-| 6 | Repository convention: manuscript outputs must originate from the canonical pipeline; standalone scripts may not independently define published results | working decision |
+| 3 | Entry symmetrization: remains in the main text | **ratified by Murad, 6 Oct 2026** (working decision from 14 Sep) |
+| 4 | Raw Yahoo files: remain uncommitted absent affirmative redistribution permission | **ratified by Murad, 6 Oct 2026** (working decision from 14 Sep) |
+| 5 | Versioning: new corrected version under the existing concept DOI, with explicit supersession | **ratified by Murad, 6 Oct 2026** (working decision from 14 Sep) |
+| 6 | Repository convention: manuscript outputs must originate from the canonical pipeline; standalone scripts may not independently define published results | **ratified by Murad, 6 Oct 2026** (working decision from 14 Sep) |
 
 The detail behind each follows, unchanged from when these were open questions.
 
