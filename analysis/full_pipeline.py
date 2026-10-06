@@ -813,7 +813,7 @@ def main() -> int:
     log("=" * 80)
     log("ALPHA-ASYMMETRY CORRECTED REPLICATION PIPELINE")
     log(f"Generated UTC: {datetime.now(timezone.utc).isoformat()}")
-    log("Timing: Friday-close signal, one shift, next Friday-close return")
+    log("Timing: Friday-close signal; position realized from the first trading-session open after it, one lag")
     log("=" * 80)
 
     datasets, manifest = load_datasets(args.cache_dir, refresh=args.refresh, offline=args.offline)
@@ -1325,9 +1325,24 @@ def main() -> int:
                     "pricing_alpha": 0.8050, "coverage_alpha": 3.4533,
                     "hedge_alpha": 1.4018}
     f_full, f_pos = factors["full"]["coef"], factors["in_position"]["coef"]
+
+    # Notes state what this run shows; nothing in them is a hard-coded result.
+    # Several notes had carried figures from earlier runs (a Friday-close Sharpe
+    # attribution, p = 0.038 and p = 0.00019 for momentum, a 0.38pp cost drag, a
+    # -13.32% GBP/USD figure) and sign-flip claims that no longer held.
+    def flip(before, after):
+        return "Sign flips." if np.sign(before) != np.sign(after) else "Same sign."
+
+    weekly_minus_entry = base.metrics["return"] - entry_sized.metrics["return"]
+    wild_mom_p = factors["in_position"]["wild_cluster_bootstrap"]["mom"]["p"]
+    cost_drag = base.metrics["return"] - costs["rows"][-1]["net_return"]
+    gbp_frozen = run_asymmetry_strategy(build_weekly_alphas(datasets["GBPUSD"]), 0.75,
+                                        sizing="entry").metrics["return"]
     comparisons = [
         ("Baseline cumulative return (%)", published["return"], base.metrics["return"], "implementation",
-         "Sign flips. Holding through unsignalled weeks and removing the second execution lag; weekly sizing accounts for +0.93pp of the move."),
+         f"{flip(published['return'], base.metrics['return'])} Holding through unsignalled weeks, removing the second "
+         f"execution lag and restoring execution at the first open after the signal; weekly rather than frozen sizing "
+         f"accounts for {weekly_minus_entry:+.2f}pp of the corrected figure."),
         ("Baseline Sharpe", published["sharpe"], base.metrics["sharpe"], "implementation",
          "Follows the corrected return series."),
         ("Baseline maximum drawdown (%)", published["mdd"], base.metrics["mdd"], "implementation",
@@ -1353,35 +1368,45 @@ def main() -> int:
         ("Walk-forward pooled hit rate (%)", published["wf_hit"], None, "reporting",
          "WITHHELD, same reason. 50% would mean one profitable and one unprofitable week."),
         ("Low-VIX strategy return (%)", published["low_vix"], regimes["low_vix"]["strategy_return"], "implementation",
-         "Sign flips. Also fixes regime attribution: the published routine reran a stateful strategy on filtered, nonconsecutive dates."),
+         f"{flip(published['low_vix'], regimes['low_vix']['strategy_return'])} Also fixes regime attribution: the published routine reran a stateful strategy on filtered, nonconsecutive dates."),
         ("High-VIX strategy return (%)", published["high_vix"], regimes["high_vix"]["strategy_return"], "implementation",
-         "Sign flips, same causes."),
-        ("Pre-COVID strategy return (%)", published["pre_covid"], regimes["pre_covid"]["strategy_return"], "implementation", "Sign flips."),
+         f"{flip(published['high_vix'], regimes['high_vix']['strategy_return'])} Same causes."),
+        ("Pre-COVID strategy return (%)", published["pre_covid"], regimes["pre_covid"]["strategy_return"], "implementation",
+         flip(published["pre_covid"], regimes["pre_covid"]["strategy_return"])),
         ("COVID-2020 strategy return (%)", published["covid_2020"], regimes["covid_2020"]["strategy_return"], "implementation",
-         "Sign flips. Identical under both sizing specifications: 2020 holds one episode whose notional was never revised."),
-        ("Post-COVID strategy return (%)", published["post_covid"], regimes["post_covid"]["strategy_return"], "implementation", "Sign flips."),
+         f"{flip(published['covid_2020'], regimes['covid_2020']['strategy_return'])} Identical under both sizing specifications: 2020 holds one episode whose notional was never revised."),
+        ("Post-COVID strategy return (%)", published["post_covid"], regimes["post_covid"]["strategy_return"], "implementation",
+         flip(published["post_covid"], regimes["post_covid"]["strategy_return"])),
         ("Rate-hike strategy return (%)", published["rate_hike"], regimes["rate_hike_2022_2025"]["strategy_return"], "implementation",
-         "Remains positive; the only subsample that does."),
+         flip(published["rate_hike"], regimes["rate_hike_2022_2025"]["strategy_return"])),
         ("Full-sample factor intercept", published["intercept"], f_full["const"]["b"], "implementation",
-         "Sign flips. Matches the corrected strategy's own mean weekly return, as it must."),
+         f"{flip(published['intercept'], f_full['const']['b'])} Matches the corrected strategy's own mean weekly return, as it must."),
         ("In-position factor sample", published["n_in_position"], factors["n_in_position"], "implementation",
          "25 to 55 weeks, the same exposure defect."),
         ("Momentum loading, full sample", published["mom_b_full"], f_full["mom"]["b"], "implementation",
-         "Was insignificant, now significant and negative."),
-        ("Momentum t-stat, full sample", published["mom_t_full"], f_full["mom"]["t"], "implementation", "p = 0.710 published, p = 0.038 corrected."),
+         f"Negative in both; p = {published['mom_p_full']:.3f} published, corrected p = {f_full['mom']['p']:.3f} under Newey-West (4 lags)."),
+        ("Momentum t-stat, full sample", published["mom_t_full"], f_full["mom"]["t"], "implementation",
+         f"p = {published['mom_p_full']:.3f} published, corrected p = {f_full['mom']['p']:.3f} under Newey-West (4 lags)."),
         ("Momentum loading, in-position", published["mom_b_inpos"], f_pos["mom"]["b"], "implementation",
-         "NEW FINDING: while invested the strategy is close to a one-for-one short momentum position."),
-        ("Momentum t-stat, in-position", published["mom_t_inpos"], f_pos["mom"]["t"], "implementation", "p = 0.609 published, p = 0.00019 corrected."),
+         "A property of the entry rules, not a factor exposure: the in-position weeks are selected by conditions on the same prices the momentum proxy is built from."),
+        ("Momentum t-stat, in-position", published["mom_t_inpos"], f_pos["mom"]["t"], "implementation",
+         f"p = {published['mom_p_inpos']:.3f} published; corrected CR2 p = {f_pos['mom']['p']:.3f}, "
+         f"restricted wild cluster bootstrap p = {wild_mom_p:.4f} (15 episode clusters)."),
         ("Retail-wide net return (%)", published["retail_wide"], costs["rows"][-1]["net_return"], "implementation",
-         "Sign flips. Cost drag is 0.38pp; the gross return was already negative."),
+         f"{flip(published['retail_wide'], costs['rows'][-1]['net_return'])} Cost drag is {cost_drag:.2f}pp; the gross return was already negative."),
         ("Break-even round-trip cost (pips)", published["breakeven"], None, "implementation",
          "NO LONGER EXISTS. A break-even cost presumes a positive gross return to consume, and there is none."),
         ("White Reality Check p-value", published["rc_p"], snooping["white_rc_p"], "implementation",
-         "Unchanged. The maximum is attained by the seeded random candidate, which no change to the asymmetry rule affects."),
-        ("Hansen SPA p-value", published["spa_p"], snooping["spa_p"], "implementation", "Essentially unchanged, same reason."),
-        ("Annualized return (%)", published["annualized"], inference["annualized_return"], "implementation", "Sign flips."),
+         f"Thirteen-candidate universe including the seeded random sequence. The manuscript's formal universe of twelve "
+         f"real candidates gives p = {snooping['real_only']['white_rc_p']:.3f}."),
+        ("Hansen SPA p-value", published["spa_p"], snooping["spa_p"], "implementation",
+         f"Thirteen-candidate universe including the seeded random sequence. The formal universe of twelve gives "
+         f"p = {snooping['real_only']['spa_p']:.3f}."),
+        ("Annualized return (%)", published["annualized"], inference["annualized_return"], "implementation",
+         flip(published["annualized"], inference["annualized_return"])),
         ("GBP/USD strategy return (%)", published["gbpusd"], cross_market["GBPUSD"]["strategy_return"], "implementation",
-         "SIGN FLIPS, +17.18% to -13.32%. Attributable to the implementation fixes, not to sizing: with the fixes and frozen sizing the figure is -14.11%. The published claim that FX offers more favourable conditions rested on this number."),
+         f"{flip(published['gbpusd'], cross_market['GBPUSD']['strategy_return'])} With the fixes and frozen sizing the figure is "
+         f"{gbp_frozen:.2f}%, so sizing does not account for it. The published claim that FX offers more favourable conditions rested on this number."),
         ("SPY strategy return (%)", published["spy"], cross_market["SPY"]["strategy_return"], "implementation",
          "Stays positive and still trails buy-and-hold by roughly 280 percentage points."),
         ("GLD strategy return (%)", published["gld"], cross_market["GLD"]["strategy_return"], "implementation",
