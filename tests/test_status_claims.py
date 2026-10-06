@@ -43,6 +43,14 @@ def _git(*args: str) -> str:
 
 # ---------------------------------------------------------------- Guard A
 
+# Guard A reads Git history. A source snapshot without it (the Zenodo code zip
+# is a `git archive`) cannot run it, so it is skipped there; it runs in every clone.
+needs_git = pytest.mark.skipif(
+    not (ROOT / ".git").exists(),
+    reason="needs a Git clone: reads commit history")
+
+
+@needs_git
 def test_pr_document_carries_a_reviewed_at_stamp():
     stamp = REVIEWED_AT.search(PR_DOC.read_text())
     assert stamp, (
@@ -56,6 +64,7 @@ def test_pr_document_carries_a_reviewed_at_stamp():
         f"reviewed-at names {sha}, which is not a commit in this repository")
 
 
+@needs_git
 def test_pr_document_is_not_stale_against_the_work_it_describes():
     sha = REVIEWED_AT.search(PR_DOC.read_text()).group(1)
     newer = _git("log", "--oneline", f"{sha}..HEAD", "--", *WATCHED)
