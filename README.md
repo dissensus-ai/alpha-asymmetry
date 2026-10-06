@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This paper investigates whether distributional asymmetries in foreign-exchange signals are exploitable in EUR/JPY. The analysis-ready sample contains 504 Friday observations from January 2016 through August 2025. Coverage alpha is the only signal whose skewness interval excludes zero (1.75, 95% block-bootstrap CI [1.18, 2.16]). Under the corrected one-lag chronology (execution at the first trading-session open after each Friday signal), four-return-period holding rule, and equation-consistent asymmetry index, the headline strategy returns -0.73% gross (15 directional episodes; Sharpe +0.005). Its stationary-bootstrap Sharpe interval includes zero, and walk-forward selection produces only one OOS episode. Four pre-specified readings of the entry rule span 9.04 percentage points and change sign. White's Reality Check (p = 0.30) and Hansen's SPA (p = 0.58) find no statistically superior candidate against a zero-return benchmark. These are negative results; no parameter search was performed to make the strategy profitable.
+This paper investigates whether distributional asymmetries in foreign-exchange signals are exploitable in EUR/JPY. The analysis-ready sample contains 504 Friday observations from January 2016 through August 2025. Coverage alpha is the only signal whose skewness interval excludes zero (1.75, 95% block-bootstrap CI [1.18, 2.16]). Under the corrected one-lag chronology (execution at the first trading-session open after each Friday signal), four-return-period holding rule, and equation-consistent asymmetry index, the headline strategy returns -0.73% gross (15 directional episodes; Sharpe +0.005). Its stationary-bootstrap Sharpe interval includes zero, and walk-forward selection produces only one OOS episode. Four pre-specified readings of the entry rule span 9.04 percentage points and change sign. White's Reality Check (p = 0.29) and Hansen's SPA (p = 0.55) find no statistically superior candidate against a zero-return benchmark. These are negative results; no parameter search was performed to make the strategy profitable.
 
 ## Key Findings
 
@@ -20,10 +20,10 @@ This paper investigates whether distributional asymmetries in foreign-exchange s
 | Skewness robust to serial dependence? | Only coverage alpha; the tail signal skews *negative* and fragilely |
 | Pareto-type heavy tails in weekly absolute returns established? | No -- GPD shape -0.25, wide CI [-1.49, 0.27] |
 | Corrected baseline | -0.73% gross; 15 episodes; Sharpe +0.005 |
-| Strategy returns distinguishable from zero? | No -- stationary-bootstrap Sharpe interval [-0.51, 0.49] |
+| Strategy returns distinguishable from zero? | No -- stationary-bootstrap Sharpe interval [-0.73, 0.64] |
 | Robust to the entry-rule specification? | No -- four pre-specified rules span 9.04 pp and change sign |
 | Do transaction costs rescue the result? | No -- they monotonically worsen an already negative gross return |
-| Survives data-snooping correction? | No -- RC p = 0.30, SPA p = 0.58 against zero return |
+| Survives data-snooping correction? | No -- RC p = 0.29, SPA p = 0.55 against zero return |
 | Cross-market generalization? | No -- the tail-skew signature reverses sign in GBP/USD, SPY, and GLD |
 
 ## Why This Matters
