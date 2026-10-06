@@ -10,7 +10,7 @@
     "evt_input": "absolute Friday-close-to-Friday-close EURJPY returns, independent of the execution convention, separate from daily tail-alpha flags"
   },
   "data_manifest": {
-    "manifest_generated_at_utc": "2026-10-06T18:00:03.285287+00:00",
+    "manifest_generated_at_utc": "2026-10-06T18:29:35.444767+00:00",
     "requested_start": "2014-06-01",
     "requested_end_exclusive": "2025-09-01",
     "original_snapshot_available": false,
@@ -983,6 +983,412 @@
         "net_return_0p7_pips": -8.160089634033218,
         "net_return_1p3_pips": -8.273017641692991,
         "net_return_2p0_pips": -8.404597054711749
+      }
+    },
+    "paired_contrasts": {
+      "statistic": "difference in geometric annualized return, later timing minus earlier, percentage points",
+      "common_sample_n": 502,
+      "reps": 2000,
+      "seed": 42,
+      "interval": "95% percentile interval; secondary contrasts also get max-statistic simultaneous intervals",
+      "primary": [
+        "monday_open_minus_friday_close",
+        "monday_close_minus_monday_open",
+        "tuesday_open_minus_monday_close"
+      ],
+      "secondary": [
+        "monday_close_minus_friday_close",
+        "tuesday_open_minus_friday_close",
+        "tuesday_open_minus_monday_open"
+      ],
+      "estimate": {
+        "monday_open_minus_friday_close": 0.6333849206342945,
+        "monday_close_minus_monday_open": -0.019703672695636776,
+        "tuesday_open_minus_monday_close": -0.7675640097659087,
+        "monday_close_minus_friday_close": 0.6136812479386577,
+        "tuesday_open_minus_friday_close": -0.1538827618272509,
+        "tuesday_open_minus_monday_open": -0.7872676824615454
+      },
+      "schemes": {
+        "moving_block_4": {
+          "kind": "moving_block",
+          "block_weeks": 4,
+          "secondary_max_statistic_critical_value": 2.375231956898391,
+          "contrasts": {
+            "monday_open_minus_friday_close": {
+              "percentile_ci": [
+                -0.6741446755179858,
+                2.0340370014444815
+              ],
+              "bootstrap_se": 0.6937784224961259,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_monday_open": {
+              "percentile_ci": [
+                -0.08206332547714079,
+                0.04199267626417034
+              ],
+              "bootstrap_se": 0.03164755872014762,
+              "percentile_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_close": {
+              "percentile_ci": [
+                -2.359090438715775,
+                0.45408722762436327
+              ],
+              "bootstrap_se": 0.7049352361650681,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_friday_close": {
+              "percentile_ci": [
+                -0.6881812262048278,
+                2.0042651806363865
+              ],
+              "bootstrap_se": 0.6913244252862414,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -1.028374619585637,
+                2.2557371154629524
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_friday_close": {
+              "percentile_ci": [
+                -1.9621559259442998,
+                1.4534652210285237
+              ],
+              "bootstrap_se": 0.863569246870754,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -2.2050600339893416,
+                1.8972945103348398
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_open": {
+              "percentile_ci": [
+                -2.385702329572214,
+                0.4416819407710831
+              ],
+              "bootstrap_se": 0.7087115190394759,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -2.4706219307061112,
+                0.8960865657830204
+              ],
+              "simultaneous_ci_excludes_zero": false
+            }
+          },
+          "any_primary_excludes_zero": false,
+          "any_secondary_simultaneous_excludes_zero": false
+        },
+        "moving_block_8": {
+          "kind": "moving_block",
+          "block_weeks": 8,
+          "secondary_max_statistic_critical_value": 2.4250748338694175,
+          "contrasts": {
+            "monday_open_minus_friday_close": {
+              "percentile_ci": [
+                -0.3577086444845609,
+                2.0688443479965892
+              ],
+              "bootstrap_se": 0.605963138573307,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_monday_open": {
+              "percentile_ci": [
+                -0.07531170343662213,
+                0.03841033204730225
+              ],
+              "bootstrap_se": 0.028553414939789235,
+              "percentile_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_close": {
+              "percentile_ci": [
+                -2.0313515368652806,
+                0.3557495360628573
+              ],
+              "bootstrap_se": 0.6135607871331048,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_friday_close": {
+              "percentile_ci": [
+                -0.3756940673279485,
+                2.0501696764801807
+              ],
+              "bootstrap_se": 0.6063899997597251,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -0.8568598799887337,
+                2.084222375866049
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_friday_close": {
+              "percentile_ci": [
+                -1.4195308388398766,
+                1.4522146747000821
+              ],
+              "bootstrap_se": 0.7313026738768637,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -1.927346472187447,
+                1.619580948532945
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_open": {
+              "percentile_ci": [
+                -2.0220758292790064,
+                0.3426246374465837
+              ],
+              "bootstrap_se": 0.6121228098383394,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -2.2717113038379377,
+                0.6971759389148466
+              ],
+              "simultaneous_ci_excludes_zero": false
+            }
+          },
+          "any_primary_excludes_zero": false,
+          "any_secondary_simultaneous_excludes_zero": false
+        },
+        "moving_block_13": {
+          "kind": "moving_block",
+          "block_weeks": 13,
+          "secondary_max_statistic_critical_value": 2.5024532962817556,
+          "contrasts": {
+            "monday_open_minus_friday_close": {
+              "percentile_ci": [
+                -0.1306658299358679,
+                1.98754651033292
+              ],
+              "bootstrap_se": 0.5358247410418138,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_monday_open": {
+              "percentile_ci": [
+                -0.07295459419846828,
+                0.03980344130559809
+              ],
+              "bootstrap_se": 0.02864815995957136,
+              "percentile_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_close": {
+              "percentile_ci": [
+                -1.900211487140007,
+                0.2506097254563013
+              ],
+              "bootstrap_se": 0.5440108690050501,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_friday_close": {
+              "percentile_ci": [
+                -0.15076090702989264,
+                1.9594358089594013
+              ],
+              "bootstrap_se": 0.5356702719212084,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -0.7268085897507146,
+                1.95417108562803
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_friday_close": {
+              "percentile_ci": [
+                -1.2223141018241155,
+                1.5637954220105115
+              ],
+              "bootstrap_se": 0.6998825170774315,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -1.9053060736976415,
+                1.5975405500431397
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_open": {
+              "percentile_ci": [
+                -1.8999522362873815,
+                0.2542245051728353
+              ],
+              "bootstrap_se": 0.5412378908406936,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -2.141690226468424,
+                0.5671548615453335
+              ],
+              "simultaneous_ci_excludes_zero": false
+            }
+          },
+          "any_primary_excludes_zero": false,
+          "any_secondary_simultaneous_excludes_zero": false
+        },
+        "stationary_4": {
+          "kind": "stationary",
+          "block_weeks": 4,
+          "secondary_max_statistic_critical_value": 2.3314027756756834,
+          "contrasts": {
+            "monday_open_minus_friday_close": {
+              "percentile_ci": [
+                -0.6007468937279409,
+                2.0045548855768254
+              ],
+              "bootstrap_se": 0.6632130922904659,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_monday_open": {
+              "percentile_ci": [
+                -0.08212320156054692,
+                0.040304161735485934
+              ],
+              "bootstrap_se": 0.030638910909177784,
+              "percentile_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_close": {
+              "percentile_ci": [
+                -2.2683729540108746,
+                0.5010611423372348
+              ],
+              "bootstrap_se": 0.700717610545634,
+              "percentile_ci_excludes_zero": false
+            },
+            "monday_close_minus_friday_close": {
+              "percentile_ci": [
+                -0.6390416267575089,
+                1.9688809511629541
+              ],
+              "bootstrap_se": 0.6619365485461955,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -0.9295594586631244,
+                2.15692195454044
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_friday_close": {
+              "percentile_ci": [
+                -1.883249547680733,
+                1.500892641408806
+              ],
+              "bootstrap_se": 0.8903612945995922,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -2.229673555410935,
+                1.9219080317564332
+              ],
+              "simultaneous_ci_excludes_zero": false
+            },
+            "tuesday_open_minus_monday_open": {
+              "percentile_ci": [
+                -2.306982718523417,
+                0.4843529698102468
+              ],
+              "bootstrap_se": 0.7041570455180431,
+              "percentile_ci_excludes_zero": false,
+              "simultaneous_ci": [
+                -2.4289413728938998,
+                0.8544060079708089
+              ],
+              "simultaneous_ci_excludes_zero": false
+            }
+          },
+          "any_primary_excludes_zero": false,
+          "any_secondary_simultaneous_excludes_zero": false
+        }
+      }
+    },
+    "weekend_gap_test": {
+      "gap_definition": "first trading-session open after the decision Friday over that Friday's close, minus one",
+      "sample": "decision weeks in which the rule holds a position",
+      "n_weeks": 55,
+      "n_episodes": 15,
+      "regressions": {
+        "signed_position": {
+          "b": -0.00013755161064102304,
+          "b_bps": -1.3755161064102304,
+          "se": 0.00024756456989054364,
+          "t": -0.5556191287866398,
+          "cr2_dof": 10.180270893458816,
+          "cr2_p": 0.5904719039118154,
+          "cr2_ci": [
+            -0.0006878386981242865,
+            0.0004127354768422404
+          ],
+          "wild_cluster_bootstrap_p": 0.5765,
+          "wild_reps": 9999
+        },
+        "direction": {
+          "b": -0.0002343457956917064,
+          "b_bps": -2.343457956917064,
+          "se": 0.00035562742099156535,
+          "t": -0.658964359492584,
+          "cr2_dof": 10.303566566839102,
+          "cr2_p": 0.5243714012416709,
+          "cr2_ci": [
+            -0.0010235799871327785,
+            0.0005548883957493656
+          ],
+          "wild_cluster_bootstrap_p": 0.5138,
+          "wild_reps": 9999
+        }
+      },
+      "power": {
+        "method": "episodes resampled with replacement; a slope delta on the signed position injected into the fitted regression's residuals; rejection at 5% by the restricted wild cluster bootstrap-t",
+        "deltas_bps_per_unit_position": [
+          0.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          15.0,
+          16.0,
+          17.0,
+          18.0,
+          19.0,
+          20.0
+        ],
+        "simulations_per_delta": 1000,
+        "wild_reps_per_test": 999,
+        "rejection_rate": [
+          0.038,
+          0.046,
+          0.089,
+          0.161,
+          0.258,
+          0.392,
+          0.518,
+          0.677,
+          0.798,
+          0.87,
+          0.917,
+          0.935,
+          0.948,
+          0.955,
+          0.959,
+          0.963,
+          0.966,
+          0.97,
+          0.972,
+          0.974,
+          0.977
+        ],
+        "target": 0.8,
+        "detectable_effect_bps_per_unit_position": 8.027777777777779,
+        "detectable_over_observed": 5.836193222577646,
+        "superseded_figure_note": "An uncommitted script reported 8.8 bps at 80% power, about six times the point estimate; its simulation settings were not recorded."
       }
     }
   },

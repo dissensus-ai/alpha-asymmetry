@@ -20,8 +20,8 @@
       "match": true
     },
     "sharpe": {
-      "committed": 0.004815609709656346,
-      "recomputed": 0.004815609709656346,
+      "committed": 0.004815609709656428,
+      "recomputed": 0.004815609709656428,
       "match": true
     },
     "mdd": {
@@ -55,10 +55,84 @@
       "match": true
     }
   },
+  "invariant_I3_friday_close_control_reproduces_execution_grid": {
+    "committed": -6.640684042044819,
+    "recomputed": -6.640684042044819,
+    "match": true
+  },
+  "equal_threshold_shortfall_vs_published_pp": {
+    "monday_open": 0.9201052234817597,
+    "friday_close": 1.2170457766360059
+  },
+  "friday_close_execution": {
+    "note": "Robustness timing only. Same rules, sizing and sample; each position earns the Friday-close-to-Friday-close return.",
+    "variants": {
+      "published": {
+        "return": -6.640684042044819,
+        "sharpe": -0.1533055422786252,
+        "mdd": -12.560470113825684,
+        "hit": 47.27272727272727,
+        "in_position_weeks": 55,
+        "holding_episodes": 15,
+        "closed_episodes": 15,
+        "execution_legs": 61,
+        "reversals": 1,
+        "resizes": 31,
+        "turnover": 51.996835180843775,
+        "net_return": -7.0228907995369845,
+        "mean_gross_return_per_in_position_week_bps": -11.022696685424147
+      },
+      "pure_fast": {
+        "return": -1.6522470160229452,
+        "sharpe": -0.019688548366245194,
+        "mdd": -8.590876540344972,
+        "hit": 45.45454545454545,
+        "in_position_weeks": 44,
+        "holding_episodes": 16,
+        "closed_episodes": 16,
+        "execution_legs": 50,
+        "reversals": 9,
+        "resizes": 18,
+        "turnover": 64.26966082593955,
+        "net_return": -2.162605956150654,
+        "mean_gross_return_per_in_position_week_bps": -1.8295165548114436
+      },
+      "pure_pricing": {
+        "return": -4.1319085355418395,
+        "sharpe": -0.10567694561292063,
+        "mdd": -16.013847731388164,
+        "hit": 47.05882352941176,
+        "in_position_weeks": 51,
+        "holding_episodes": 14,
+        "closed_episodes": 14,
+        "execution_legs": 65,
+        "reversals": 2,
+        "resizes": 37,
+        "turnover": 43.64458022047086,
+        "net_return": -4.455819599666411,
+        "mean_gross_return_per_in_position_week_bps": -7.086737301280129
+      },
+      "equal_threshold": {
+        "return": -7.857729818680825,
+        "sharpe": -0.22080460864198964,
+        "mdd": -13.700344688388032,
+        "hit": 46.51162790697674,
+        "in_position_weeks": 43,
+        "holding_episodes": 12,
+        "closed_episodes": 12,
+        "execution_legs": 51,
+        "reversals": 1,
+        "resizes": 27,
+        "turnover": 40.203401293791885,
+        "net_return": -8.145728324167257,
+        "mean_gross_return_per_in_position_week_bps": -17.61181029582807
+      }
+    }
+  },
   "variants": {
     "published": {
       "return": -0.7300549497777253,
-      "sharpe": 0.004815609709656346,
+      "sharpe": 0.004815609709656428,
       "mdd": -10.641203020044077,
       "hit": 49.09090909090909,
       "in_position_weeks": 55,
@@ -69,11 +143,11 @@
       "resizes": 31,
       "turnover": 51.996835180843775,
       "net_return": -1.1357820107034011,
-      "mean_gross_return_per_in_position_week_bps": 0.3743657736883977
+      "mean_gross_return_per_in_position_week_bps": 0.3743657736884002
     },
     "pure_fast": {
       "return": -3.4754716733000124,
-      "sharpe": -0.06724254921746685,
+      "sharpe": -0.0672425492174672,
       "mdd": -12.051209949381725,
       "hit": 52.27272727272727,
       "in_position_weeks": 44,
@@ -82,14 +156,14 @@
       "execution_legs": 50,
       "reversals": 9,
       "resizes": 18,
-      "turnover": 64.26966082593958,
-      "net_return": -3.974416241232348,
-      "mean_gross_return_per_in_position_week_bps": -6.139186886562953
+      "turnover": 64.26966082593955,
+      "net_return": -3.974416241232337,
+      "mean_gross_return_per_in_position_week_bps": -6.139186886562991
     },
     "pure_pricing": {
-      "return": 5.565997679390677,
-      "sharpe": 0.17810051499662705,
-      "mdd": -11.973239997735153,
+      "return": 5.565997679390655,
+      "sharpe": 0.17810051499662724,
+      "mdd": -11.973239997735163,
       "hit": 52.94117647058824,
       "in_position_weeks": 51,
       "holding_episodes": 14,
@@ -97,13 +171,13 @@
       "execution_legs": 65,
       "reversals": 2,
       "resizes": 37,
-      "turnover": 43.64458022047085,
-      "net_return": 5.210323126921534,
-      "mean_gross_return_per_in_position_week_bps": 11.76136197346086
+      "turnover": 43.64458022047086,
+      "net_return": 5.210323126921512,
+      "mean_gross_return_per_in_position_week_bps": 11.761361973460877
     },
     "equal_threshold": {
       "return": -1.650160173259485,
-      "sharpe": -0.02895800203447315,
+      "sharpe": -0.028958002034472952,
       "mdd": -10.82652474120408,
       "hit": 51.162790697674424,
       "in_position_weeks": 43,
@@ -112,9 +186,9 @@
       "execution_legs": 51,
       "reversals": 1,
       "resizes": 27,
-      "turnover": 40.20340129379188,
+      "turnover": 40.203401293791885,
       "net_return": -1.956904916988611,
-      "mean_gross_return_per_in_position_week_bps": -2.377740193817004
+      "mean_gross_return_per_in_position_week_bps": -2.3777401938169818
     }
   }
 }
