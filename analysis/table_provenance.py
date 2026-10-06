@@ -145,7 +145,30 @@ def _exec_row(key: str) -> dict:
     return {"label": [], "cells": [f"{_ET}.{key}.{col}" for col in _EXEC_COLUMNS]}
 
 
+_PC = "execution_timing.paired_contrasts"
+_PC_SCHEMES = ("moving_block_4", "moving_block_8", "moving_block_13", "stationary_4")
+
+
+def _contrast_row(name: str, interval: str) -> dict:
+    """Role (text), estimate, then one interval per bootstrap scheme."""
+    return {"label": [], "cells": [NOT_NUMERIC, f"{_PC}.estimate.{name}"] + [
+        [f"{_PC}.schemes.{s}.contrasts.{name}.{interval}[0]",
+         f"{_PC}.schemes.{s}.contrasts.{name}.{interval}[1]"] for s in _PC_SCHEMES]}
+
+
 PROVENANCE = {
+    # Added October 2026 with the pipeline function that now computes these
+    # contrasts; before that the three primary intervals were printed from an
+    # uncommitted script. Primary rows carry percentile intervals, secondary rows
+    # simultaneous (max-statistic) intervals, as the table note states.
+    "tab:contrasts": {
+        "Monday open - Friday close": _contrast_row("monday_open_minus_friday_close", "percentile_ci"),
+        "Monday close - Monday open": _contrast_row("monday_close_minus_monday_open", "percentile_ci"),
+        "Tuesday open - Monday close": _contrast_row("tuesday_open_minus_monday_close", "percentile_ci"),
+        "Monday close - Friday close": _contrast_row("monday_close_minus_friday_close", "simultaneous_ci"),
+        "Tuesday open - Friday close": _contrast_row("tuesday_open_minus_friday_close", "simultaneous_ci"),
+        "Tuesday open - Monday open": _contrast_row("tuesday_open_minus_monday_open", "simultaneous_ci"),
+    },
     # Formerly the only table in the manuscript with no canonical source at all:
     # the execution-timing grid was computed by a standalone script that was never
     # committed.  The computation now lives in full_pipeline.execution_timing_grid
