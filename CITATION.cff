@@ -35,10 +35,12 @@ title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploit
 #           non-executable final week, the execution contrasts and weekend-gap
 #           test are pipeline output, and robustness detail moved to appendices.
 #           See docs/CORRECTION_CHANGELOG.md.
-# Depositing v3.1.1 mints a new Zenodo version DOI under the concept DOI below;
-# record it here after publication. The SSRN record needs a separate revision.
+#           Merged into master 9 Oct 2026 (f69f7e5, tag v3.1.1) and published
+#           on Zenodo the same day as record 23195797 under the concept DOI
+#           below (version DOI 10.5281/zenodo.23195797). The SSRN record needs
+#           a separate revision.
 version: "3.1.1"
-date-released: "2026-10-06"
+date-released: "2026-10-09"
 # Two licences (9 Oct 2026): MIT for the software (analysis/, tests/,
 # pyproject.toml, requirements.txt; see LICENSE) and CC BY 4.0 for the paper
 # and documentation (paper/, docs/, README.md, this file, _archive/; see
@@ -56,6 +58,9 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.18638784"
     description: "Zenodo archive (concept DOI, resolves to latest version)"
+  - type: doi
+    value: "10.5281/zenodo.23195797"
+    description: "Zenodo archive (v3.1.1, 9 Oct 2026; this version)"
   - type: doi
     value: "10.5281/zenodo.21315494"
     description: "Zenodo archive (v3.0.0, 11 Jul 2026; strategy figures superseded by v3.1.1)"
