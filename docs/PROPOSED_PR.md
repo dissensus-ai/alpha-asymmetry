@@ -1,6 +1,6 @@
 # Proposed pull request
 
-<!-- reviewed-at: 5fa7654 -->
+<!-- reviewed-at: 030b729 -->
 
 > **Status, 6 Oct 2026.** This pull request (PR #2) was merged into
 > `dissensus-ai/alpha-asymmetry` master on 29 Sep 2026 as `ab08f6a` (v3.1.0).
@@ -11,6 +11,12 @@
 > figure is marked "(6 Oct)" with its 14 Sep value. The body published on
 > PR #2 is the 14 Sep text, so `pytest -m network` reports a divergence until
 > a pull request for `polish-oct2026` takes over this document.
+>
+> **9 Oct 2026.** Re-stamped at `030b729` after the changes from Tofik's
+> review (`611aae7`: his ORCID on the title page, "conceptualization" in the
+> CRediT statement, one Limitations sentence on the Friday signal day) and the
+> PDF rebuild. No figure changes; the status lines below still hold (106
+> tests, 40 pages, 15 of 23 tables).
 
 
 ## Title
