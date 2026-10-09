@@ -547,9 +547,47 @@ been published or sent.
 - **Restored heading.** The release entry above had absorbed the "Standing
   limitations" heading (lost in `096e069`); it is back.
 
+## Pre-release changes to v3.1.1 after Tofik's review (9 Oct 2026)
+
+Branch `polish-oct2026`. Tofik reviewed the PDF and the diff from `ab08f6a`
+and reran the pipeline from cached data (his report: 7 of 8 input hashes
+match, SPY drifting as documented; the 1,050 values in
+`analysis/full_pipeline_results.json` match apart from the SPY cross-market
+row in the sixth digit; 106 tests pass; the PDF rebuilds identically; the
+bootstrap fix confirmed, 1,298 of 2,000 zero draws before and 0 after). He
+confirmed his CRediT line and the `dd1b597` p-value attribution, and
+supplied his ORCID. No figure in the paper changes.
+
+- **ORCID** (`611aae7`). T. Israfilov's ORCID 0009-0006-9095-7739 is on the
+  title page and in `CITATION.cff` and `README.md`. The public ORCID record,
+  read 9 Oct 2026, names Tofik Israfilov, the byline form.
+- **CRediT spelling** (`611aae7`). "conceptualisation" → "conceptualization",
+  as Tofik confirmed. The role lists are unchanged.
+- **Signal day** (`611aae7`). One Limitations sentence: the weekly signals are
+  read at the Friday close, a choice inherited from the original
+  specification and not varied; the execution timings vary only when a
+  Friday signal is acted on; a test of other signal days is left for a later
+  version. The test is pre-specified, and marked NOT RUN, in
+  `docs/REVIEW_NOTES.md` ("PRE-SPECIFICATION — weekday signal-day test").
+- **PDF** (`030b729`). Rebuilt: 40 pages, 0 overfull, 0 underfull, 0 LaTeX
+  warnings, 0 same-identifier warnings, 0 undefined references or citations.
+  sha256 `e8beef3a747291019d1642b41d3f5c8cbd9c7db5571d35ecfb4051453143e1a8`.
+  The text differs from the `5fa7654` PDF in the three places above only.
+- **`docs/PROPOSED_PR.md`** re-stamped at `030b729` (`d93c3aa`).
+- **Version.** It stays 3.1.1. No DOI has been minted for it, nothing has
+  been submitted, and the only person it was sent to for review is the
+  co-author who asked for these changes. The changes add no figure and
+  withdraw none. The branch is public on GitHub, so the `5fa7654` PDF, also
+  labelled 3.1.1, can be found in its history; this entry and the sha256
+  above say which file is the release.
+
 ## Standing limitations
 
 Unchanged by this work, and in several cases sharpened by it.
+
+- The weekly signals are read at the Friday close only, as in the original
+  specification. No other signal day has been tested (9 Oct 2026; design
+  pre-specified in `docs/REVIEW_NOTES.md`, not run).
 
 - Yahoo Finance quotes are indicative mid-rates, not executable bid/ask. End-of-
   bar fills are an assumption.
@@ -594,6 +632,8 @@ Unchanged by this work, and in several cases sharpened by it.
    toward zero.
 5. Add financing/carry to the cost model.
 6. Add a per-order or minimum-ticket cost component (d).
+7. Run the weekday signal-day test pre-specified in `docs/REVIEW_NOTES.md`
+   (9 Oct 2026). Not run.
 
 ---
 
