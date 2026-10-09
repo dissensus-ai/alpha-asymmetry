@@ -581,6 +581,46 @@ supplied his ORCID. No figure in the paper changes.
   labelled 3.1.1, can be found in its history; this entry and the sha256
   above say which file is the release.
 
+## Pre-release changes to v3.1.1: licence and CRediT (9 Oct 2026, later)
+
+Branch `polish-oct2026`. MF's decisions of 9 Oct on two suggestions from
+Tofik's review. No figure in the paper changes.
+
+- **Licence split** (`74e81ac`). The code is released under the MIT licence;
+  the paper and documentation stay under CC BY 4.0. Tofik suggested the split
+  (Creative Commons advises against its licences for software) and agreed for
+  his parts. `LICENSE` is now the standard MIT text, "Copyright (c) 2025-2026
+  Murad Farzulla and Tofik Israfilov", scoped to `analysis/`, `tests/`,
+  `pyproject.toml` and `requirements.txt`. The CC BY 4.0 notice moved to
+  `LICENSE-CC-BY-4.0`, its copyright line now naming both authors, scoped to
+  `paper/`, `docs/`, `README.md`, `CITATION.cff`, `_archive/` and any file
+  not listed under MIT. Neither file covers the raw market data, which are not
+  in the repository. The Code Availability paragraph now reads: "The code is
+  released under the MIT licence; the manuscript text and figures are released
+  under the Creative Commons Attribution 4.0 International licence (CC BY
+  4.0)." This supersedes the second-set entry above ("Code Availability said
+  'MIT License'; the repository's only licence is CC BY 4.0", `3810556`): that
+  correction was right when made, and the MIT grant now exists. README (badges,
+  tree, License section, the v3.1.1 line), `CITATION.cff` (`license: [MIT,
+  CC-BY-4.0]`) and `pyproject.toml` (`license = "MIT"`) agree.
+- **`CITATION.cff` failed validation** before this change, independent of the
+  licence: its top-level `type` was `article`, which CFF 1.2.0 does not allow
+  (only `software` or `dataset`). It is now `software`; the paper stays
+  described under `preferred-citation`. `cffconvert --validate` (2.0.0):
+  valid against schema 1.2.0.
+- **CRediT** (`c00960f`). M.F.'s line adds "writing — review & editing", as
+  Tofik suggested. T.I.'s line is unchanged.
+- **PDF** (`cef9e26`). Rebuilt: 40 pages, 0 overfull, 0 underfull, 0 LaTeX
+  warnings, 0 same-identifier warnings, 0 undefined references or citations;
+  a forced rebuild into the same directory is byte-identical. sha256
+  `ceec3f4f073f4062a812e53c5a752d25776555fc57b420519a693ee633c5342c`. The text
+  differs from the `030b729` PDF (the one at `d12f4af`) in the two places
+  above only.
+- **`docs/PROPOSED_PR.md`** re-stamped at `cef9e26` (`9a9cc8d`).
+- **Version.** It stays 3.1.1: no DOI minted, nothing submitted, no figure
+  added or withdrawn. The `030b729` PDF, also labelled 3.1.1, is in the public
+  branch history; the sha256 above names the release file.
+
 ## Standing limitations
 
 Unchanged by this work, and in several cases sharpened by it.
