@@ -1,3 +1,9 @@
+> **Status note (6 Oct 2026), added after the message was sent.** Murad ratified
+> the five working decisions as they stand on 6 Oct 2026 (see
+> `docs/MURAD_DECISIONS.md`). The message below is Tofik's, kept as sent on
+> 14 Sep 2026; its page count and PDF link describe the branch at that date.
+> The current version is v3.1.1 (`docs/CORRECTION_CHANGELOG.md`).
+
 Murad —
 
 The revision is finished and ready for your review. Short version:

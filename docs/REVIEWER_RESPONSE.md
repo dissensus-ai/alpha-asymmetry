@@ -64,7 +64,7 @@ have been enough, so we corrected for it:
 
 **What we withdraw.** The previous version reported $p = 0.00019$ and said it
 "clears that bar comfortably", referring to a Bonferroni threshold of 0.0083 at
-family size six. Under appropriate small-cluster inference, and with the momentum factor on the market-return basis its companion regressors use, the two reported methods no longer agree: the CR2 interval [-1.27, -0.03] excludes zero at p = 0.042, while the restricted wild cluster bootstrap returns p = 0.0506, just above the 5% line. We report both rather than choosing the one that reads better. Neither resolves the sample-selection problem raised in round two. The revised text states that the loading does not clear the 5% level under the reported inference, and is therefore nowhere near the paper's pre-specified Bonferroni-adjusted threshold.
+family size six. Under appropriate small-cluster inference, and with positions realized at the first trading-session open after the signal rather than at the Friday close (the p = 0.00019 figure was computed under Friday-close pricing; the momentum proxy itself is unchanged), the two reported methods no longer agree: the CR2 interval [-1.27, -0.03] excludes zero at p = 0.042, while the restricted wild cluster bootstrap returns p = 0.0506, just above the 5% line. We report both rather than choosing the one that reads better. Neither resolves the sample-selection problem raised in round two. The revised text states that the two methods disagree at the 5% level, and that neither comes near the paper's pre-specified Bonferroni-adjusted threshold.
 
 **A later comment overtook this one.** Round-two comment 1 observes that the
 in-position sample is selected by the strategy's own entry rules, which are

@@ -65,15 +65,24 @@
   journal = {Research Square},
   year = {2025},
   doi = {10.21203/rs.3.rs-8323026/v1},
-  note = {Under review at Digital Finance (Springer)}
+  note = {Preprint; superseded by the merged multi-moment paper (farzulla2026multimoment)}
 }
 
-@misc{farzulla2026multimoment,
+% Aligned 2026-10-06 with papers-official/farzulla-self-citations.bib (master
+% ruling). Zenodo concept 10.5281/zenodo.18099608 resolves to v5.0.0 (record
+% 23018501, 28 Sep 2026), a SOFTWARE record (resource_type = software,
+% isSupplementTo arXiv:2602.07046; checked via the Zenodo API 2026-10-06), so
+% it is the replication package, not the paper, and must not sit in a doi field.
+% No doi field until the Springer DOI registers (Crossref 2026-10-06: no work
+% by Farzulla under Digital Finance ISSNs 2524-6984 / 2524-6186). arXiv DOI
+% 10.48550/arXiv.2602.07046 confirmed via DataCite 2026-10-06 (same title).
+% Re-query Crossref for the journal DOI before every use.
+@article{farzulla2026multimoment,
   author = {Farzulla, Murad},
-  title = {Do Cryptocurrency Markets Differentiate Infrastructure from Regulatory Shocks? A Multi-Moment Event Study with Dependence-Robust Inference},
+  title = {Do Cryptocurrency Markets Differentiate Infrastructure from Regulatory Shocks? {A} Multi-Moment Event Study with Dependence-Robust Inference},
+  journal = {Digital Finance},
   year = {2026},
-  doi = {10.5281/zenodo.18099608},
-  note = {Zenodo concept DOI (v4.0.0), resolves to the current version. An arXiv posting (2602.07046) exists under the predecessor title pending replacement}
+  note = {Forthcoming. Preprint: arXiv:2602.07046, doi:10.48550/arXiv.2602.07046. Replication package: Zenodo concept 10.5281/zenodo.18099608. Code: \url{https://github.com/dissensus-ai/crypto-event-study}}
 }
 
 @article{fama1970efficient,
@@ -105,7 +114,8 @@
   volume = {36},
   number = {4},
   pages = {394--419},
-  year = {1963}
+  year = {1963},
+  doi = {10.1086/294632}
 }
 
 @book{taleb2007black,
@@ -264,9 +274,9 @@
   title = {The Market Microstructure Approach to Foreign Exchange: Looking Back and Looking Forward},
   journal = {Journal of International Money and Finance},
   volume = {38},
-  pages = {52--74},
+  pages = {95--119},
   year = {2013},
-  doi = {10.1016/j.jimonfin.2013.05.001}
+  doi = {10.1016/j.jimonfin.2013.05.004}
 }
 
 @article{evans2002order,
@@ -546,6 +556,9 @@
   author = {Fan, Minyou and Kearney, Fearghal and Li, Youwei and Liu, Jiadong},
   title = {Optimizing Currency Factors},
   journal = {Financial Review},
+  volume = {60},
+  number = {4},
+  pages = {1389--1414},
   year = {2025},
   doi = {10.1111/fire.70000},
   note = {Dynamic optimization of carry, momentum, and value currency factor strategies via spot and forward trading}
@@ -594,7 +607,7 @@
 
 @article{farzulla2025whitepaper,
   author = {Farzulla, Murad},
-  title = {Do Whitepaper Claims Predict Market Behavior? Evidence from Cryptocurrency Factor Analysis},
+  title = {Are Whitepaper Claims Reflected in Market Structure? A Contamination-Aware Pipeline and a Power-Limited Null},
   journal = {arXiv preprint arXiv:2601.20336},
   year = {2026},
   doi = {10.48550/arXiv.2601.20336},
@@ -630,4 +643,73 @@
   number  = {3},
   pages   = {414--427},
   year    = {2008}
+}
+
+% --- Nearest-neighbour literature, added 6 Oct 2026 (polish-oct2026). Each entry
+% --- checked against api.crossref.org (title, authors, venue, pages) and its
+% --- abstract read via Crossref/OpenAlex/Semantic Scholar before it was cited.
+
+@article{qi2006technical,
+  author  = {Qi, Min and Wu, Yangru},
+  title   = {Technical Trading-Rule Profitability, Data Snooping, and Reality Check: Evidence from the Foreign Exchange Market},
+  journal = {Journal of Money, Credit, and Banking},
+  volume  = {38},
+  number  = {8},
+  pages   = {2135--2158},
+  year    = {2006},
+  doi     = {10.1353/mcb.2007.0006}
+}
+
+@article{hsu2016technical,
+  author  = {Hsu, Po-Hsuan and Taylor, Mark P. and Wang, Zigan},
+  title   = {Technical Trading: Is It Still Beating the Foreign Exchange Market?},
+  journal = {Journal of International Economics},
+  volume  = {102},
+  pages   = {188--208},
+  year    = {2016},
+  doi     = {10.1016/j.jinteco.2016.03.012}
+}
+
+@article{neely2009adaptive,
+  author  = {Neely, Christopher J. and Weller, Paul A. and Ulrich, Joshua M.},
+  title   = {The Adaptive Markets Hypothesis: Evidence from the Foreign Exchange Market},
+  journal = {Journal of Financial and Quantitative Analysis},
+  volume  = {44},
+  number  = {2},
+  pages   = {467--488},
+  year    = {2009},
+  doi     = {10.1017/S0022109009090103}
+}
+
+@article{li2026skewness,
+  author  = {Li, Junye and Sarno, Lucio and Zinna, Gabriele},
+  title   = {Skewness Risk Premia and the Cross Section of Currency Returns},
+  journal = {Journal of Financial and Quantitative Analysis},
+  volume  = {61},
+  number  = {4},
+  pages   = {1565--1603},
+  year    = {2026},
+  doi     = {10.1017/S0022109025102123},
+  note    = {Published online 2 September 2025}
+}
+
+@article{jiang2019skewness,
+  author  = {Jiang, Xue and Han, Liyan and Yin, Libo},
+  title   = {Can Skewness Predict Currency Excess Returns?},
+  journal = {The North American Journal of Economics and Finance},
+  volume  = {48},
+  pages   = {628--641},
+  year    = {2019},
+  doi     = {10.1016/j.najef.2018.07.018}
+}
+
+@article{bai2005tests,
+  author  = {Bai, Jushan and Ng, Serena},
+  title   = {Tests for Skewness, Kurtosis, and Normality for Time Series Data},
+  journal = {Journal of Business \& Economic Statistics},
+  volume  = {23},
+  number  = {1},
+  pages   = {49--60},
+  year    = {2005},
+  doi     = {10.1198/073500104000000271}
 }

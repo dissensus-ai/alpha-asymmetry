@@ -595,6 +595,14 @@ survivable — it identifies the person independently of how the name is spelled
 on any given paper. If both forms are going to exist across records, an ORCID
 stops being optional.
 
+**Update, 9 Oct 2026.** Tofik supplied ORCID 0009-0006-9095-7739 (email of
+9 Oct 2026). The public record (`pub.orcid.org/v3.0/0009-0006-9095-7739/person`,
+read 9 Oct 2026) gives the given name as "Tofik" and the family name as
+"Israfilov", which is the byline form. The ORCID is now printed on the title
+page and carried in `CITATION.cff`, the README and the Zenodo v3.1.1 draft. The
+GitHub handle and commit authorship stay "tofigisrafilov"; the ORCID ties both
+spellings to one identifier. With that, this item is closed for v3.1.1.
+
 ---
 
 ## Referee report — this is a review of OUR work, not of the published paper
@@ -2994,3 +3002,167 @@ Recorded so they are not lost. None of these are actioned here.
    spread strictly in proportion to notional traded, so it cannot penalise the
    31 small resize orders that weekly sizing introduces. See "How the cost model
    scales" above.
+7. Run the weekday signal-day test pre-specified in the next section, in a later
+   version. Not run.
+
+---
+
+# PRE-SPECIFICATION — weekday signal-day test (NOT RUN)
+
+**Status: NOT RUN. Recorded 9 Oct 2026, on branch `polish-oct2026` after
+`6956c14`, before any code for this test exists.** No Monday-to-Thursday
+signal-day figure has been computed in this repository: at `6956c14` every
+weekly resampling in `analysis/` is anchored on Friday (`W-FRI`) and no other
+weekly anchor appears anywhere in the code. The commit that adds this section is
+the evidence that the design came first; any commit adding results must come
+after it. What the author of this entry cannot vouch for is work done outside
+the repository.
+
+**Partial blindness, stated up front.** Friday is the published baseline and
+every Friday result is known. The four alternatives are unseen.
+
+**Origin.** Raised by Tofik in his review of 9 Oct 2026: Friday as the signal
+day is inherited from the original specification and was never tested. It is
+inherited: the v2.0.0 manuscript (`2b3b803`) aggregated the daily signals "to
+weekly frequency using Friday closing values", `4d21c69` kept that sentence and
+resampled with `W-FRI`, and the current pipeline still does. The execution-timing
+grid varies only when a Friday signal is acted on, not when the signal is formed.
+v3.1.1 states this in one Limitations sentence and leaves the test for a later
+version. This section fixes the design of that test before it is run. It is
+not part of v3.1.1.
+
+## Question
+
+Do the paper's two load-bearing conclusions depend on reading the weekly signals
+at the Friday close? They are: (a) the skewness-threshold rule shows no
+exploitable edge (headline Sharpe indistinguishable from zero; neither RC nor
+SPA rejects), and (b) among the five signals only coverage alpha is robustly
+skewed under block-bootstrap inference.
+
+## Variants — fixed now, not to be extended
+
+Five signal days: **Friday** (baseline, as published), **Monday**, **Tuesday**,
+**Wednesday**, **Thursday**. For signal day D:
+
+- The daily signals are computed exactly as now: same daily data, same windows,
+  same tail quantile rule.
+- The weekly panel is `resample("W-<D>").last()` of the daily series: the last
+  available session of the week ending on D. A holiday on D falls back to the
+  previous session, which is how a holiday Friday is treated now.
+- Everything else is held at its current value: raw-grid window 2015-11-01 to
+  2025-08-31, the warm-up rule (rows without the 20-week skewness or AI are
+  dropped), entry thresholds 0.75 and 0.5σ, the 20-week windows, the
+  exit/reversal/expiry rule (four realized weekly return periods), the
+  simultaneous-signal rule, weekly sizing (Eq. `possize`), cost tiers
+  0.0/0.3/0.7/1.3/2.0 pips, seed 42.
+- No other anchor (two-day averages, Wednesday-to-Wednesday blends, and so on)
+  is added after results are seen.
+- The EVT diagnostic and the factor regression are outside this test; their
+  Friday-close market return is not changed.
+
+## Execution mapping — kept as in the four timings
+
+Each timing keeps its definition relative to the signal, with Friday replaced by
+D. The alignment rule is the one fixed after the look-ahead bug: the decision
+instant earns a close-to-close return; a delayed timing earns a forward return
+from its own entry point.
+
+| Label (Friday-signal name) | Entry for signal day D | One-week return |
+|---|---|---|
+| Signal close (FC) | close of D | close of D to close of the next D |
+| First-session open (MO) — **primary** | first trading-session open strictly after D | to the first open after the next D |
+| First-session close (MC) | close of that first session | to the close of the first session after the next D |
+| Second-session open (TO) | open of the second session after D | to the open of the second session after the next D |
+
+The first-session open is primary for every D, as Monday open is for Friday.
+Implementation replaces `W-FRI` with `W-<D>` in `build_weekly_alphas` and
+`execution_timing_grid` and keeps the guard that the primary timing reproduces
+`weekly_return`.
+
+Stated in advance because it changes what the timing contrasts mean: for a
+Friday signal the first-session open crosses the weekend; for Monday to
+Wednesday no timing crosses a weekend; for Thursday only the second-session open
+(the Monday open) does. The weekend-gap test is not rerun per day, and its
+result stays a Friday result.
+
+## Primary metric
+
+The **annualized Sharpe ratio of the headline rule** (gross, first-session-open
+execution) for each signal day, computed as the headline figure is now
+(`run_asymmetry_strategy(...).metrics["sharpe"]`, non-executable weeks dropped),
+with its 95% stationary-bootstrap interval as in the paper
+(`stationary_bootstrap_return_stats`: expected block 4 weeks, B = 2000,
+seed 42).
+
+Reported beside it for every day: cumulative gross return, annualized return,
+in-position weeks, holding episodes, maximum drawdown, net returns at the five
+cost tiers, the break-even cost (or "none" when the gross return is not
+positive), and the four-timing grid.
+
+## Multiplicity
+
+- **Primary test: does any signal day give the rule a positive mean return?**
+  Hansen's SPA (consistent p-value) over the five signal-day variants of the
+  headline rule, benchmark zero return, with the paper's settings (stationary
+  bootstrap, expected block 4 weeks, 1,000 replicates, seed 42). White's Reality
+  Check is reported beside it; the decision rests on SPA. The five variants
+  have different week grids, so rows are aligned by calendar trading week: each
+  series is indexed by the Friday that closes the Monday-to-Friday week
+  containing its signal day. A week enters if all five variants have a
+  realizable return in it; the number of dropped weeks and the reason are
+  reported. The aligned rows cover overlapping but not identical return
+  windows, which is stated with the result.
+- **Per-day Sharpe intervals** are reported unadjusted and labelled
+  "unadjusted". No single-day interval is read as evidence on its own.
+- **Paired contrasts**, each of Monday to Thursday minus Friday: difference in
+  geometric annualized return, percentage points, on the aligned common sample;
+  paired 4-week moving-block bootstrap (B = 2000, seed 42; 8 and 13 weeks as
+  block-length sensitivity), position paths held fixed inside the bootstrap, as
+  in `paired_execution_contrasts`. Simultaneous 95% intervals over the four
+  contrasts by the max-statistic method used for the secondary execution
+  contrasts.
+- **Secondary: signal skewness.** For each signal day, the skewness of each of
+  the five alpha signals with its 13-week block-bootstrap 95% interval
+  (`block_bootstrap_skew_ci`, B = 2000, seed 42), and the number of non-zero
+  tail-alpha weeks. Twenty intervals beyond the Friday five, unadjusted,
+  labelled secondary.
+
+## What would change the paper's claims — fixed now
+
+1. **SPA p ≥ 0.05.** Conclusion (a) is not Friday-specific. The Limitations
+   sentence is replaced by one reporting the test, and the per-day table goes in
+   an appendix. No headline change.
+2. **SPA p < 0.05.** The abstract's and the Conclusions' "does not establish an
+   exploitable edge" is restated as conditional on the Friday signal day, and
+   the variant driving the rejection is reported as a specification
+   sensitivity, with its net results at the paper's cost tiers beside it. It is
+   **not** promoted to the headline: it was picked from five after the fact.
+3. **No rejection, but the sign of the cumulative gross return differs across
+   days.** One clause is added to the abstract's specification-sensitivity
+   sentence naming the signal day as a further choice that moves the result.
+   No headline change.
+4. **Coverage alpha's interval includes zero on any of Monday to Thursday, or
+   another signal's interval excludes zero on any day.** Conclusion (b) is
+   qualified as holding at the Friday sampling, and the per-day intervals are
+   reported.
+5. **The execution pattern differs** (at least one of the four timings makes
+   money on some day). Reported in the execution-timing section; on its own it
+   does not change the headline.
+
+No other pattern is a trigger. Anything else is described, not acted on.
+
+## Reporting rules
+
+- All five days are reported whatever the result; none is dropped.
+- Run with D = Friday, the generalized code must leave every value in
+  `analysis/full_pipeline_results.json` unchanged. That is a test, written
+  before the Monday-to-Thursday runs. The new results go to a separate output
+  file, not into `full_pipeline_results.json`.
+- Null wording as in the execution-grid pre-registration: "no detectable ...
+  in this sample", never "there is none".
+- Any departure from this section is recorded here as a deviation, with its
+  reason, before the results are written up.
+
+## Not decided here
+
+Which version carries the test, and who runs it, are for Murad and Tofik.

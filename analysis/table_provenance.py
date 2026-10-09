@@ -82,11 +82,17 @@ _ALPHA_ROWS = {"Tail": "tail_alpha", "Fast": "fast_alpha", "Pricing": "pricing_a
 
 
 def _tests_row(key: str) -> dict:
-    """gamma-hat, iid t, block CI (one cell, two values), SW, JB, K2, Ljung-Box Q(4)."""
+    """gamma-hat, iid t, block CI (one cell, two values), Ljung-Box Q(4)."""
     return {"label": [], "cells": [
         f"{_AS}.{key}.skew", f"{_AS}.{key}.skew_t_iid",
         [f"{_AS}.{key}.skew_ci[0]", f"{_AS}.{key}.skew_ci[1]"],
-        f"{_AS}.{key}.sw", f"{_AS}.{key}.jb", f"{_AS}.{key}.k2", f"{_AS}.{key}.lb_q4"]}
+        f"{_AS}.{key}.lb_q4"]}
+
+
+def _normality_row(key: str) -> dict:
+    """Shapiro-Wilk, Jarque-Bera, D'Agostino-Pearson K2 (moved from tab:tests, Oct 2026)."""
+    return {"label": [], "cells": [
+        f"{_AS}.{key}.sw", f"{_AS}.{key}.jb", f"{_AS}.{key}.k2"]}
 
 
 def _boot_row(key: str) -> dict:
@@ -145,7 +151,30 @@ def _exec_row(key: str) -> dict:
     return {"label": [], "cells": [f"{_ET}.{key}.{col}" for col in _EXEC_COLUMNS]}
 
 
+_PC = "execution_timing.paired_contrasts"
+_PC_SCHEMES = ("moving_block_4", "moving_block_8", "moving_block_13", "stationary_4")
+
+
+def _contrast_row(name: str, interval: str) -> dict:
+    """Role (text), estimate, then one interval per bootstrap scheme."""
+    return {"label": [], "cells": [NOT_NUMERIC, f"{_PC}.estimate.{name}"] + [
+        [f"{_PC}.schemes.{s}.contrasts.{name}.{interval}[0]",
+         f"{_PC}.schemes.{s}.contrasts.{name}.{interval}[1]"] for s in _PC_SCHEMES]}
+
+
 PROVENANCE = {
+    # Added October 2026 with the pipeline function that now computes these
+    # contrasts; before that the three primary intervals were printed from an
+    # uncommitted script. Primary rows carry percentile intervals, secondary rows
+    # simultaneous (max-statistic) intervals, as the table note states.
+    "tab:contrasts": {
+        "Monday open - Friday close": _contrast_row("monday_open_minus_friday_close", "percentile_ci"),
+        "Monday close - Monday open": _contrast_row("monday_close_minus_monday_open", "percentile_ci"),
+        "Tuesday open - Monday close": _contrast_row("tuesday_open_minus_monday_close", "percentile_ci"),
+        "Monday close - Friday close": _contrast_row("monday_close_minus_friday_close", "simultaneous_ci"),
+        "Tuesday open - Friday close": _contrast_row("tuesday_open_minus_friday_close", "simultaneous_ci"),
+        "Tuesday open - Monday open": _contrast_row("tuesday_open_minus_monday_open", "simultaneous_ci"),
+    },
     # Formerly the only table in the manuscript with no canonical source at all:
     # the execution-timing grid was computed by a standalone script that was never
     # committed.  The computation now lives in full_pipeline.execution_timing_grid
@@ -178,6 +207,17 @@ PROVENANCE = {
         "Tight": _tcost_row(3), "Wide": _tcost_row(4),
     },
     "tab:tests": {name: _tests_row(key) for name, key in _ALPHA_ROWS.items()},
+    # The normality battery moved to Appendix B in October 2026 (lean-body rule);
+    # its cells are the same canonical fields the tab:tests columns named before.
+    "tab:normality": {name: _normality_row(key) for name, key in _ALPHA_ROWS.items()},
+    # Frozen-notional alternative, Appendix F. The body had pointed to a table
+    # that did not report it; the values come from sizing_variants.
+    "tab:sizing": {
+        "Weekly": {"label": [], "cells": [f"sizing_variants.weekly.{c}" for c in
+                   ("return", "sharpe", "mdd", "holding_episodes", "execution_legs", "resizes", "turnover")]},
+        "Frozen": {"label": [], "cells": [f"sizing_variants.entry.{c}" for c in
+                   ("return", "sharpe", "mdd", "holding_episodes", "execution_legs", "resizes", "turnover")]},
+    },
     "tab:bootcompare": {name: _boot_row(key) for name, key in _ALPHA_ROWS.items()},
     "tab:tailagg": {
         "Friday observation": _tailagg_row("friday_sampled"),

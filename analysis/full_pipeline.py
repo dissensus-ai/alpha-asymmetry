@@ -29,11 +29,11 @@ from scipy import stats
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 try:
-    from analysis.inference import cr2_inference, wild_cluster_bootstrap
+    from analysis.inference import cr2_inference, wild_cluster_bootstrap, wild_cluster_bootstrap_vectorized
     from analysis.data_access import load_datasets, write_manifest
     from analysis.strategy import compute_ai, run_asymmetry_strategy, simple_strategy, summarize_position_changes
 except ModuleNotFoundError:  # direct execution from analysis/
-    from inference import cr2_inference, wild_cluster_bootstrap
+    from inference import cr2_inference, wild_cluster_bootstrap, wild_cluster_bootstrap_vectorized
     from data_access import load_datasets, write_manifest
     from strategy import compute_ai, run_asymmetry_strategy, simple_strategy, summarize_position_changes
 
@@ -207,11 +207,13 @@ def execution_timing_grid(daily_px: pd.DataFrame, weekly: pd.DataFrame) -> dict:
     dropped = [str(d.date()) for d in weekly.index[~common]]
 
     rows = {}
+    series = {}
     for key, label in EXECUTION_TIMINGS.items():
         frame = weekly.copy()
         frame["weekly_return"] = returns[key]
         frame = frame.loc[common]
         result = run_asymmetry_strategy(frame, 0.75)
+        series[key] = result.returns
         n_weeks = len(result.returns)
         cumulative = result.metrics["return"] / 100.0
         row = {
@@ -244,6 +246,250 @@ def execution_timing_grid(daily_px: pd.DataFrame, weekly: pd.DataFrame) -> dict:
         ),
         "cost_tiers_pips": list(EXECUTION_COST_TIERS),
         "timings": rows,
+        "paired_contrasts": paired_execution_contrasts(pd.DataFrame(series)),
+    }
+
+
+# Pre-specified in docs/REVIEW_NOTES.md ("PRE-REGISTRATION -- execution-timing
+# robustness grid", commit c7af2f3, recorded before the Monday-close and
+# Tuesday-open results existed): three primary contrasts, the rest secondary.
+PRIMARY_EXECUTION_CONTRASTS = (
+    ("friday_close", "monday_open"),
+    ("monday_open", "monday_close"),
+    ("monday_close", "tuesday_open"),
+)
+SECONDARY_EXECUTION_CONTRASTS = (
+    ("friday_close", "monday_close"),
+    ("friday_close", "tuesday_open"),
+    ("monday_open", "tuesday_open"),
+)
+CONTRAST_REPS = 2000
+CONTRAST_SCHEMES = {
+    # name: (kind, block length in weeks). The 4-week moving block is primary;
+    # 8 and 13 weeks are the pre-specified block-length sensitivity, and the
+    # stationary bootstrap at an expected 4-week block is the retained comparison.
+    "moving_block_4": ("moving_block", 4),
+    "moving_block_8": ("moving_block", 8),
+    "moving_block_13": ("moving_block", 13),
+    "stationary_4": ("stationary", 4),
+}
+
+
+def moving_block_indices(n: int, block: int, rng) -> np.ndarray:
+    """Overlapping blocks of ``block`` consecutive weeks, drawn with replacement.
+
+    Start points are uniform on 0 .. n - block (no wrap-around), and the blocks
+    are concatenated and cut to the sample length.
+    """
+
+    starts = rng.integers(0, n - block + 1, int(np.ceil(n / block)))
+    return (starts[:, None] + np.arange(block)[None, :]).ravel()[:n]
+
+
+def annualized_return_pct(returns) -> np.ndarray:
+    """Geometric annualized return in percent, column by column (52 weeks a year)."""
+
+    returns = np.asarray(returns, dtype=float)
+    return ((1.0 + returns).prod(axis=0) ** (52.0 / returns.shape[0]) - 1.0) * 100.0
+
+
+def paired_execution_contrasts(series: pd.DataFrame, reps: int = CONTRAST_REPS, seed: int = SEED) -> dict:
+    """Paired bootstrap contrasts between the four execution timings.
+
+    The contrast is the difference in geometric annualized return, later timing
+    minus earlier, in percentage points; on the common sample it equals the
+    difference between the timings' ``annualized_return`` fields.  Each bootstrap
+    replicate draws ONE set of week indices and applies it to all four return
+    series, so every comparison is paired.  The position path is held fixed: the
+    strategy is not re-run inside the bootstrap, because the timings share their
+    signals and differ only in the return each position earns.
+
+    Primary contrasts get 95% percentile intervals.  Secondary contrasts are also
+    given simultaneous 95% intervals by the max-statistic method: the critical
+    value is the 95th percentile, across replicates, of the largest standardized
+    deviation among the three secondary contrasts, and each interval is the
+    estimate plus or minus that critical value times the bootstrap standard error.
+
+    Before this function existed the three primary intervals in the manuscript
+    came from an uncommitted script.  Under the primary scheme this function
+    reproduces those three intervals to the printed precision; two of the point
+    estimates printed beside them (0.64 and -0.76) do not reproduce, and the
+    values recorded here replace them.
+    """
+
+    if series.isna().any().any():
+        raise AssertionError("paired contrasts require complete return series on the common sample")
+    cols = list(series.columns)
+    pairs = list(PRIMARY_EXECUTION_CONTRASTS) + list(SECONDARY_EXECUTION_CONTRASTS)
+    values = series.to_numpy()
+    n = len(values)
+
+    def statistic(sample):
+        ann = annualized_return_pct(sample)
+        return np.array([ann[cols.index(b)] - ann[cols.index(a)] for a, b in pairs])
+
+    estimate = statistic(values)
+    names = [f"{b}_minus_{a}" for a, b in pairs]
+    primary = len(PRIMARY_EXECUTION_CONTRASTS)
+    out = {
+        "statistic": "difference in geometric annualized return, later timing minus earlier, percentage points",
+        "common_sample_n": int(n),
+        "reps": int(reps),
+        "seed": int(seed),
+        "interval": "95% percentile interval; secondary contrasts also get max-statistic simultaneous intervals",
+        "primary": names[:primary],
+        "secondary": names[primary:],
+        "estimate": {name: float(v) for name, v in zip(names, estimate)},
+        "schemes": {},
+    }
+    for scheme, (kind, block) in CONTRAST_SCHEMES.items():
+        rng = np.random.default_rng(seed)
+        draws = np.empty((reps, len(pairs)))
+        for r in range(reps):
+            if kind == "moving_block":
+                idx = moving_block_indices(n, block, rng)
+            else:
+                idx = stationary_bootstrap_indices(n, expected_block=float(block), rng=rng)
+            draws[r] = statistic(values[idx])
+        lo, hi = np.percentile(draws, [2.5, 97.5], axis=0)
+        se = draws.std(axis=0, ddof=1)
+        sec = slice(primary, len(pairs))
+        with np.errstate(divide="ignore", invalid="ignore"):  # zero SE only in degenerate inputs
+            max_dev = np.max(np.abs(draws[:, sec] - estimate[sec]) / se[sec], axis=1)
+        critical = float(np.percentile(max_dev, 95))
+        contrasts = {}
+        for j, name in enumerate(names):
+            entry = {"percentile_ci": [float(lo[j]), float(hi[j])], "bootstrap_se": float(se[j]),
+                     "percentile_ci_excludes_zero": bool(lo[j] > 0 or hi[j] < 0)}
+            if j >= primary:
+                sim = [float(estimate[j] - critical * se[j]), float(estimate[j] + critical * se[j])]
+                entry["simultaneous_ci"] = sim
+                entry["simultaneous_ci_excludes_zero"] = bool(sim[0] > 0 or sim[1] < 0)
+            contrasts[name] = entry
+        out["schemes"][scheme] = {
+            "kind": kind, "block_weeks": block,
+            "secondary_max_statistic_critical_value": critical,
+            "contrasts": contrasts,
+            "any_primary_excludes_zero": any(
+                contrasts[nm]["percentile_ci_excludes_zero"] for nm in names[:primary]),
+            "any_secondary_simultaneous_excludes_zero": any(
+                contrasts[nm]["simultaneous_ci_excludes_zero"] for nm in names[primary:]),
+        }
+    return out
+
+
+WEEKEND_GAP_WILD_REPS = 9999
+WEEKEND_GAP_POWER_DELTAS_BPS = tuple(float(d) for d in range(0, 21))
+WEEKEND_GAP_POWER_SIMS = 1000
+WEEKEND_GAP_POWER_WILD_REPS = 999
+WEEKEND_GAP_POWER_TARGET = 0.80
+WEEKEND_GAP_ALPHA = 0.05
+
+
+def weekend_gap_test(weekly: pd.DataFrame, base, seed: int = SEED) -> dict:
+    """Does the entry rule predict the weekend gap a position is about to bear?
+
+    The gap is the move from the Friday close at which a position is decided to
+    the first trading-session open after it.  The sample is the decision weeks in
+    which the rule holds a position, so the clusters are the holding episodes of
+    those DECISIONS: labels indexed by decision week, which equal the applied-week
+    labels of ``episode_ids`` shifted by one week (invariant B.2 in
+    docs/REVIEW_NOTES.md; the uncommitted script that first ran this test paired
+    them unshifted, and its first figures were withdrawn for that reason).
+
+    Two regressions, each with an intercept: the gap on the signed position
+    (primary) and on the direction alone.  Inference is CR2 clustered by episode
+    with a restricted wild cluster bootstrap-t p-value, as in the factor
+    regression.
+
+    The detectable effect follows the method fixed in the pre-specification
+    (docs/REVIEW_NOTES.md, "Power bound for the weekend-gap test"): resample the
+    holding episodes with replacement, inject a known slope delta on the signed
+    position into the residuals of the fitted regression, and record how often the
+    wild cluster bootstrap rejects at 5%.  The simulation settings (the delta grid,
+    the number of simulations, 999 bootstrap replicates per test, common random
+    numbers across deltas, linear interpolation to 80% power) are fixed here. The
+    script that produced the earlier 8.8 bps figure was never committed and its
+    settings are unknown, so that figure is superseded by the one recorded here.
+    """
+
+    gap = weekly["execution_open"].shift(-1) / weekly["Close"] - 1.0
+    labels = decision_episode_ids(base.position_ledger)
+    sample = pd.DataFrame({"gap": gap, "position": base.position, "episode": labels})
+    sample = sample.loc[(sample["position"] != 0) & sample["gap"].notna()]
+    applied_labels = episode_ids(base.position_ledger).shift(-1).reindex(sample.index)
+    if not (applied_labels.to_numpy() == sample["episode"].to_numpy()).all():
+        raise AssertionError("decision-week episode labels must equal applied-week labels shifted by -1")
+    if (sample["episode"] == 0).any():
+        raise AssertionError("a decision week with a position carries no episode label")
+
+    y = sample["gap"].to_numpy()
+    groups = sample["episode"].to_numpy()
+    regressions = {}
+    for name, x in (("signed_position", sample["position"].to_numpy()),
+                    ("direction", np.sign(sample["position"].to_numpy()))):
+        X = np.column_stack([np.ones(len(y)), x])
+        cr2 = cr2_inference(y, X, groups, 1)
+        wild = wild_cluster_bootstrap(y, X, groups, 1, reps=WEEKEND_GAP_WILD_REPS, seed=seed)
+        regressions[name] = {
+            "b": cr2["b"], "b_bps": cr2["b"] * 1e4, "se": cr2["se"], "t": cr2["t"],
+            "cr2_dof": cr2["dof"], "cr2_p": cr2["p"], "cr2_ci": cr2["ci"],
+            "wild_cluster_bootstrap_p": wild["p"], "wild_reps": wild["reps"],
+        }
+
+    # Power simulation on the primary (signed-position) regression.
+    X = np.column_stack([np.ones(len(y)), sample["position"].to_numpy()])
+    beta = np.linalg.lstsq(X, y, rcond=None)[0]
+    resid = y - X @ beta
+    episodes = np.unique(groups)
+    rows_of = {g: np.where(groups == g)[0] for g in episodes}
+    rng = np.random.default_rng(seed)
+    plans = []
+    for _ in range(WEEKEND_GAP_POWER_SIMS):
+        drawn = rng.choice(episodes, size=len(episodes), replace=True)
+        idx = np.concatenate([rows_of[g] for g in drawn])
+        lab = np.concatenate([np.full(len(rows_of[g]), k) for k, g in enumerate(drawn)])
+        plans.append((idx, lab, int(rng.integers(0, 2**31 - 1))))
+    power = []
+    for delta_bps in WEEKEND_GAP_POWER_DELTAS_BPS:
+        delta = delta_bps * 1e-4
+        rejections = 0
+        for idx, lab, wild_seed in plans:
+            Xs = X[idx]
+            ys = beta[0] + delta * Xs[:, 1] + resid[idx]
+            p = wild_cluster_bootstrap_vectorized(
+                ys, Xs, lab, 1, reps=WEEKEND_GAP_POWER_WILD_REPS, seed=wild_seed)["p"]
+            rejections += int(p < WEEKEND_GAP_ALPHA)
+        power.append(rejections / len(plans))
+    detectable = None
+    for i in range(1, len(power)):
+        if power[i] >= WEEKEND_GAP_POWER_TARGET > power[i - 1]:
+            d0, d1 = WEEKEND_GAP_POWER_DELTAS_BPS[i - 1], WEEKEND_GAP_POWER_DELTAS_BPS[i]
+            p0, p1 = power[i - 1], power[i]
+            detectable = d0 + (WEEKEND_GAP_POWER_TARGET - p0) * (d1 - d0) / (p1 - p0)
+            break
+    observed_bps = regressions["signed_position"]["b_bps"]
+    return {
+        "gap_definition": "first trading-session open after the decision Friday over that Friday's close, minus one",
+        "sample": "decision weeks in which the rule holds a position",
+        "n_weeks": int(len(y)),
+        "n_episodes": int(len(episodes)),
+        "regressions": regressions,
+        "power": {
+            "method": ("episodes resampled with replacement; a slope delta on the signed position "
+                       "injected into the fitted regression's residuals; rejection at 5% by the "
+                       "restricted wild cluster bootstrap-t"),
+            "deltas_bps_per_unit_position": list(WEEKEND_GAP_POWER_DELTAS_BPS),
+            "simulations_per_delta": WEEKEND_GAP_POWER_SIMS,
+            "wild_reps_per_test": WEEKEND_GAP_POWER_WILD_REPS,
+            "rejection_rate": power,
+            "target": WEEKEND_GAP_POWER_TARGET,
+            "detectable_effect_bps_per_unit_position": detectable,
+            "detectable_over_observed": (detectable / abs(observed_bps)
+                                         if detectable is not None and observed_bps != 0 else None),
+            "superseded_figure_note": ("An uncommitted script reported 8.8 bps at 80% power, about six "
+                                       "times the point estimate; its simulation settings were not recorded."),
+        },
     }
 
 
@@ -328,6 +574,21 @@ def episode_ids(position_ledger):
     return pd.Series({d: (decision[order[i - 1]] if i else 0) for i, d in enumerate(order)})
 
 
+def decision_episode_ids(position_ledger):
+    """Episode number of the position DECIDED in each week (0 when flat).
+
+    ``episode_ids`` labels the week in which a position is applied, which is the
+    week after it is decided.  A sample indexed by decision weeks needs these
+    labels instead; they equal ``episode_ids`` shifted by -1.
+    """
+    labels, current = {}, 0
+    for date, row in position_ledger.iterrows():
+        if row["event_type"] in ("entry", "reversal"):
+            current += 1
+        labels[date] = current if float(row["new_position"]) != 0 else 0
+    return pd.Series(labels)
+
+
 def stationary_bootstrap_indices(n, expected_block=4.0, size=None, rng=None):
     rng = rng or np.random.default_rng()
     size = size or n
@@ -338,8 +599,38 @@ def stationary_bootstrap_indices(n, expected_block=4.0, size=None, rng=None):
     return idx
 
 
+def stationary_bootstrap_return_stats(returns, b, expected_block=4.0, seed=SEED):
+    """Stationary-bootstrap draws of the annualized return and Sharpe ratio.
+
+    Weeks with no realizable return are dropped BEFORE resampling. Under
+    first-post-signal-open execution the terminal week has no subsequent open,
+    so its return is NaN. Resampling the array with that NaN left in gave every
+    draw containing its index a NaN standard deviation; the ``sd > 0`` guard then
+    failed and the draw was recorded as a Sharpe ratio of exactly 0.0 (about 63%
+    of draws), which narrowed every printed interval. A non-executable week is
+    missing, not a zero return and not a zero Sharpe ratio.
+
+    Returns (annualized_return_draws_pct, sharpe_draws, n_resampled).
+    """
+
+    values = pd.Series(returns, dtype="float64").dropna().to_numpy()
+    rng = np.random.default_rng(seed)
+    ann_boot, sharpe_boot = [], []
+    for _ in range(b):
+        sample = values[stationary_bootstrap_indices(len(values), expected_block=expected_block, rng=rng)]
+        growth = float(np.prod(1 + sample))
+        ann_boot.append((growth ** (52 / len(sample)) - 1) * 100)
+        sample_sd = sample.std(ddof=1)
+        sharpe_boot.append(sample.mean() / sample_sd * np.sqrt(52) if sample_sd > 0 else 0.0)
+    return np.asarray(ann_boot), np.asarray(sharpe_boot), len(values)
+
+
 def performance(rets: pd.Series, position: pd.Series) -> dict:
-    rets = rets.fillna(0.0)
+    # A non-executable week (NaN return) is missing, not a zero return: filling
+    # it with 0.0 put an observation that does not exist into the volatility,
+    # Sharpe and Sortino denominators. The compounded return and drawdown are
+    # unaffected either way.
+    rets = rets.dropna()
     cum = float((1 + rets).prod() - 1)
     sd = float(rets.std())
     neg = rets[rets < 0]
@@ -522,7 +813,7 @@ def main() -> int:
     log("=" * 80)
     log("ALPHA-ASYMMETRY CORRECTED REPLICATION PIPELINE")
     log(f"Generated UTC: {datetime.now(timezone.utc).isoformat()}")
-    log("Timing: Friday-close signal, one shift, next Friday-close return")
+    log("Timing: Friday-close signal; position realized from the first trading-session open after it, one lag")
     log("=" * 80)
 
     datasets, manifest = load_datasets(args.cache_dir, refresh=args.refresh, offline=args.offline)
@@ -771,7 +1062,21 @@ def main() -> int:
     candidates["always_long"] = benchmark_returns["Buy and hold"]
     rng_random = np.random.default_rng(SEED)
     candidates["random_candidate"] = simple_strategy(pd.Series(rng_random.choice([-1.0, 1.0], len(weekly)), index=weekly.index), weekly["weekly_return"])
-    universe = pd.DataFrame(candidates).fillna(0.0)
+
+    # Rows of the test universe are weeks. A week with no realizable return (the
+    # terminal week under first-post-signal-open execution) is dropped, not
+    # filled with 0.0: the fill put a fabricated zero-return week into every
+    # candidate's mean and into the bootstrap, contrary to the rule that a
+    # non-executable week is missing. Every other week must be complete.
+    executable_weeks = weekly["weekly_return"].notna()
+
+    def executable_universe(cands: dict) -> pd.DataFrame:
+        frame = pd.DataFrame(cands).loc[executable_weeks]
+        if frame.isna().any().any():
+            raise AssertionError("a candidate return is missing on an executable week")
+        return frame
+
+    universe = executable_universe(candidates)
     values = universe.to_numpy()
     n_obs, n_k = values.shape
     means = values.mean(axis=0)
@@ -789,7 +1094,7 @@ def main() -> int:
     recenter = np.where(means >= cutoff, means, 0.0)
     boot_spa = np.maximum((np.sqrt(n_obs) * (boot_means - recenter) / omega).max(axis=1), 0.0)
     real_only = {k: v for k, v in candidates.items() if k != "random_candidate"}
-    values_r = pd.DataFrame(real_only).fillna(0.0).to_numpy()
+    values_r = executable_universe(real_only).to_numpy()
     n_r, k_r = values_r.shape
     means_r = values_r.mean(axis=0)
     observed_rc_r = np.sqrt(n_r) * means_r.max()
@@ -814,7 +1119,7 @@ def main() -> int:
     # the changed candidate. That is a claim about this universe, so it is tested.
     frozen_full = run_asymmetry_strategy(weekly, 0.75, sizing="entry").returns
     real_frozen = dict(real_only, asym_full=frozen_full)
-    values_f = pd.DataFrame(real_frozen).fillna(0.0).to_numpy()
+    values_f = executable_universe(real_frozen).to_numpy()
     means_f = values_f.mean(axis=0)
     observed_rc_f = np.sqrt(n_r) * means_f.max()
     rng_f = np.random.default_rng(SEED)
@@ -835,8 +1140,8 @@ def main() -> int:
             k for k in real_only if not np.allclose(
                 pd.Series(real_only[k]).fillna(0.0).to_numpy(),
                 pd.Series(real_frozen[k]).fillna(0.0).to_numpy())],
-        "argmax_weekly": pd.DataFrame(real_only).fillna(0.0).mean().idxmax(),
-        "argmax_frozen": pd.DataFrame(real_frozen).fillna(0.0).mean().idxmax(),
+        "argmax_weekly": executable_universe(real_only).mean().idxmax(),
+        "argmax_frozen": executable_universe(real_frozen).mean().idxmax(),
         "white_rc_stat_weekly": observed_rc_r, "white_rc_stat_frozen": observed_rc_f,
         "spa_stat_weekly": observed_spa_r, "spa_stat_frozen": observed_spa_f,
         "white_rc_stat_identical": bool(observed_rc_r == observed_rc_f),
@@ -859,7 +1164,7 @@ def main() -> int:
                               "white_rc_p": float((boot_rc_r >= observed_rc_r).mean()),
                               "spa_stat": observed_spa_r,
                               "spa_p": float((boot_spa_r >= observed_spa_r).mean()),
-                              "best_candidate": pd.DataFrame(real_only).fillna(0.0).mean().idxmax()},
+                              "best_candidate": executable_universe(real_only).mean().idxmax()},
                 "with_random_candidate_note": "retained for comparison; the random sequence is the argmax, so removing it lowers the observed statistic more than the bootstrap distribution and raises the RC p-value",
                  "n_strategies": n_k, "white_rc_stat": observed_rc, "white_rc_p": float((boot_rc >= observed_rc).mean()),
                  "spa_stat": observed_spa, "spa_p": float((boot_spa >= observed_spa).mean()),
@@ -915,28 +1220,18 @@ def main() -> int:
            "theta": theta, "theta_ci": list(np.percentile(theta_boot, [2.5, 97.5])), "xi": xi,
            "xi_ci": list(np.percentile(xi_boot, [2.5, 97.5])), "scale": scale, "ks_stat": ks_stat, "ks_p": ks_p}
 
-    rng_ci = np.random.default_rng(SEED)
-    ann_boot, sharpe_boot = [], []
-    xret = base.returns.to_numpy()
-    for _ in range(2000):
-        sample = xret[stationary_bootstrap_indices(len(xret), rng=rng_ci)]
-        growth = float(np.prod(1 + sample))
-        ann_boot.append((growth ** (52 / len(sample)) - 1) * 100)
-        sample_sd = sample.std(ddof=1)
-        sharpe_boot.append(sample.mean() / sample_sd * np.sqrt(52) if sample_sd > 0 else 0.0)
+    # Non-executable weeks are dropped inside the helper, before resampling.
+    ann_boot, sharpe_boot, n_exec = stationary_bootstrap_return_stats(base.returns, b=2000)
     block_sensitivity = []
     for eb in (2.0, 4.0, 8.0, 13.0):
-        rng_b = np.random.default_rng(SEED)
-        sh = []
-        for _ in range(1000):
-            s = xret[stationary_bootstrap_indices(len(xret), expected_block=eb, rng=rng_b)]
-            sd_s = s.std(ddof=1)
-            sh.append(s.mean() / sd_s * np.sqrt(52) if sd_s > 0 else 0.0)
+        _, sh, _ = stationary_bootstrap_return_stats(base.returns, b=1000, expected_block=eb)
         block_sensitivity.append({"expected_block_weeks": eb,
                                   "sharpe_ci": list(np.percentile(sh, [2.5, 97.5]))})
 
     inference = {"block_length_sensitivity": block_sensitivity,
-                 "annualized_return": ((1 + base.metrics["return"] / 100) ** (52 / len(xret)) - 1) * 100,
+                 "bootstrap_weeks": n_exec,
+                 "bootstrap_note": "weeks with no realizable return are excluded before resampling",
+                 "annualized_return": ((1 + base.metrics["return"] / 100) ** (52 / n_exec) - 1) * 100,
                  "annualized_return_ci": list(np.percentile(ann_boot, [2.5, 97.5])),
                  "sharpe": base.metrics["sharpe"], "sharpe_ci": list(np.percentile(sharpe_boot, [2.5, 97.5]))}
 
@@ -958,6 +1253,16 @@ def main() -> int:
     execution_grid = execution_timing_grid(datasets["EURJPY"], weekly)
     log(f"Execution-timing grid: common sample n={execution_grid['common_sample_n']}, "
         f"dropped {execution_grid['dropped_weeks']}")
+    contrasts = execution_grid["paired_contrasts"]
+    for name in contrasts["primary"]:
+        ci = contrasts["schemes"]["moving_block_4"]["contrasts"][name]["percentile_ci"]
+        log(f"  paired contrast {name}: {contrasts['estimate'][name]:+.3f} pp, "
+            f"95% CI [{ci[0]:.2f}, {ci[1]:.2f}] (4-week moving block)")
+    execution_grid["weekend_gap_test"] = weekend_gap_test(weekly, base)
+    gap_test = execution_grid["weekend_gap_test"]
+    log(f"Weekend-gap test: b={gap_test['regressions']['signed_position']['b_bps']:.2f} bps per unit, "
+        f"wild p={gap_test['regressions']['signed_position']['wild_cluster_bootstrap_p']:.4f}; "
+        f"80% power at {gap_test['power']['detectable_effect_bps_per_unit_position']} bps")
 
     results = {
         "specification": {"execution": "Friday-close signal; position executes at the first trading-session open after the signal (Monday open, or the next available session open after a holiday) and earns to the first open after the following Friday",
@@ -1020,9 +1325,24 @@ def main() -> int:
                     "pricing_alpha": 0.8050, "coverage_alpha": 3.4533,
                     "hedge_alpha": 1.4018}
     f_full, f_pos = factors["full"]["coef"], factors["in_position"]["coef"]
+
+    # Notes state what this run shows; nothing in them is a hard-coded result.
+    # Several notes had carried figures from earlier runs (a Friday-close Sharpe
+    # attribution, p = 0.038 and p = 0.00019 for momentum, a 0.38pp cost drag, a
+    # -13.32% GBP/USD figure) and sign-flip claims that no longer held.
+    def flip(before, after):
+        return "Sign flips." if np.sign(before) != np.sign(after) else "Same sign."
+
+    weekly_minus_entry = base.metrics["return"] - entry_sized.metrics["return"]
+    wild_mom_p = factors["in_position"]["wild_cluster_bootstrap"]["mom"]["p"]
+    cost_drag = base.metrics["return"] - costs["rows"][-1]["net_return"]
+    gbp_frozen = run_asymmetry_strategy(build_weekly_alphas(datasets["GBPUSD"]), 0.75,
+                                        sizing="entry").metrics["return"]
     comparisons = [
         ("Baseline cumulative return (%)", published["return"], base.metrics["return"], "implementation",
-         "Sign flips. Holding through unsignalled weeks and removing the second execution lag; weekly sizing accounts for +0.93pp of the move."),
+         f"{flip(published['return'], base.metrics['return'])} Holding through unsignalled weeks, removing the second "
+         f"execution lag and restoring execution at the first open after the signal; weekly rather than frozen sizing "
+         f"accounts for {weekly_minus_entry:+.2f}pp of the corrected figure."),
         ("Baseline Sharpe", published["sharpe"], base.metrics["sharpe"], "implementation",
          "Follows the corrected return series."),
         ("Baseline maximum drawdown (%)", published["mdd"], base.metrics["mdd"], "implementation",
@@ -1048,35 +1368,45 @@ def main() -> int:
         ("Walk-forward pooled hit rate (%)", published["wf_hit"], None, "reporting",
          "WITHHELD, same reason. 50% would mean one profitable and one unprofitable week."),
         ("Low-VIX strategy return (%)", published["low_vix"], regimes["low_vix"]["strategy_return"], "implementation",
-         "Sign flips. Also fixes regime attribution: the published routine reran a stateful strategy on filtered, nonconsecutive dates."),
+         f"{flip(published['low_vix'], regimes['low_vix']['strategy_return'])} Also fixes regime attribution: the published routine reran a stateful strategy on filtered, nonconsecutive dates."),
         ("High-VIX strategy return (%)", published["high_vix"], regimes["high_vix"]["strategy_return"], "implementation",
-         "Sign flips, same causes."),
-        ("Pre-COVID strategy return (%)", published["pre_covid"], regimes["pre_covid"]["strategy_return"], "implementation", "Sign flips."),
+         f"{flip(published['high_vix'], regimes['high_vix']['strategy_return'])} Same causes."),
+        ("Pre-COVID strategy return (%)", published["pre_covid"], regimes["pre_covid"]["strategy_return"], "implementation",
+         flip(published["pre_covid"], regimes["pre_covid"]["strategy_return"])),
         ("COVID-2020 strategy return (%)", published["covid_2020"], regimes["covid_2020"]["strategy_return"], "implementation",
-         "Sign flips. Identical under both sizing specifications: 2020 holds one episode whose notional was never revised."),
-        ("Post-COVID strategy return (%)", published["post_covid"], regimes["post_covid"]["strategy_return"], "implementation", "Sign flips."),
+         f"{flip(published['covid_2020'], regimes['covid_2020']['strategy_return'])} Identical under both sizing specifications: 2020 holds one episode whose notional was never revised."),
+        ("Post-COVID strategy return (%)", published["post_covid"], regimes["post_covid"]["strategy_return"], "implementation",
+         flip(published["post_covid"], regimes["post_covid"]["strategy_return"])),
         ("Rate-hike strategy return (%)", published["rate_hike"], regimes["rate_hike_2022_2025"]["strategy_return"], "implementation",
-         "Remains positive; the only subsample that does."),
+         flip(published["rate_hike"], regimes["rate_hike_2022_2025"]["strategy_return"])),
         ("Full-sample factor intercept", published["intercept"], f_full["const"]["b"], "implementation",
-         "Sign flips. Matches the corrected strategy's own mean weekly return, as it must."),
+         f"{flip(published['intercept'], f_full['const']['b'])} Matches the corrected strategy's own mean weekly return, as it must."),
         ("In-position factor sample", published["n_in_position"], factors["n_in_position"], "implementation",
          "25 to 55 weeks, the same exposure defect."),
         ("Momentum loading, full sample", published["mom_b_full"], f_full["mom"]["b"], "implementation",
-         "Was insignificant, now significant and negative."),
-        ("Momentum t-stat, full sample", published["mom_t_full"], f_full["mom"]["t"], "implementation", "p = 0.710 published, p = 0.038 corrected."),
+         f"Negative in both; p = {published['mom_p_full']:.3f} published, corrected p = {f_full['mom']['p']:.3f} under Newey-West (4 lags)."),
+        ("Momentum t-stat, full sample", published["mom_t_full"], f_full["mom"]["t"], "implementation",
+         f"p = {published['mom_p_full']:.3f} published, corrected p = {f_full['mom']['p']:.3f} under Newey-West (4 lags)."),
         ("Momentum loading, in-position", published["mom_b_inpos"], f_pos["mom"]["b"], "implementation",
-         "NEW FINDING: while invested the strategy is close to a one-for-one short momentum position."),
-        ("Momentum t-stat, in-position", published["mom_t_inpos"], f_pos["mom"]["t"], "implementation", "p = 0.609 published, p = 0.00019 corrected."),
+         "A property of the entry rules, not a factor exposure: the in-position weeks are selected by conditions on the same prices the momentum proxy is built from."),
+        ("Momentum t-stat, in-position", published["mom_t_inpos"], f_pos["mom"]["t"], "implementation",
+         f"p = {published['mom_p_inpos']:.3f} published; corrected CR2 p = {f_pos['mom']['p']:.3f}, "
+         f"restricted wild cluster bootstrap p = {wild_mom_p:.4f} (15 episode clusters)."),
         ("Retail-wide net return (%)", published["retail_wide"], costs["rows"][-1]["net_return"], "implementation",
-         "Sign flips. Cost drag is 0.38pp; the gross return was already negative."),
+         f"{flip(published['retail_wide'], costs['rows'][-1]['net_return'])} Cost drag is {cost_drag:.2f}pp; the gross return was already negative."),
         ("Break-even round-trip cost (pips)", published["breakeven"], None, "implementation",
          "NO LONGER EXISTS. A break-even cost presumes a positive gross return to consume, and there is none."),
         ("White Reality Check p-value", published["rc_p"], snooping["white_rc_p"], "implementation",
-         "Unchanged. The maximum is attained by the seeded random candidate, which no change to the asymmetry rule affects."),
-        ("Hansen SPA p-value", published["spa_p"], snooping["spa_p"], "implementation", "Essentially unchanged, same reason."),
-        ("Annualized return (%)", published["annualized"], inference["annualized_return"], "implementation", "Sign flips."),
+         f"Thirteen-candidate universe including the seeded random sequence. The manuscript's formal universe of twelve "
+         f"real candidates gives p = {snooping['real_only']['white_rc_p']:.3f}."),
+        ("Hansen SPA p-value", published["spa_p"], snooping["spa_p"], "implementation",
+         f"Thirteen-candidate universe including the seeded random sequence. The formal universe of twelve gives "
+         f"p = {snooping['real_only']['spa_p']:.3f}."),
+        ("Annualized return (%)", published["annualized"], inference["annualized_return"], "implementation",
+         flip(published["annualized"], inference["annualized_return"])),
         ("GBP/USD strategy return (%)", published["gbpusd"], cross_market["GBPUSD"]["strategy_return"], "implementation",
-         "SIGN FLIPS, +17.18% to -13.32%. Attributable to the implementation fixes, not to sizing: with the fixes and frozen sizing the figure is -14.11%. The published claim that FX offers more favourable conditions rested on this number."),
+         f"{flip(published['gbpusd'], cross_market['GBPUSD']['strategy_return'])} With the fixes and frozen sizing the figure is "
+         f"{gbp_frozen:.2f}%, so sizing does not account for it. The published claim that FX offers more favourable conditions rested on this number."),
         ("SPY strategy return (%)", published["spy"], cross_market["SPY"]["strategy_return"], "implementation",
          "Stays positive and still trails buy-and-hold by roughly 280 percentage points."),
         ("GLD strategy return (%)", published["gld"], cross_market["GLD"]["strategy_return"], "implementation",

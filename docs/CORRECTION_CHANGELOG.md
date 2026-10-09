@@ -364,9 +364,270 @@ rather than eyeballed.
 
 ---
 
+## Post-merge correction (6 Oct 2026): the non-executable week in the bootstrap and two summaries
+
+Branch `polish-oct2026`: `c809c55` (code and tests), `2280d5d` (rerun),
+`6960906` (paper). This defect is not measured against `4d21c69`: it entered
+during this revision, when first-post-signal-open execution left the final week
+with no realizable return (NaN).
+
+**Defect.** The paper's Executable Sample paragraph and `analysis/strategy.py`
+say a non-executable week is missing, not a zero return. Three computations in
+`analysis/full_pipeline.py` did otherwise:
+
+1. *Sharpe bootstrap.* Both stationary-bootstrap loops resampled
+   `base.returns` with the NaN left in. A draw containing it had a NaN standard
+   deviation, failed the `sd > 0` guard, and was recorded as a Sharpe ratio of
+   exactly 0.0: 1,298 of 2,000 draws for the main interval and 622 to 648 of
+   1,000 per block-length row (counted by rerunning the pre-fix loop, seed 42,
+   on `analysis/position_ledger.csv`, which reproduces the old intervals
+   exactly). Every interval was too narrow.
+2. *`performance()` (Table 6)* filled the NaN with 0.0, adding a zero week to
+   the volatility, Sharpe and Sortino.
+3. *Reality Check / SPA universes* filled the NaN with 0.0 in every candidate.
+
+**Fix.** Non-executable weeks are dropped before resampling
+(`stationary_bootstrap_return_stats`), in `performance()`, and from the rows of
+the test universes (with an assertion that no candidate is missing on any other
+week). Two tests in `tests/test_non_executable_returns.py`.
+
+**Reproduction first.** The unmodified code at `1eed57e` regenerated the
+committed `full_pipeline_results.json` to 1e-9 relative in every field, the
+defective intervals included, except six SPY cross-market values (the
+documented SPY hash drift).
+
+| Figure | Old | New |
+|---|---|---|
+| Sharpe interval, §3.3 (B = 2000) | [−0.51, 0.49] | [−0.73, 0.64] |
+| Table 18, 2 / 4 / 8 / 13 wk (B = 1000) | [−0.484, 0.505] / [−0.451, 0.496] / [−0.370, 0.558] / [−0.236, 0.593] | [−0.733, 0.600] / [−0.723, 0.664] / [−0.654, 0.608] / [−0.755, 0.585] |
+| Table 6 vol, momentum / mean reversion / buy-and-hold | 8.51% / 3.48% / 8.77% | 8.52% / 3.49% / 8.78% |
+| Table 6 Sortino, momentum / buy-and-hold | −0.393 / 0.608 | −0.394 / 0.610 |
+| Reality Check p, twelve strategies | 0.30 (0.302) | 0.29 (0.294) |
+| SPA p, twelve strategies | 0.58 (0.580) | 0.55 (0.546) |
+| SPA statistic with the random candidate | 2.00 | 2.06 |
+| Sizing-invariance p differences (RC / SPA) | 0.002 / 0.002 | 0.003 / 0.001 |
+| `return_inference.annualized_return_ci` | [null, null] | [−3.09%, 2.93%] (not printed) |
+
+Unchanged at printed precision: the annualized return (−0.08%; now annualized
+over 503 weeks), RC 0.015, SPA 1.43, and the random-candidate RC 0.025
+(p 0.06) and SPA p 0.22. Most of the RC/SPA p-value movement comes from the
+bootstrap drawing over 503 rows instead of 504, not from the zero row itself.
+Ledgers and figures are unaffected.
+
+**Conclusions unchanged.** Every Sharpe interval still contains zero, and
+neither data-snooping universe rejects.
+
+**Residual, left as is.** `walk_forward.pooled.annualized_return` annualizes
+over 400 weeks, one of which is the terminal NaN week (399 executable): 0.356%
+against 0.357%. The figure is withheld from the paper under the single-episode
+rule, so nothing printed depends on it.
+
+---
+
+## Post-merge corrections (6 Oct 2026, second set): provenance, attribution and claims
+
+Branch `polish-oct2026`, after the bootstrap correction above. Applied on MF's
+instruction of 6 Oct 2026 to resolve the remaining Alpha questions on stated
+defaults; the decision record is kept outside the repository.
+
+**Execution contrasts and the weekend-gap test now come from the pipeline**
+(`a608cbd` code and tests, `72e1cbe` rerun, `d45e10c` paper). Section 4.4 had
+printed paired bootstrap contrasts and a weekend-gap result from a script that
+was never committed, and Section 4.5 quoted Friday-close entry-rule figures no
+committed output held. `paired_execution_contrasts` implements the
+pre-specification in `docs/REVIEW_NOTES.md` (`c7af2f3`); `weekend_gap_test`
+implements the recorded test and its pre-specified power method;
+`entry_symmetry_variants.py` adds the Friday-close runs.
+
+| Figure | Old (uncommitted script) | New (pipeline) |
+|---|---|---|
+| Monday open minus Friday close, annualized | 0.64 pp, CI [−0.67, 2.03] | 0.63 pp, CI [−0.67, 2.03] |
+| Monday close minus Monday open | −0.02, CI [−0.08, 0.04] | −0.02, CI [−0.08, 0.04] |
+| Tuesday open minus Monday close | −0.76, CI [−2.36, 0.45] | −0.77, CI [−2.36, 0.45] |
+| Weekend-gap test, wild cluster bootstrap p (signed position / direction) | 0.5765 / 0.5138 | 0.5765 / 0.5138 |
+| Weekend-gap detectable effect at 80% power | 8.8 bps (about six times the estimate) | 8.03 bps (5.8 times −1.38 bps) |
+| Equal-threshold shortfall vs published rule, Friday close / Monday open | 1.22 / 0.92 pp | 1.22 / 0.92 pp |
+
+The intervals reproduce exactly; two point estimates did not, and the
+simulation settings of the old power figure were not recorded. Every interval
+at 4-, 8- and 13-week blocks and under the stationary bootstrap contains zero,
+as do the simultaneous intervals for the three secondary contrasts (new
+Appendix D table, provenance-checked).
+
+**Historical p-values re-attributed** (`fb1cac8`, `dd1b597`). Section 4.7 and
+the response letter said p = 0.00019 and p = 0.0091 came from an earlier
+specification of the strategy *and the momentum proxy*. They came from
+commits `0918a82` (Newey-West) and `0bfc720` (ordinary cluster-robust), both
+with Friday-close pricing and a momentum proxy numerically identical to the
+current one; the current code under Friday-close pricing reproduces both.
+
+**Claims narrowed or corrected, no figure changed.**
+- Cost section: "typical spreads of 0.5–1.0 pips" was attributed to King,
+  Osler and Rime (2013), whose text (Norges Bank WP 2013/12) states no spread
+  level; removed, and the citation kept for what the article says
+  (`f3d3aa3`).
+- Code Availability said "MIT License"; the repository's only licence is CC BY
+  4.0 (`3810556`).
+- Section 2.6 said the cost section reports the frozen-notional sizing
+  alternative; it did not. It is now Table 23 in Appendix F (`5e321a9`).
+- The AI-assistance statement said every figure is machine-checked and that
+  two identities are verified after every rerun; coverage is fourteen of
+  twenty-three tables plus the regression t-statistics, and the identities
+  were checked by hand. `tests/test_identities.py` now checks them, and the
+  statement says what is true (`58a8502`).
+- `before_after_results.csv` notes carried stale figures and false
+  "sign flips" claims; they are now computed from the run (`c5ef55b`).
+
+**Relocated, not removed** (`5e321a9`): the normality battery, the cross-market
+check, the EVT detail and the sizing alternative moved to Appendices B, C, E
+and F; summaries, limitations and correction notices stay in the body.
+
+---
+
+## Release v3.1.1 (6 Oct 2026)
+
+Branch `polish-oct2026`. Release preparation only; no figure in the paper
+changes.
+
+- **Version.** v3.1.1 = v3.1.0 (PR #2, `ab08f6a`) plus the two sets of 6 Oct
+  corrections above. `paper/alpha-asymmetry.tex`, `CITATION.cff` and
+  `README.md` carry 3.1.1, and the title page prints it (`a9e4dc2`). The
+  corrected text is not labelled 3.1.0 because the merged 3.1.0 text prints
+  the defective Sharpe interval.
+- **Typography.** The claims-summary table now sets its cells ragged-right,
+  which removes five underfull boxes (`1d11643`).
+- **PDF.** `paper/alpha-asymmetry.pdf` rebuilt from source and
+  `paper/build_stats.json` regenerated (`fdaa652`): 40 pages, 0 overfull,
+  0 underfull, 0 LaTeX warnings, 0 undefined references or citations. sha256
+  `5256ad416294e9950705a4643d4ad82a0a2c595d34ac2cbe1cedf382fca31cd0`.
+- **`docs/PROPOSED_PR.md`** brought up to date and re-stamped. Status lines:
+  106 tests, 40 pages, 15 of 23 tables. Five figures in its result table and
+  the GBP/USD paragraph still carried Friday-close-run values (VIX split,
+  walk-forward, cross-market); they now match the pipeline output, with the
+  14 Sep values kept beside them. The RC/SPA p-values and the momentum
+  5%-level sentence were also corrected there.
+- **Zenodo.** A new-version draft under concept `10.5281/zenodo.18638784`,
+  with Tofik Israfilov as creator and a supersession note, is prepared and
+  left unpublished. Publishing mints a DOI that cannot be withdrawn, and both
+  authors review first.
+
+## Pre-release corrections to v3.1.1 (6 Oct 2026, third set)
+
+Branch `polish-oct2026`, after two independent verification passes on
+`096e069` found no P0 or P1 defect in the paper and listed small P2 items. No
+figure in the paper changes. The version stays 3.1.1, because v3.1.1 had not
+been published or sent.
+
+- **Sizing sentence** (`233330b`). The body's "Sizing." paragraph attached one
+  "because" to two clauses. The always-long argmax explains why the two
+  statistics are identical; the 0.003 and 0.001 shifts in the p-values come
+  from the bootstrap distribution, which includes the one candidate whose
+  returns change. The body now says this, as Appendix F already did.
+- **Appendix B anchors** (`8e5ab10`). `\theHequation` now follows the
+  appendix numbering, which removes 20 pdfTeX "same identifier" warnings. No
+  link was broken; cosmetic.
+- **Tests in a source snapshot** (`cf03ef6`). The four commit-hash guard cases
+  and the two reviewed-at checks skip, with a reason, when there is no `.git`.
+  From a `git archive` extract: 100 passed, 6 skipped (6 failed before).
+- **`docs/PROPOSED_PR.md`** (`b25a00e`, `de3bfec`). "The nine original
+  provenance sentences are machine-checked" corrected to the past tense: the
+  substring check ran once, at restoration, and no test repeats it. The test
+  skips are noted, and the file is re-stamped.
+- **Version record** (`7dc5d56`). `README.md` and `CITATION.cff` now list
+  Zenodo v1.0.0 (record 17918374, 13 Dec 2025, its own concept DOI
+  10.5281/zenodo.17918373), which they had left out. The README's SSRN link
+  is marked as registered for v2.0.0 and superseded.
+- **Decisions** (`cfb3710`). `docs/MURAD_DECISIONS.md` and
+  `docs/MESSAGE_TO_MURAD.md` record that MF ratified the five working
+  decisions on 6 Oct 2026.
+- **PDF** (`5fa7654`). Rebuilt: 40 pages, 0 overfull, 0 underfull, 0 LaTeX
+  warnings, 0 same-identifier warnings, 0 undefined references or citations.
+  sha256 `88c0b01774a5c3c6d381fbf975ecc09e0bc80396b14d2bb7ae0a6d1a576bb6dc`.
+  The text differs from the `fdaa652` PDF in the Sizing paragraph only.
+- **Restored heading.** The release entry above had absorbed the "Standing
+  limitations" heading (lost in `096e069`); it is back.
+
+## Pre-release changes to v3.1.1 after Tofik's review (9 Oct 2026)
+
+Branch `polish-oct2026`. Tofik reviewed the PDF and the diff from `ab08f6a`
+and reran the pipeline from cached data (his report: 7 of 8 input hashes
+match, SPY drifting as documented; the 1,050 values in
+`analysis/full_pipeline_results.json` match apart from the SPY cross-market
+row in the sixth digit; 106 tests pass; the PDF rebuilds identically; the
+bootstrap fix confirmed, 1,298 of 2,000 zero draws before and 0 after). He
+confirmed his CRediT line and the `dd1b597` p-value attribution, and
+supplied his ORCID. No figure in the paper changes.
+
+- **ORCID** (`611aae7`). T. Israfilov's ORCID 0009-0006-9095-7739 is on the
+  title page and in `CITATION.cff` and `README.md`. The public ORCID record,
+  read 9 Oct 2026, names Tofik Israfilov, the byline form.
+- **CRediT spelling** (`611aae7`). "conceptualisation" → "conceptualization",
+  as Tofik confirmed. The role lists are unchanged.
+- **Signal day** (`611aae7`). One Limitations sentence: the weekly signals are
+  read at the Friday close, a choice inherited from the original
+  specification and not varied; the execution timings vary only when a
+  Friday signal is acted on; a test of other signal days is left for a later
+  version. The test is pre-specified, and marked NOT RUN, in
+  `docs/REVIEW_NOTES.md` ("PRE-SPECIFICATION — weekday signal-day test").
+- **PDF** (`030b729`). Rebuilt: 40 pages, 0 overfull, 0 underfull, 0 LaTeX
+  warnings, 0 same-identifier warnings, 0 undefined references or citations.
+  sha256 `e8beef3a747291019d1642b41d3f5c8cbd9c7db5571d35ecfb4051453143e1a8`.
+  The text differs from the `5fa7654` PDF in the three places above only.
+- **`docs/PROPOSED_PR.md`** re-stamped at `030b729` (`d93c3aa`).
+- **Version.** It stays 3.1.1. No DOI has been minted for it, nothing has
+  been submitted, and the only person it was sent to for review is the
+  co-author who asked for these changes. The changes add no figure and
+  withdraw none. The branch is public on GitHub, so the `5fa7654` PDF, also
+  labelled 3.1.1, can be found in its history; this entry and the sha256
+  above say which file is the release.
+
+## Pre-release changes to v3.1.1: licence and CRediT (9 Oct 2026, later)
+
+Branch `polish-oct2026`. MF's decisions of 9 Oct on two suggestions from
+Tofik's review. No figure in the paper changes.
+
+- **Licence split** (`74e81ac`). The code is released under the MIT licence;
+  the paper and documentation stay under CC BY 4.0. Tofik suggested the split
+  (Creative Commons advises against its licences for software) and agreed for
+  his parts. `LICENSE` is now the standard MIT text, "Copyright (c) 2025-2026
+  Murad Farzulla and Tofik Israfilov", scoped to `analysis/`, `tests/`,
+  `pyproject.toml` and `requirements.txt`. The CC BY 4.0 notice moved to
+  `LICENSE-CC-BY-4.0`, its copyright line now naming both authors, scoped to
+  `paper/`, `docs/`, `README.md`, `CITATION.cff`, `_archive/` and any file
+  not listed under MIT. Neither file covers the raw market data, which are not
+  in the repository. The Code Availability paragraph now reads: "The code is
+  released under the MIT licence; the manuscript text and figures are released
+  under the Creative Commons Attribution 4.0 International licence (CC BY
+  4.0)." This supersedes the second-set entry above ("Code Availability said
+  'MIT License'; the repository's only licence is CC BY 4.0", `3810556`): that
+  correction was right when made, and the MIT grant now exists. README (badges,
+  tree, License section, the v3.1.1 line), `CITATION.cff` (`license: [MIT,
+  CC-BY-4.0]`) and `pyproject.toml` (`license = "MIT"`) agree.
+- **`CITATION.cff` failed validation** before this change, independent of the
+  licence: its top-level `type` was `article`, which CFF 1.2.0 does not allow
+  (only `software` or `dataset`). It is now `software`; the paper stays
+  described under `preferred-citation`. `cffconvert --validate` (2.0.0):
+  valid against schema 1.2.0.
+- **CRediT** (`c00960f`). M.F.'s line adds "writing — review & editing", as
+  Tofik suggested. T.I.'s line is unchanged.
+- **PDF** (`cef9e26`). Rebuilt: 40 pages, 0 overfull, 0 underfull, 0 LaTeX
+  warnings, 0 same-identifier warnings, 0 undefined references or citations;
+  a forced rebuild into the same directory is byte-identical. sha256
+  `ceec3f4f073f4062a812e53c5a752d25776555fc57b420519a693ee633c5342c`. The text
+  differs from the `030b729` PDF (the one at `d12f4af`) in the two places
+  above only.
+- **`docs/PROPOSED_PR.md`** re-stamped at `cef9e26` (`9a9cc8d`).
+- **Version.** It stays 3.1.1: no DOI minted, nothing submitted, no figure
+  added or withdrawn. The `030b729` PDF, also labelled 3.1.1, is in the public
+  branch history; the sha256 above names the release file.
+
 ## Standing limitations
 
 Unchanged by this work, and in several cases sharpened by it.
+
+- The weekly signals are read at the Friday close only, as in the original
+  specification. No other signal day has been tested (9 Oct 2026; design
+  pre-specified in `docs/REVIEW_NOTES.md`, not run).
 
 - Yahoo Finance quotes are indicative mid-rates, not executable bid/ask. End-of-
   bar fills are an assumption.
@@ -386,8 +647,9 @@ Unchanged by this work, and in several cases sharpened by it.
 - Failure to reject a null is not proof of the null.
 - Cross-market checks omit pair-specific costs, financing and dependence-aware
   inference.
-- The PDF is rebuilt from the corrected source and compiles clean (27 pages, no
-  overfull or underfull boxes, no undefined references, bibliography resolved).
+- The PDF is rebuilt from the corrected source and compiles clean (6 Oct,
+  v3.1.1: 40 pages, no overfull or underfull boxes, no undefined references,
+  bibliography resolved; this line said 27 pages until 6 Oct).
   An earlier statement in this document that no LaTeX toolchain was available and
   the PDF could not be rebuilt was true when written and is no longer true; it is
   corrected here rather than removed silently.
@@ -396,11 +658,9 @@ Unchanged by this work, and in several cases sharpened by it.
 
 ## Backlog — deliberately out of scope
 
-0. **Reconcile the version identifiers.** `paper/alpha-asymmetry.tex` carried
-   `3.0.0` for the July manuscript, `CITATION.cff` called it `2.1.0-dev`, and the
-   last deposited version is `v2.0.1`. This branch sets both to 3.1.0 to follow
-   the number printed on the paper, but which of the three is authoritative is
-   the author's to settle.
+0. ~~**Reconcile the version identifiers.**~~ Resolved 6 Oct 2026: the tex,
+   `CITATION.cff` and `README.md` all carry 3.1.1. The last deposited version is
+   v3.0.0 (Zenodo record 21315494, 11 Jul 2026), not v2.0.1 as this item said.
 1. Refit the EVT section to tail alpha, as the published paper describes (c2).
 2. Decide Monday-open versus Friday-close execution on the merits, now that the
    Open column is known to be available (c2).
@@ -412,6 +672,8 @@ Unchanged by this work, and in several cases sharpened by it.
    toward zero.
 5. Add financing/carry to the cost model.
 6. Add a per-order or minimum-ticket cost component (d).
+7. Run the weekday signal-day test pre-specified in `docs/REVIEW_NOTES.md`
+   (9 Oct 2026). Not run.
 
 ---
 

@@ -32,6 +32,13 @@ HASH = re.compile(r"`([0-9a-f]{7,40})`")
 # Hashes that are deliberately recorded although unreachable from this branch.
 KNOWN_EXTERNAL: dict[str, str] = {}
 
+# A source snapshot without Git history (the Zenodo code zip is a `git archive`)
+# has nothing to resolve hashes against. Skip there rather than fail: the check
+# is about the audit record, and it runs in every clone.
+pytestmark = pytest.mark.skipif(
+    not (ROOT / ".git").exists(),
+    reason="needs a Git clone: commit hashes cannot be resolved in a source snapshot")
+
 
 def _docs_with_hashes():
     out = []

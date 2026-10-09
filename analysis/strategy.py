@@ -8,10 +8,14 @@ at that close and it earns ``weekly_return[t + 1]``.  Equivalently, realized
 returns are ``decision_position.shift(1) * weekly_return``.  This is one lag,
 not two.
 
-The Friday close is used as the execution proxy.  That is a *choice*, not a
-data limitation: the daily bars carry an ``Open`` column, so Monday's opening
-price -- which the published paper names as the execution point -- is present
-and could be used.  Implementing it is deferred; see docs/REVIEW_NOTES.md.
+What ``weekly_return`` measures is set by the caller.  In the pipeline
+(``full_pipeline.build_weekly_alphas``) it runs from the first trading-session
+open after one Friday to the first open after the next, so a Friday decision is
+realized at the Monday open (or the next session open after a holiday), the
+execution point the published paper names.  The Friday close is used only as a
+robustness timing.  The ledger columns ``execution_date`` and
+``execution_price`` still record the signal Friday and its close, which the
+cost model uses as the indicative price level; they are not the fill.
 """
 
 from __future__ import annotations
@@ -516,7 +520,7 @@ def run_asymmetry_strategy(
 
 
 def simple_strategy(position: pd.Series, weekly_return: pd.Series) -> pd.Series:
-    """Apply the same one-lag Friday-close convention to any benchmark."""
+    """Apply the same one-lag convention to any benchmark: position[t-1] earns weekly_return[t]."""
 
     # weekly_return is deliberately not filled: see run_asymmetry_strategy. A
     # benchmark cannot earn a return over an interval that does not exist either.

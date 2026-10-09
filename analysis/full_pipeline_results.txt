@@ -1,7 +1,7 @@
 ================================================================================
 ALPHA-ASYMMETRY CORRECTED REPLICATION PIPELINE
-Generated UTC: 2026-09-14T14:33:32.538847+00:00
-Timing: Friday-close signal, one shift, next Friday-close return
+Generated UTC: 2026-10-06T18:29:35.444748+00:00
+Timing: Friday-close signal; position realized from the first trading-session open after it, one lag
 ================================================================================
 EURJPY : 2930 rows, 2014-06-02 to 2025-08-29, sha256=c62f3aaf089b...
 DXY    : 2831 rows, 2014-06-02 to 2025-08-29, sha256=af00ef5a347e...
@@ -9,7 +9,7 @@ VIX    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=d96e89db2996...
 AUDJPY : 2931 rows, 2014-06-02 to 2025-08-29, sha256=1bd0b828c5e1...
 NZDJPY : 2929 rows, 2014-06-02 to 2025-08-29, sha256=c10dfbe05151...
 GBPUSD : 2929 rows, 2014-06-02 to 2025-08-29, sha256=af4fa870ae18...
-SPY    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=973b62d793cc...
+SPY    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=f6e8e8dc7c10...
 GLD    : 2830 rows, 2014-06-02 to 2025-08-29, sha256=109bae50c452...
 LIMITATION: original raw snapshots were not committed; exact numerical reproduction of the archived run cannot be claimed.
 Analysis-ready weekly sample: n=504, 2016-01-08 to 2025-08-29
@@ -23,6 +23,10 @@ Baseline: return=-0.73% Sharpe=0.005 episodes=15 legs=61 reversals=1 turnover=52
 WALK-FORWARD: 1 out-of-sample episode(s) in 8 test years; below the 2-episode minimum, so pooled Sharpe/hit/annualized return are not reportable as performance.
 SENSITIVITY: threshold 1.25 opens 1 episode(s); below the 2-episode minimum, so its Sharpe ratio and hit rate are not reportable as performance.
 Execution-timing grid: common sample n=502, dropped ['2016-01-08', '2025-08-29']
+  paired contrast monday_open_minus_friday_close: +0.633 pp, 95% CI [-0.67, 2.03] (4-week moving block)
+  paired contrast monday_close_minus_monday_open: -0.020 pp, 95% CI [-0.08, 0.04] (4-week moving block)
+  paired contrast tuesday_open_minus_monday_close: -0.768 pp, 95% CI [-2.36, 0.45] (4-week moving block)
+Weekend-gap test: b=-1.38 bps per unit, wild p=0.5765; 80% power at 8.027777777777779 bps
 Regime rows: low VIX=342, high VIX=162 (classified after one full run)
-White RC p=0.060; SPA p=0.217; best candidate=random_candidate
+White RC p=0.062; SPA p=0.216; best candidate=random_candidate
 Outputs: analysis

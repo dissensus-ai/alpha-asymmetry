@@ -1,6 +1,8 @@
 cff-version: 1.2.0
 message: "If you use or reference this work, please cite it as below."
-type: article
+# CFF 1.2.0 allows only "software" or "dataset" here; the paper itself is
+# described under preferred-citation below.
+type: software
 authors:
   - family-names: "Farzulla"
     given-names: "Murad"
@@ -9,43 +11,60 @@ authors:
     affiliation: "Dissensus"
   - family-names: "Israfilov"
     given-names: "Tofik"
+    orcid: "https://orcid.org/0009-0006-9095-7739"
     email: "tofik@dissensus.ai"
     affiliation: "Dissensus"
 title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
-# Authorship note: adds Tofik Israfilov as co-author. The published deposits
-# (SSRN 6147567, Zenodo v2.0.1) are sole-authored and stay that way -- this
-# change takes effect from the next deposit onward.
+# Authorship note: Tofik Israfilov is a co-author from v3.1.x onward. The
+# published deposits (SSRN 6147567, Zenodo v1.0.0, v2.0.0, v2.0.1 and v3.0.0)
+# are sole-authored and stay that way.
 #
-# VERSION IDENTIFIERS DISAGREED ACROSS FILES before this branch, and the
-# reconciliation is still the author's to confirm:
-#   paper/alpha-asymmetry.tex  carried \paperver 3.0.0 for the July 2026
-#                              manuscript (set in f04ae08, 21 Jul 2026)
-#   this file                  called the same work v2.1.0-dev
-#   last DEPOSITED version     is v2.0.1 (10.5281/zenodo.20635291)
-# Neither 3.0.0 nor 2.1.0-dev was ever deposited to Zenodo or SSRN.
-#
-# v3.1.0-dev = the present correction pass: holding rule, execution lag and
-# asymmetry index corrected against the published specification; all downstream
-# results regenerated, plus the Reviewer 3 response. Follows the .tex numbering
-# because that is the identifier printed on the paper itself. Not yet deposited.
-# Depositing mints a new Zenodo version DOI, which should be recorded here and
-# in CLAUDE.md afterwards; the SSRN record requires a separate revision.
-version: "3.1.0-dev"
-date-released: "2026-09-12"
-license: "CC-BY-4.0"
-doi: "10.2139/ssrn.6147567"
-url: "https://dissensus.ai"
+# Version history (identifiers checked against the Zenodo API, 6 Oct 2026):
+#   v1.0.0  deposited 13 Dec 2025 (Zenodo record 17918374) under its own concept
+#           DOI, 10.5281/zenodo.17918373; superseded (5.05 tail skew withdrawn).
+#   v2.0.0  deposited 14 Feb 2026 (Zenodo record 18638785), first version under
+#           the concept DOI below; v2.0.1 followed on 11 Jun 2026.
+#   v3.0.0  deposited 11 Jul 2026 (Zenodo record 21315494); its strategy figures
+#           came from code whose exit rule did not match the specification.
+#   v3.1.0  Tofik Israfilov's correction (PR #2, merged 29 Sep 2026 as ab08f6a):
+#           holding rule, execution lag and asymmetry index corrected against
+#           the published specification; all downstream results regenerated.
+#           Never deposited.
+#   v3.1.1  v3.1.0 plus the 6 Oct 2026 corrections on branch polish-oct2026:
+#           the return bootstrap and performance statistics exclude the
+#           non-executable final week, the execution contrasts and weekend-gap
+#           test are pipeline output, and robustness detail moved to appendices.
+#           See docs/CORRECTION_CHANGELOG.md.
+# Depositing v3.1.1 mints a new Zenodo version DOI under the concept DOI below;
+# record it here after publication. The SSRN record needs a separate revision.
+version: "3.1.1"
+date-released: "2026-10-06"
+# Two licences (9 Oct 2026): MIT for the software (analysis/, tests/,
+# pyproject.toml, requirements.txt; see LICENSE) and CC BY 4.0 for the paper
+# and documentation (paper/, docs/, README.md, this file, _archive/; see
+# LICENSE-CC-BY-4.0).
+license:
+  - "MIT"
+  - "CC-BY-4.0"
+doi: "10.5281/zenodo.18638784"
+url: "https://dissensus.ai/papers/alpha-asymmetry-fx"
 repository-code: "https://github.com/dissensus-ai/alpha-asymmetry"
 identifiers:
   - type: doi
     value: "10.2139/ssrn.6147567"
-    description: "SSRN preprint"
+    description: "SSRN preprint (registered February 2026 for v2.0.0; superseded)"
   - type: doi
     value: "10.5281/zenodo.18638784"
     description: "Zenodo archive (concept DOI, resolves to latest version)"
   - type: doi
+    value: "10.5281/zenodo.21315494"
+    description: "Zenodo archive (v3.0.0, 11 Jul 2026; strategy figures superseded by v3.1.1)"
+  - type: doi
     value: "10.5281/zenodo.20635291"
-    description: "Zenodo archive (v2.0.1, latest published; predates the v2.1 correction pass)"
+    description: "Zenodo archive (v2.0.1, pre-correction)"
+  - type: doi
+    value: "10.5281/zenodo.17918374"
+    description: "Zenodo archive (v1.0.0, 13 Dec 2025, separate concept DOI 10.5281/zenodo.17918373; pre-correction, superseded)"
 keywords:
   - foreign exchange
   - alpha asymmetry
@@ -61,8 +80,9 @@ preferred-citation:
       orcid: "https://orcid.org/0009-0002-7164-8704"
     - family-names: "Israfilov"
       given-names: "Tofik"
+      orcid: "https://orcid.org/0009-0006-9095-7739"
       affiliation: "Dissensus"
   title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
   year: 2026
-  doi: "10.2139/ssrn.6147567"
-  journal: "SSRN Electronic Journal"
+  doi: "10.5281/zenodo.18638784"
+  journal: "Dissensus Working Paper DAI-2605"

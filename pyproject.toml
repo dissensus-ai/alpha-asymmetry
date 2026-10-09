@@ -2,6 +2,10 @@
 name = "alpha-asymmetry-replication"
 version = "0.1.0"
 requires-python = ">=3.12"
+# The code is MIT-licensed; the paper and documentation are CC BY 4.0
+# (LICENSE-CC-BY-4.0). See the License section of README.md.
+license = "MIT"
+license-files = ["LICENSE"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
