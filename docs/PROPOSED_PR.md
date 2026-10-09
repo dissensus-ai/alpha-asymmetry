@@ -1,6 +1,6 @@
 # Proposed pull request
 
-<!-- reviewed-at: 030b729 -->
+<!-- reviewed-at: cef9e26 -->
 
 > **Status, 6 Oct 2026.** This pull request (PR #2) was merged into
 > `dissensus-ai/alpha-asymmetry` master on 29 Sep 2026 as `ab08f6a` (v3.1.0).
@@ -17,6 +17,14 @@
 > CRediT statement, one Limitations sentence on the Friday signal day) and the
 > PDF rebuild. No figure changes; the status lines below still hold (106
 > tests, 40 pages, 15 of 23 tables).
+>
+> **9 Oct 2026, later.** Re-stamped at `cef9e26` after the licence split
+> (`74e81ac`: the code is released under MIT in `LICENSE`, the paper and
+> documentation stay under CC BY 4.0 in `LICENSE-CC-BY-4.0`, and the Code
+> Availability paragraph says so), M.F.'s CRediT line gaining "writing —
+> review & editing" (`c00960f`), and the PDF rebuild (`cef9e26`). No figure
+> changes; the status lines below still hold (106 tests, 40 pages, 15 of 23
+> tables).
 
 
 ## Title
