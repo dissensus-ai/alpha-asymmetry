@@ -1,0 +1,17 @@
+Creative Commons Attribution 4.0 International License (CC BY 4.0)
+
+Copyright (c) 2025-2026 Murad Farzulla and Tofik Israfilov
+
+This work is licensed under the Creative Commons Attribution 4.0 International License.
+To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
+or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+---
+
+Scope. This licence covers the paper and its documentation: everything under
+paper/ (the manuscript's LaTeX source and bibliography, the compiled PDF and
+the figures), everything under docs/, README.md, CITATION.cff, the earlier
+versions kept in _archive/, and any other file not listed in LICENSE. The
+software (analysis/, tests/, pyproject.toml and requirements.txt) is licensed
+under the MIT licence instead (see LICENSE). The raw market data are not in
+this repository and are licensed by neither file.

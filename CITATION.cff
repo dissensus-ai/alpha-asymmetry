@@ -1,6 +1,8 @@
 cff-version: 1.2.0
 message: "If you use or reference this work, please cite it as below."
-type: article
+# CFF 1.2.0 allows only "software" or "dataset" here; the paper itself is
+# described under preferred-citation below.
+type: software
 authors:
   - family-names: "Farzulla"
     given-names: "Murad"
@@ -37,7 +39,13 @@ title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploit
 # record it here after publication. The SSRN record needs a separate revision.
 version: "3.1.1"
 date-released: "2026-10-06"
-license: "CC-BY-4.0"
+# Two licences (9 Oct 2026): MIT for the software (analysis/, tests/,
+# pyproject.toml, requirements.txt; see LICENSE) and CC BY 4.0 for the paper
+# and documentation (paper/, docs/, README.md, this file, _archive/; see
+# LICENSE-CC-BY-4.0).
+license:
+  - "MIT"
+  - "CC-BY-4.0"
 doi: "10.5281/zenodo.18638784"
 url: "https://dissensus.ai/papers/alpha-asymmetry-fx"
 repository-code: "https://github.com/dissensus-ai/alpha-asymmetry"
