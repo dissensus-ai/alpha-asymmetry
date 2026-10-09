@@ -157,6 +157,7 @@ Co-authorship takes effect from v3.1.x; the published deposits (Zenodo v1.0.0, v
   - ORCID: [0009-0002-7164-8704](https://orcid.org/0009-0002-7164-8704)
   - Email: murad@dissensus.ai
 - **Tofik Israfilov** -- [Dissensus](https://dissensus.ai)
+  - ORCID: [0009-0006-9095-7739](https://orcid.org/0009-0006-9095-7739)
   - Email: tofik@dissensus.ai
 
 ## Links

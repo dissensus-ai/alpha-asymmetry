@@ -9,6 +9,7 @@ authors:
     affiliation: "Dissensus"
   - family-names: "Israfilov"
     given-names: "Tofik"
+    orcid: "https://orcid.org/0009-0006-9095-7739"
     email: "tofik@dissensus.ai"
     affiliation: "Dissensus"
 title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
@@ -71,6 +72,7 @@ preferred-citation:
       orcid: "https://orcid.org/0009-0002-7164-8704"
     - family-names: "Israfilov"
       given-names: "Tofik"
+      orcid: "https://orcid.org/0009-0006-9095-7739"
       affiliation: "Dissensus"
   title: "Alpha Asymmetry in Foreign Exchange Markets: An Investigation of Exploitability"
   year: 2026
